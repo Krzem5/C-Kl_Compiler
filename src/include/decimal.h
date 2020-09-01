@@ -1,6 +1,6 @@
-#ifndef DECIMAL_H
-#define DECIMAL_H
-#include <types.h>
+#ifndef FLOAT_H
+#define FLOAT_H
+#include <shared.h>
 
 
 

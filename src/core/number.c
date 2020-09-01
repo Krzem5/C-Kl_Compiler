@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <stdint.h>
 #include <io.h>
-#include <types.h>
+#include <shared.h>
 
 
 
@@ -59,7 +59,7 @@ struct Number* KlNum_assign_long(struct Number* o,long v){
 		o=KlMem_malloc(sizeof(struct Number));
 	}
 	o->l=(v<0?-1:1);
-	unsigned long uv=v*o->l;
+	intmax_t uv=v*o->l;
 	o->v=KlMem_const(&(uint32_t)uv,sizeof(uint32_t));
 	return(o);
 }
@@ -83,11 +83,11 @@ struct Number* KlNum_trunc(struct Number* o){
 	KlMem_enter_func();
 	assert(o!=NULL);
 	signed char s=(o->l<0?-1:1);
-	unsigned long l=o->l*s;
+	intmax_t l=o->l*s;
 	while (l>1&&o->v[l-1]==0){
 		l--;
 	}
-	if (l!=(unsigned long)(o->l*s)){
+	if (l!=(intmax_t)(o->l*s)){
 		o->l=l*s;
 		o->v=KlMem_realloc(o->v,l*sizeof(uint32_t));
 	}
@@ -189,13 +189,13 @@ struct Number* KlNum_add_abs(struct Number* a,struct Number* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
-	unsigned long lna=(a->l<0?-a->l:a->l);
-	unsigned long lnb=(b->l<0?-b->l:b->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
+	intmax_t lnb=(b->l<0?-b->l:b->l);
 	if (lna<lnb){
 		struct Number* t=a;
 		a=b;
 		b=t;
-		unsigned long lnt=lna;
+		intmax_t lnt=lna;
 		lna=lnb;
 		lnb=lnt;
 	}
@@ -203,7 +203,7 @@ struct Number* KlNum_add_abs(struct Number* a,struct Number* b){
 	o.l=(lna+1)*(a->l<0?-1:1);
 	o.v=KlMem_malloc((lna+1)*sizeof(uint32_t));
 	uint32_t c=0;
-	unsigned long i;
+	intmax_t i;
 	for (i=0;i<lnb;i++){
 		c+=a->v[i]+b->v[i];
 		o.v[i]=c&NUM_MASK;
@@ -223,14 +223,14 @@ struct Number* KlNum_add_abs(struct Number* a,struct Number* b){
 struct Number* KlNum_add_long_abs(struct Number* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	unsigned long lna=(a->l<0?-a->l:a->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
 	struct Number o;
 	o.l=(lna+1)*(a->l<0?-1:1);
 	o.v=KlMem_malloc((lna+1)*sizeof(uint32_t));
 	uint32_t c=a->v[0]+b;
 	o.v[0]=c&NUM_MASK;
 	c>>=NUM_SHIFT;
-	unsigned long i=1;
+	intmax_t i=1;
 	for (;i<lna;i++){
 		c+=a->v[i];
 		o.v[i]=c&NUM_MASK;
@@ -278,18 +278,18 @@ struct Number* KlNum_sub_abs(struct Number* a,struct Number* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
-	unsigned long lna=(a->l<0?-a->l:a->l);
-	unsigned long lnb=(b->l<0?-b->l:b->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
+	intmax_t lnb=(b->l<0?-b->l:b->l);
 	if (lna<lnb){
 		struct Number* t=a;
 		a=b;
 		b=t;
-		unsigned long lnt=lna;
+		intmax_t lnt=lna;
 		lna=lnb;
 		lnb=lnt;
 	}
 	else if (lna==lnb){
-		unsigned long i=lna;
+		intmax_t i=lna;
 		while (a->v[i]==b->v[i]){
 			if (i==0){
 				return(KlNum_from_long(0));
@@ -307,7 +307,7 @@ struct Number* KlNum_sub_abs(struct Number* a,struct Number* b){
 	o.l=lna;
 	o.v=KlMem_malloc(lna*sizeof(uint32_t));
 	uint32_t br=0;
-	unsigned long i=0;
+	intmax_t i=0;
 	for (;i<lnb;i++){
 		br=a->v[i]-b->v[i]-br;
 		o.v[i]=br&NUM_MASK;
@@ -328,13 +328,13 @@ struct Number* KlNum_sub_abs(struct Number* a,struct Number* b){
 struct Number* KlNum_sub_long_abs(struct Number* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	unsigned long lna=(a->l<0?-a->l:a->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
 	if (lna==1){
 		if (*a->v==b){
 			return(KlNum_from_long(0));
 		}
 		if (*a->v<b){
-			unsigned long t=a->v[0];
+			uint32_t t=a->v[0];
 			*a->v=(uint32_t)b;
 			b=t;
 		}
@@ -346,7 +346,7 @@ struct Number* KlNum_sub_long_abs(struct Number* a,unsigned long b){
 	*o.v=br&NUM_MASK;
 	br>>=NUM_SHIFT;
 	br&=1;
-	for (unsigned long i=1;i<lna;i++){
+	for (intmax_t i=1;i<lna;i++){
 		br=a->v[i]-br;
 		o.v[i]=br&NUM_MASK;
 		br>>=NUM_SHIFT;
@@ -401,15 +401,15 @@ struct Number* KlNum_mult_abs(struct Number* a,struct Number* b){
 	if (KlNum_is_one(b)){
 		return(KlNum_assign(NULL,a));
 	}
-	unsigned long lna=(a->l<0?-a->l:a->l);
-	unsigned long lnb=(b->l<0?-b->l:b->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
+	intmax_t lnb=(b->l<0?-b->l:b->l);
 	struct Number o;
 	o.l=lna+lnb;
 	o.v=KlMem_calloc(o.l,sizeof(uint32_t));
 	uint64_t c;
-	unsigned long j;
-	unsigned long bi;
-	for (unsigned long i=0;i<lna;i++){
+	intmax_t j;
+	intmax_t bi;
+	for (intmax_t i=0;i<lna;i++){
 		c=0;
 		j=i;
 		bi=0;
@@ -441,12 +441,12 @@ struct Number* KlNum_mult_long_abs(struct Number* a,unsigned long b){
 	if (b==1){
 		return(KlNum_assign(NULL,a));
 	}
-	unsigned long lna=(a->l<0?-a->l:a->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
 	struct Number o;
 	o.l=lna+1;
 	o.v=KlMem_calloc(o.l,sizeof(uint32_t));
-	unsigned long j;
-	for (unsigned long i=0;i<lna;i++){
+	intmax_t j;
+	for (intmax_t i=0;i<lna;i++){
 		j=i;
 		uint64_t c=*(o.v+i)+b*(*(a->v+i));
 		*(o.v+j)=(uint32_t)(c&NUM_MASK);
@@ -561,8 +561,8 @@ unsigned char KlNum_divrem(struct Number* a,struct Number* b,struct Number** div
 		KlError_unimplemented_error();
 		return(1);
 	}
-	unsigned long lna=(a->l<0?-a->l:a->l);
-	unsigned long lnb=(b->l<0?-b->l:b->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
+	intmax_t lnb=(b->l<0?-b->l:b->l);
 	if (lna<lnb||(lna==lnb&&*(a->v+lna-1)<*(b->v+lnb-1))){
 		if (div!=NULL){
 			*div=KlNum_assign_long(*div,0);
@@ -576,7 +576,7 @@ unsigned char KlNum_divrem(struct Number* a,struct Number* b,struct Number** div
 	}
 	if (lnb==1){
 		uint64_t rm=0;
-		unsigned long tln=lna;
+		intmax_t tln=lna;
 		uint32_t hi;
 		if (div!=NULL){
 			if (*div==NULL){
@@ -635,7 +635,7 @@ unsigned char KlNum_divrem_long(struct Number* a,long b,struct Number** div,stru
 		KlError_unimplemented_error();
 		return(1);
 	}
-	unsigned long lna=(a->l<0?-a->l:a->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
 	unsigned long ub=(b<0?-b:b);
 	if (lna==1&&*(a->v+lna-1)<ub){
 		if (div!=NULL){
@@ -652,7 +652,7 @@ unsigned char KlNum_divrem_long(struct Number* a,long b,struct Number** div,stru
 	(*div)->l=lna;
 	(*div)->v=(uint32_t*)KlMem_malloc(lna*sizeof(uint32_t))+lna;
 	uint64_t r=0;
-	unsigned long tln=lna;
+	intmax_t tln=lna;
 	uint32_t hi;
 	(uint32_t*)a->v+=tln;
 	while (tln>0){
@@ -685,8 +685,8 @@ unsigned char KlNum_divrem_abs(struct Number* a,struct Number* b,struct Number**
 		KlError_unimplemented_error();
 		return(1);
 	}
-	unsigned long lna=(a->l<0?-a->l:a->l);
-	unsigned long lnb=(b->l<0?-b->l:b->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
+	intmax_t lnb=(b->l<0?-b->l:b->l);
 	struct Number v;
 	v.l=lna+1;
 	v.v=KlMem_malloc(v.l*sizeof(uint32_t));
@@ -717,13 +717,13 @@ unsigned char KlNum_divrem_abs(struct Number* a,struct Number* b,struct Number**
 		}
 	}
 	uint32_t c=0;
-	for (unsigned long i=0;i<lnb;i++){
+	for (intmax_t i=0;i<lnb;i++){
 		uint64_t s=(uint64_t)*(b->v+i)<<d|c;
 		*(w.v+i)=(uint32_t)s&NUM_MASK;
 		c=(uint32_t)(s>>NUM_SHIFT);
 	}
 	c=0;
-	for (unsigned long i=0;i<lna;i++){
+	for (intmax_t i=0;i<lna;i++){
 		uint64_t s=(uint64_t)*(a->v+i)<<d|c;
 		*(v.v+i)=(uint32_t)s&NUM_MASK;
 		c=(uint32_t)(s>>NUM_SHIFT);
@@ -732,7 +732,7 @@ unsigned char KlNum_divrem_abs(struct Number* a,struct Number* b,struct Number**
 		v.v[lna]=c;
 		lna++;
 	}
-	unsigned long k=lna-lnb;
+	intmax_t k=lna-lnb;
 	struct Number t;
 	t.l=lna-lnb;
 	t.v=KlMem_malloc(t.l*sizeof(uint32_t));
@@ -751,14 +751,14 @@ unsigned char KlNum_divrem_abs(struct Number* a,struct Number* b,struct Number**
 			}
 		}
 		int32_t zhi=0;
-		for (unsigned long i=0;i<lnb;i++){
+		for (intmax_t i=0;i<lnb;i++){
 			int64_t z=(int32_t)*(vk+i)+zhi-(int64_t)q*(int64_t)*(w.v+i);
 			*(vk+i)=(uint32_t)z&NUM_MASK;
 			zhi=(int32_t)z>>NUM_SHIFT;
 		}
 		if ((int32_t)vtop+zhi<0){
 			c=0;
-			for (unsigned long i=0;i<lnb;i++){
+			for (intmax_t i=0;i<lnb;i++){
 				c+=*(vk+i)+*(w.v+i);
 				*(vk+i)=c&NUM_MASK;
 				c>>=NUM_SHIFT;
@@ -774,7 +774,7 @@ unsigned char KlNum_divrem_abs(struct Number* a,struct Number* b,struct Number**
 	}
 	c=0;
 	uint32_t ms=((uint32_t)1<<d)-1;
-	for (unsigned long i=lnb-1;i>0;i--){
+	for (intmax_t i=lnb-1;i>0;i--){
 		uint64_t s=(uint64_t)c<<NUM_SHIFT|*(w.v+i);
 		c=(uint32_t)s&ms;
 		*(v.v+i)=(uint32_t)(s>>d);
@@ -931,9 +931,9 @@ struct Number* KlNum_pow(struct Number* a,struct Number* b,struct Number* c){
 	assert(b->l>0);
 	assert((c==NULL||c->l>0));
 	struct Number* o=KlNum_from_long(1);
-	unsigned long i;
-	unsigned long j;
-	unsigned long k;
+	intmax_t i;
+	uint32_t j;
+	unsigned char k;
 	if (b->l<=8){
 		i=b->l-1;
 		while (true){
@@ -1086,7 +1086,7 @@ struct Number* KlNum_pow_long(struct Number* a,long b,struct Number* c){
 	assert(b>=0);
 	assert((c==NULL||c->l>0));
 	struct Number* o=KlNum_from_long(1);
-	for (unsigned long i=(uint32_t)1<<(NUM_SHIFT-1);i!=0;i>>=1){
+	for (uint32_t i=(uint32_t)1<<(NUM_SHIFT-1);i!=0;i>>=1){
 		tmp=KlNum_mult(o,o);
 		KlNum_assign(o,tmp);
 		KlNum_free(tmp);
@@ -1147,6 +1147,8 @@ struct Number* KlNum_invmod(struct Number* a,struct Number* n){
 		}
 		a=n;
 		n=r;
+		KlNum_free(t);
+		KlNum_free(s);
 		t=KlNum_mult(q,c);
 		s=KlNum_sub(b,t);
 		b=c;
@@ -1307,7 +1309,7 @@ bool KlNum_eq(struct Number* a,struct Number* b){
 	if (a->l!=b->l){
 		return(false);
 	}
-	for (unsigned long i=0;i<(unsigned long)a->l*(a->l<0?-1:1);i++){
+	for (intmax_t i=0;i<(intmax_t)a->l*(a->l<0?-1:1);i++){
 		if (*(a->v+i)!=*(b->v+i)){
 			return(false);
 		}
@@ -1327,7 +1329,7 @@ bool KlNum_neq(struct Number* a,struct Number* b){
 	if (a->l!=b->l){
 		return(true);
 	}
-	for (unsigned long i=0;i<(unsigned long)a->l*(a->l<0?-1:1);i++){
+	for (intmax_t i=0;i<(intmax_t)a->l*(a->l<0?-1:1);i++){
 		if (*(a->v+i)!=*(b->v+i)){
 			return(true);
 		}
@@ -1380,15 +1382,15 @@ signed char KlNum_cmp_abs(struct Number* a,struct Number* b){
 	if (a==b){
 		return(0);
 	}
-	unsigned long lna=(a->l<0?-a->l:a->l);
-	unsigned long lnb=(b->l<0?-b->l:b->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
+	intmax_t lnb=(b->l<0?-b->l:b->l);
 	if (lna>lnb){
 		return(1);
 	}
 	if (lna<lnb){
 		return(-1);
 	}
-	for (unsigned long i=lna-1;i>=0;i++){
+	for (intmax_t i=lna-1;i>=0;i++){
 		if (*(a->v+i)>*(b->v+i)){
 			return(1);
 		}
@@ -1404,7 +1406,7 @@ signed char KlNum_cmp_abs(struct Number* a,struct Number* b){
 signed char KlNum_cmp_long_abs(struct Number* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	unsigned long lna=(a->l<0?-a->l:a->l);
+	intmax_t lna=(a->l<0?-a->l:a->l);
 	if (lna>1){
 		return(1);
 	}
@@ -1425,11 +1427,11 @@ signed char KlNum_cmp_long_abs(struct Number* a,unsigned long b){
 char* KlNum_print(struct Number* n){
 	KlMem_enter_func();
 	assert(n!=NULL);
-	unsigned long ln=(n->l<0?-n->l:n->l);
+	intmax_t ln=(n->l<0?-n->l:n->l);
 	uint32_t* tmp=KlMem_malloc((1+ln+ln/((33*DEC_SHIFT)/(10*NUM_SHIFT-33*DEC_SHIFT)))*sizeof(uint32_t));
-	unsigned long sz=0;
-	unsigned long i=ln-1;
-	unsigned long j;
+	size_t sz=0;
+	size_t i=ln-1;
+	size_t j;
 	while (true){
 		uint32_t hi=*(n->v+i);
 		for (j=0;j<sz;j++){
@@ -1451,7 +1453,7 @@ char* KlNum_print(struct Number* n){
 		*tmp=0;
 		sz++;
 	}
-	unsigned long o_ln=(n->l<0?1:0)+1+(sz-1)*DEC_SHIFT;
+	size_t o_ln=(n->l<0?1:0)+1+(sz-1)*DEC_SHIFT;
 	uint32_t pw=10;
 	uint32_t rm=*(tmp+sz-1);
 	while (rm>=pw){

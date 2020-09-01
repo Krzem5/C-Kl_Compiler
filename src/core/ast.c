@@ -4,7 +4,7 @@
 #include <import.h>
 #include <number.h>
 #include <memory.h>
-#include <types.h>
+#include <shared.h>
 #include <free.h>
 #include <io.h>
 #include <string_utils.h>
@@ -27,16 +27,17 @@
 
 #ifndef NDEBUG
 #include <stdio.h>
-#include <types.h>
+#include <shared.h>
 #include <debug_utils.h>
-#define print_token(x) debug_print_ast_token(x)
-// #define print_ast_expr(x) debug_print_ast_expr(x,0)
-#define print_unopt_ast_object(x) debug_print_unopt_ast_object(x)
-// #define print_unparsed_ast_expr(x) debug_print_unparsed_ast_expr(x,0)
+#define print_token(x) KlDebug_print_ast_token(x)
+#define print_ast_expr(x) KlDebug_print_ast_expr(x,0)
+#define print_unopt_ast_object(x) KlDebug_print_unopt_ast_object(x)
+#define print_unparsed_ast_expr(x) KlDebug_print_unparsed_ast_expr(x,0)
 #else
+#include <debug_utils.h>
 #define print_token(x)
 #define print_ast_expr(x)
-#define print_unopt_ast_object(x)
+#define print_unopt_ast_object(x) KlDebug_print_unopt_ast_object(x)
 #define print_unparsed_ast_expr(x)
 #endif
 
@@ -61,7 +62,7 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 		}
 	};
 	while (t.t!=AST_TOKEN_TYPE_END_OF_DATA&&t.t!=AST_TOKEN_TYPE_ERROR){
-		if ((t.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)t.v==AST_TOKEN_OPERATOR_SEMICOLON)||t.t==AST_TOKEN_TYPE_WHITESPACE){
+		if ((t.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)t.v==AST_TOKEN_OPERATOR_SEMICOLON)||t.t==AST_TOKEN_TYPE_WHITESPACE){
 			t=KlAst_next_token(fo,KlFree_free_token(t),cs);
 			continue;
 		}
@@ -77,7 +78,7 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 			continue;
 		}
 		if (t.t==AST_TOKEN_TYPE_KEYWORD){
-			switch ((unsigned char)(PTR_TYPE)t.v){
+			switch ((unsigned char)(uintptr_t)t.v){
 				default:
 				case AST_TOKEN_KEYWORD_UNKNOWN:
 					KlError_unimplemented_error();
@@ -100,7 +101,7 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 							if (nt.t==AST_TOKEN_TYPE_WHITESPACE){
 								nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 							}
-							if (nt.t!=AST_TOKEN_TYPE_KEYWORD||(unsigned char)(PTR_TYPE)nt.v!=AST_TOKEN_KEYWORD_USE){
+							if (nt.t!=AST_TOKEN_TYPE_KEYWORD||(unsigned char)(uintptr_t)nt.v!=AST_TOKEN_KEYWORD_USE){
 								KlError_unimplemented_error();
 								return(NULL);
 							}
@@ -108,7 +109,7 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 							if (m_e_nm.t==AST_TOKEN_TYPE_WHITESPACE){
 								m_e_nm=KlAst_next_token(fo,KlFree_free_token(m_e_nm),cs);
 							}
-							if (m_e_nm.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)m_e_nm.v==AST_TOKEN_OPERATOR_STAR){
+							if (m_e_nm.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)m_e_nm.v==AST_TOKEN_OPERATOR_STAR){
 								struct ASTExpression* ex=KlAst_gen_expression("(s)",AST_EXPRESSION_TYPE_IMP_ALL,m_nm.v);
 								KlAst_add_expression(&o,*ex);
 								KlMem_free(ex);
@@ -116,11 +117,11 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 								if (m_e_nm.t==AST_TOKEN_TYPE_WHITESPACE){
 									m_e_nm=KlAst_next_token(fo,KlFree_free_token(m_e_nm),cs);
 								}
-								if (m_e_nm.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)m_e_nm.v==AST_TOKEN_OPERATOR_COMMA){
+								if (m_e_nm.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)m_e_nm.v==AST_TOKEN_OPERATOR_COMMA){
 									KlError_unimplemented_error();
 									return(NULL);
 								}
-								else if (m_e_nm.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)m_e_nm.v==AST_TOKEN_OPERATOR_SEMICOLON){
+								else if (m_e_nm.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)m_e_nm.v==AST_TOKEN_OPERATOR_SEMICOLON){
 									KlFree_free_token(nt);
 									nt=KlAst_next_token(fo,KlFree_free_token(m_e_nm),cs);
 									break;
@@ -141,7 +142,7 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 								if (ie->a.v.i!=NULL){
 									KlMem_free(ie->a.v.i);
 								}
-								if (nt.t==AST_TOKEN_TYPE_KEYWORD&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_KEYWORD_AS){
+								if (nt.t==AST_TOKEN_TYPE_KEYWORD&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_KEYWORD_AS){
 									nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 									if (nt.t==AST_TOKEN_TYPE_WHITESPACE){
 										nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
@@ -162,11 +163,11 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 									KlAst_add_expression(&o,KlAst_clone_expression(*ie));
 								}
 								KlFree_free_token(m_e_nm);
-								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_COMMA){
+								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_COMMA){
 									nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 									continue;
 								}
-								else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_SEMICOLON){
+								else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_SEMICOLON){
 									nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 									break;
 								}
@@ -198,10 +199,10 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 							nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 						}
 						char* m_v_nm;
-						if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_SEMICOLON){
+						if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_SEMICOLON){
 							m_v_nm=str_clone(m_nm.v);
 						}
-						else if (nt.t==AST_TOKEN_TYPE_KEYWORD&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_KEYWORD_AS){
+						else if (nt.t==AST_TOKEN_TYPE_KEYWORD&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_KEYWORD_AS){
 							nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 							if (nt.t==AST_TOKEN_TYPE_WHITESPACE){
 								nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
@@ -311,10 +312,10 @@ struct ModifierData KlAst_parse_modifiers(struct CodeFileObject* fo,struct ASTTo
 	while (t->t==AST_TOKEN_TYPE_MODIFIER){
 		if (t->v!=0){
 			if (o.m==0){
-				o.s=t->i-((unsigned char)(PTR_TYPE)t->v==AST_TOKEN_MODIFIER_PRIVATE?7:((unsigned char)(PTR_TYPE)t->v==AST_TOKEN_MODIFIER_FROZENTYPE?10:6));
+				o.s=t->i-((unsigned char)(uintptr_t)t->v==AST_TOKEN_MODIFIER_PRIVATE?7:((unsigned char)(uintptr_t)t->v==AST_TOKEN_MODIFIER_FROZENTYPE?10:6));
 			}
 			o.e=t->i-1;
-			o.m+=(unsigned char)(PTR_TYPE)t->v;
+			o.m+=(unsigned char)(uintptr_t)t->v;
 		}
 		*t=KlAst_next_token(fo,KlFree_free_token_p(t),cs);
 		if (t->t!=AST_TOKEN_TYPE_WHITESPACE){
@@ -382,12 +383,12 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 		0
 	};
 	assert(et==AST_TOKEN_END_SEMICOLON||et==AST_TOKEN_END_COMMA_OR_PARENTHESIS);
-	if (e==false&&t->t==AST_TOKEN_TYPE_OPERATOR&&((et==AST_TOKEN_END_SEMICOLON&&(unsigned char)(PTR_TYPE)t->v==AST_TOKEN_OPERATOR_SEMICOLON)||(et==AST_TOKEN_END_COMMA_OR_PARENTHESIS&&((unsigned char)(PTR_TYPE)t->v==AST_TOKEN_OPERATOR_COMMA||(unsigned char)(PTR_TYPE)t->v==AST_TOKEN_OPERATOR_RIGHT_PARENTHESIS)))){
+	if (e==false&&t->t==AST_TOKEN_TYPE_OPERATOR&&((et==AST_TOKEN_END_SEMICOLON&&(unsigned char)(uintptr_t)t->v==AST_TOKEN_OPERATOR_SEMICOLON)||(et==AST_TOKEN_END_COMMA_OR_PARENTHESIS&&((unsigned char)(uintptr_t)t->v==AST_TOKEN_OPERATOR_COMMA||(unsigned char)(uintptr_t)t->v==AST_TOKEN_OPERATOR_RIGHT_PARENTHESIS)))){
 		KlError_unimplemented_error();
 		return(NULL);
 	}
 	while (true){
-		if (t->t==AST_TOKEN_TYPE_OPERATOR&&((et==AST_TOKEN_END_SEMICOLON&&(unsigned char)(PTR_TYPE)t->v==AST_TOKEN_OPERATOR_SEMICOLON)||(et==AST_TOKEN_END_COMMA_OR_PARENTHESIS&&((unsigned char)(PTR_TYPE)t->v==AST_TOKEN_OPERATOR_COMMA||(unsigned char)(PTR_TYPE)t->v==AST_TOKEN_OPERATOR_RIGHT_PARENTHESIS)))){
+		if (t->t==AST_TOKEN_TYPE_OPERATOR&&((et==AST_TOKEN_END_SEMICOLON&&(unsigned char)(uintptr_t)t->v==AST_TOKEN_OPERATOR_SEMICOLON)||(et==AST_TOKEN_END_COMMA_OR_PARENTHESIS&&((unsigned char)(uintptr_t)t->v==AST_TOKEN_OPERATOR_COMMA||(unsigned char)(uintptr_t)t->v==AST_TOKEN_OPERATOR_RIGHT_PARENTHESIS)))){
 			break;
 		}
 		switch (t->t){
@@ -406,7 +407,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						break;
 					}
 					if ((o.e+o.l-1)->t==UNPARSED_AST_EXPRESSION_ELEM_TYPE_STRING){
-						unsigned long s_ln=str_len((o.e+o.l-1)->v.s);
+						size_t s_ln=str_len((o.e+o.l-1)->v.s);
 						(o.e+o.l-1)->v.s=KlMem_realloc((o.e+o.l-1)->v.s,s_ln+str_len(el.v.s)+1);
 						KlMem_memcpy((o.e+o.l-1)->v.s+s_ln,el.v.s,str_len(el.v.s)+1);
 						KlMem_free(el.v.s);
@@ -424,7 +425,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 				{
 					struct UnparsedASTExpressionElem el;
 					el.t=UNPARSED_AST_EXPRESSION_ELEM_TYPE_CHAR;
-					el.v.c=(char)(PTR_TYPE)t->v;
+					el.v.c=(char)(uintptr_t)t->v;
 					if (o.l==0){
 						KlAst_add_expression_unparsed(&o,el);
 						break;
@@ -436,10 +437,10 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 					KlError_unimplemented_error();
 					return(NULL);
 				}
-			case AST_TOKEN_TYPE_NUMBER:
+			case AST_TOKEN_TYPE_INT:
 				{
 					struct UnparsedASTExpressionElem el;
-					el.t=UNPARSED_AST_EXPRESSION_ELEM_TYPE_NUMBER;
+					el.t=UNPARSED_AST_EXPRESSION_ELEM_TYPE_INT;
 					el.v.n=KlNum_assign(NULL,t->v);
 					if (o.l==0){
 						KlAst_add_expression_unparsed(&o,el);
@@ -452,7 +453,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 					KlError_unimplemented_error();
 					return(NULL);
 				}
-			case AST_TOKEN_TYPE_DECIMAL:
+			case AST_TOKEN_TYPE_FLOAT:
 				{
 					KlError_unimplemented_code();
 					return(NULL);
@@ -486,7 +487,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 					return(NULL);
 				}
 			case AST_TOKEN_TYPE_OPERATOR:
-				if ((unsigned char)(PTR_TYPE)t->v==AST_TOKEN_OPERATOR_LEFT_PARENTHESIS){
+				if ((unsigned char)(uintptr_t)t->v==AST_TOKEN_OPERATOR_LEFT_PARENTHESIS){
 					struct UnparsedASTExpressionElem el;
 					el.t=UNPARSED_AST_EXPRESSION_ELEM_TYPE_OPERATOR;
 					el.v.op=AST_EXPRESSION_TYPE_LST;
@@ -513,10 +514,10 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 							KlError_unimplemented_error();
 							return(NULL);
 						}
-						if ((unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_RIGHT_PARENTHESIS){
+						if ((unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_RIGHT_PARENTHESIS){
 							break;
 						}
-						if ((unsigned char)(PTR_TYPE)nt.v!=AST_TOKEN_OPERATOR_COMMA){
+						if ((unsigned char)(uintptr_t)nt.v!=AST_TOKEN_OPERATOR_COMMA){
 							KlError_unimplemented_error();
 							return(NULL);
 						}
@@ -543,7 +544,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 					*t=nt;
 					break;
 				}
-				if ((unsigned char)(PTR_TYPE)t->v==AST_TOKEN_OPERATOR_OPEN_BRACKET){
+				if ((unsigned char)(uintptr_t)t->v==AST_TOKEN_OPERATOR_OPEN_BRACKET){
 					KlError_unimplemented_code();
 					return(NULL);
 				}
@@ -554,7 +555,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 				struct UnparsedASTExpressionElem el;
 				el.t=UNPARSED_AST_EXPRESSION_ELEM_TYPE_OPERATOR;
 				el.v.op=AST_EXPRESSION_TYPE_UNKNOWN;
-				switch ((unsigned char)(PTR_TYPE)t->v){
+				switch ((unsigned char)(uintptr_t)t->v){
 					default:
 					case AST_TOKEN_OPERATOR_UNKNOWN:
 						KlError_unimplemented_error();
@@ -563,12 +564,12 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_BAND;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_BAND_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
 							}
-							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_AMP){
+							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_AMP){
 								el.v.op=AST_EXPRESSION_TYPE_AND;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -582,7 +583,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_MMLT;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_MMLT_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -596,7 +597,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_BXOR;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_BXOR_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -625,7 +626,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_EQU;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_EQ;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -639,7 +640,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_NOT;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_NE;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -653,15 +654,15 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_GT;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_GE;
 								*t=nt;
 							}
-							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_GRATER){
+							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_GRATER){
 								el.v.op=AST_EXPRESSION_TYPE_RSH;
 								*t=nt;
 								struct ASTToken nt2=KlAst_next_token(fo,nt.i,cs);
-								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 									el.v.op=AST_EXPRESSION_TYPE_RSH_EQU;
 									KlFree_free_token_p(t);
 									*t=nt2;
@@ -684,17 +685,17 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_LT;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_LE;
 								KlFree_free_token_p(t);
 								*t=nt;
 							}
-							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_GRATER){
+							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_GRATER){
 								el.v.op=AST_EXPRESSION_TYPE_LSH;
 								KlFree_free_token_p(t);
 								*t=nt;
 								struct ASTToken nt2=KlAst_next_token(fo,nt.i,cs);
-								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 									el.v.op=AST_EXPRESSION_TYPE_LSH_EQU;
 									KlFree_free_token_p(t);
 									*t=nt2;
@@ -712,12 +713,12 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=(o.l==0?AST_EXPRESSION_TYPE_MINUS:AST_EXPRESSION_TYPE_SUB);
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_SUB_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
 							}
-							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_MINUS){
+							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_MINUS){
 								el.v.op=AST_EXPRESSION_TYPE_DEC;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -731,7 +732,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_MOD;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_MOD_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -750,12 +751,12 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=(o.l==0?AST_EXPRESSION_TYPE_PLUS:AST_EXPRESSION_TYPE_ADD);
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_ADD_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
 							}
-							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_PLUS){
+							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_PLUS){
 								el.v.op=AST_EXPRESSION_TYPE_INC;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -784,17 +785,17 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_DIV;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_DIV_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
 							}
-							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_SLASH){
+							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_SLASH){
 								KlFree_free_token_p(t);
 								*t=nt;
 								struct ASTToken nt2=KlAst_next_token(fo,nt.i,cs);
 								el.v.op=AST_EXPRESSION_TYPE_FDIV;
-								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 									el.v.op=AST_EXPRESSION_TYPE_FDIV_EQU;
 									KlFree_free_token_p(t);
 									*t=nt2;
@@ -812,17 +813,17 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_MLT;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_MLT_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
 							}
-							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_STAR){
+							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_STAR){
 								KlFree_free_token_p(t);
 								*t=nt;
 								struct ASTToken nt2=KlAst_next_token(fo,nt.i,cs);
 								el.v.op=AST_EXPRESSION_TYPE_POW;
-								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 									el.v.op=AST_EXPRESSION_TYPE_POW_EQU;
 									KlFree_free_token_p(t);
 									*t=nt2;
@@ -831,22 +832,22 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 									KlFree_free_token(nt2);
 								}
 							}
-							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_SLASH){
+							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_SLASH){
 								KlFree_free_token_p(t);
 								*t=nt;
 								struct ASTToken nt2=KlAst_next_token(fo,nt.i,cs);
 								el.v.op=AST_EXPRESSION_TYPE_ROOT;
-								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 									el.v.op=AST_EXPRESSION_TYPE_ROOT_EQU;
 									KlFree_free_token_p(t);
 									*t=nt2;
 								}
-								else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_SLASH){
+								else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_SLASH){
 									el.v.op=AST_EXPRESSION_TYPE_IROOT;
 									KlFree_free_token_p(t);
 									*t=nt2;
 									struct ASTToken nt3=KlAst_next_token(fo,nt2.i,cs);
-									if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+									if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 										el.v.op=AST_EXPRESSION_TYPE_IROOT_EQU;
 										KlFree_free_token_p(t);
 										*t=nt3;
@@ -868,7 +869,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_BNOT;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_BNOT_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -882,12 +883,12 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 						{
 							struct ASTToken nt=KlAst_next_token(fo,t->i,cs);
 							el.v.op=AST_EXPRESSION_TYPE_BOR;
-							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_EQUALS){
+							if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_EQUALS){
 								el.v.op=AST_EXPRESSION_TYPE_BOR_EQU;
 								KlFree_free_token_p(t);
 								*t=nt;
 							}
-							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(PTR_TYPE)nt.v==AST_TOKEN_OPERATOR_VERTICAL_BAR){
+							else if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_VERTICAL_BAR){
 								el.v.op=AST_EXPRESSION_TYPE_OR;
 								KlFree_free_token_p(t);
 								*t=nt;
@@ -1144,7 +1145,7 @@ struct ASTExpression* KlAst_parse_unparsed_expression(struct CodeFileObject* fo,
 					}
 					break;
 				}
-			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_NUMBER:
+			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_INT:
 				{
 					struct Number* nc=NULL;
 					if (i->v.n!=NULL){
@@ -1152,14 +1153,14 @@ struct ASTExpression* KlAst_parse_unparsed_expression(struct CodeFileObject* fo,
 					}
 					if (*(c_a+c_ai)==0){
 						c->t=AST_EXPRESSION_TYPE_CONST;
-						c->a.t=AST_EXPRESSION_ARG_TYPE_NUMBER;
+						c->a.t=AST_EXPRESSION_ARG_TYPE_INT;
 						c->a.v.n=nc;
 					}
 					else{
 						c->bl++;
 						c->b=KlMem_realloc(c->b,c->bl*sizeof(struct ASTExpressionArg));
 						KlMem_ret(c->b);
-						(c->b+c->bl-1)->t=AST_EXPRESSION_ARG_TYPE_NUMBER;
+						(c->b+c->bl-1)->t=AST_EXPRESSION_ARG_TYPE_INT;
 						(c->b+c->bl-1)->v.n=nc;
 					}
 					(*(c_a+c_ai))++;
@@ -1173,7 +1174,7 @@ struct ASTExpression* KlAst_parse_unparsed_expression(struct CodeFileObject* fo,
 					}
 					break;
 				}
-			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_DECIMAL:
+			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_FLOAT:
 				{
 					KlError_unimplemented_code();
 					return(NULL);
@@ -1240,9 +1241,9 @@ struct ASTExpression* KlAst_gen_expression(const char* f,...){
 	o->a.v.c=0;
 	o->b=NULL;
 	o->bl=0;
-	unsigned long ol=0;
-	unsigned long i=0;
-	unsigned long ln=str_len((char*)f);
+	size_t ol=0;
+	size_t i=0;
+	size_t ln=str_len((char*)f);
 	if (ln==0){
 		va_end(a);
 		return(KlMem_const(&o,sizeof(struct ASTExpression)));
@@ -1354,17 +1355,17 @@ struct ASTExpression* KlAst_gen_expression(const char* f,...){
 				}
 				if (ol==0){
 					o->t=AST_EXPRESSION_TYPE_CONST;
-					o->a.t=AST_EXPRESSION_ARG_TYPE_NUMBER;
+					o->a.t=AST_EXPRESSION_ARG_TYPE_INT;
 					o->a.v.n=nc;
 				}
 				else{
 					if ((o+ol-1)->a.t==AST_EXPRESSION_ARG_TYPE_UNKNOWN){
-						(o+ol-1)->a.t=AST_EXPRESSION_ARG_TYPE_NUMBER;
+						(o+ol-1)->a.t=AST_EXPRESSION_ARG_TYPE_INT;
 						(o+ol-1)->a.v.n=nc;
 					}
 					else{
 						struct ASTExpressionArg* ea=KlMem_malloc(sizeof(struct ASTExpressionArg));
-						ea->t=AST_EXPRESSION_ARG_TYPE_NUMBER;
+						ea->t=AST_EXPRESSION_ARG_TYPE_INT;
 						ea->v.n=nc;
 						(o+ol-1)->bl++;
 						(o+ol-1)->b=KlMem_realloc((o+ol-1)->b,(o+ol-1)->bl*sizeof(struct ASTExpressionArg));
@@ -1374,20 +1375,22 @@ struct ASTExpression* KlAst_gen_expression(const char* f,...){
 				}
 				break;
 			case 'd':
+				KlError_unimplemented_error();
+				return NULL;
 				struct Decimal* d=va_arg(a,struct Decimal*);
 				if (ol==0){
 					o->t=AST_EXPRESSION_TYPE_CONST;
-					o->a.t=AST_EXPRESSION_ARG_TYPE_DECIMAL;
+					o->a.t=AST_EXPRESSION_ARG_TYPE_FLOAT;
 					o->a.v.d=d;//////
 				}
 				else{
 					if ((o+ol-1)->a.t==AST_EXPRESSION_ARG_TYPE_UNKNOWN){
-						(o+ol-1)->a.t=AST_EXPRESSION_ARG_TYPE_DECIMAL;
+						(o+ol-1)->a.t=AST_EXPRESSION_ARG_TYPE_FLOAT;
 						(o+ol-1)->a.v.d=d;//////
 					}
 					else{
 						struct ASTExpressionArg* ea=KlMem_malloc(sizeof(struct ASTExpressionArg));
-						ea->t=AST_EXPRESSION_ARG_TYPE_DECIMAL;
+						ea->t=AST_EXPRESSION_ARG_TYPE_FLOAT;
 						ea->v.d=d;///////
 						(o+ol-1)->bl++;
 						(o+ol-1)->b=KlMem_realloc((o+ol-1)->b,(o+ol-1)->bl*sizeof(struct ASTExpressionArg));
@@ -1397,6 +1400,8 @@ struct ASTExpression* KlAst_gen_expression(const char* f,...){
 				}
 				break;
 			case 'F':
+				KlError_unimplemented_error();
+				return NULL;
 				struct Function* f_=va_arg(a,struct Function*);
 				if (ol==0){
 					o->t=AST_EXPRESSION_TYPE_CONST;
@@ -1515,6 +1520,8 @@ struct ASTExpression* KlAst_gen_expression(const char* f,...){
 				}
 				break;
 			case 'o':
+				KlError_unimplemented_error();
+				return NULL;
 				struct Object* o_=va_arg(a,struct Object*);
 				if (ol==0){
 					o->t=AST_EXPRESSION_TYPE_CONST;
@@ -1584,7 +1591,7 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex){
 				KlMem_ret(o.a.v.s);
 			}
 			break;
-		case AST_EXPRESSION_ARG_TYPE_NUMBER:
+		case AST_EXPRESSION_ARG_TYPE_INT:
 			if (ex.a.v.n==NULL){
 				o.a.v.n=NULL;
 			}
@@ -1593,7 +1600,7 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex){
 				KlMem_ret(o.a.v.n);
 			}
 			break;
-		case AST_EXPRESSION_ARG_TYPE_DECIMAL:///////
+		case AST_EXPRESSION_ARG_TYPE_FLOAT:///////
 			if (ex.a.v.d==NULL){
 				o.a.v.d=NULL;
 			}
@@ -1665,12 +1672,12 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex){
 						(o.b+i)->v.s=NULL;
 					}
 					else{
-						unsigned long ln=str_len((ex.b+i)->v.s)+1;
+						size_t ln=str_len((ex.b+i)->v.s)+1;
 						(o.b+i)->v.s=KlMem_memcpy(KlMem_malloc(ln),(ex.b+i)->v.s,ln);
 						KlMem_ret((o.b+i)->v.s);
 					}
 					break;
-				case AST_EXPRESSION_ARG_TYPE_NUMBER:
+				case AST_EXPRESSION_ARG_TYPE_INT:
 					if ((ex.b+i)->v.n==NULL){
 						(o.b+i)->v.n=NULL;
 					}
@@ -1679,7 +1686,7 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex){
 						KlMem_ret((o.b+i)->v.n);
 					}
 					break;
-				case AST_EXPRESSION_ARG_TYPE_DECIMAL:///////
+				case AST_EXPRESSION_ARG_TYPE_FLOAT:///////
 					if ((ex.b+i)->v.d==NULL){
 						(o.b+i)->v.d=NULL;
 					}
@@ -1705,7 +1712,7 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex){
 						(o.b+i)->v.i=NULL;
 					}
 					else{
-						unsigned long ln=str_len((ex.b+i)->v.i)+1;
+						size_t ln=str_len((ex.b+i)->v.i)+1;
 						(o.b+i)->v.i=KlMem_memcpy(KlMem_malloc(ln),(ex.b+i)->v.i,ln);
 						KlMem_ret((o.b+i)->v.i);
 					}
@@ -1730,14 +1737,14 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex){
 
 
 
-struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struct CallStack* cs){
+struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallStack* cs){
 	KlMem_enter_func();
 	struct ASTToken o={
 		AST_TOKEN_TYPE_END_OF_DATA,
 		NULL,
 		0
 	};
-	unsigned long ln=str_len(fo->dt);
+	size_t ln=str_len(fo->dt);
 	if (i>=ln){
 		print_token(o);
 		return(o);
@@ -1764,7 +1771,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 		}
 		unsigned char e;
 		char c=KlAst_parse_string_char(fo->dt,&i,&e);
-		o.v=(void*)(PTR_TYPE)c;
+		o.v=(void*)(uintptr_t)c;
 		if (e!=0){
 			o.t=AST_TOKEN_TYPE_ERROR;
 			switch (e){
@@ -1803,9 +1810,9 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 	if (*(fo->dt+i)=='\"'){
 		o.t=AST_TOKEN_TYPE_STRING;
 		i++;
-		unsigned long sz=0;
-		unsigned long sl=KlError_offset_to_line(fo->dt,i-1);
-		unsigned long su=i-1;
+		size_t sz=0;
+		size_t sl=KlError_offset_to_line(fo->dt,i-1);
+		size_t su=i-1;
 		while (*(fo->dt+i)!='\"'||*(fo->dt+i-1)=='\\'){
 			if ((*(fo->dt+i)=='\r'&&*(fo->dt+i)=='\n')||*(fo->dt+i)=='\n'){
 				i+=(*(fo->dt+i)=='\r'?2:1);
@@ -1859,7 +1866,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 				break;
 			case 'b':
 				i+=2;
-				o.t=AST_TOKEN_TYPE_NUMBER;
+				o.t=AST_TOKEN_TYPE_INT;
 				o.v=KlNum_from_long(0);
 				while (*(fo->dt+i)=='0'||*(fo->dt+i)=='1'){
 					KlNum_add_bin_digit(o.v,*(fo->dt+i)-48);
@@ -1869,7 +1876,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 				return(o);
 			case 'o':
 				i+=2;
-				o.t=AST_TOKEN_TYPE_NUMBER;
+				o.t=AST_TOKEN_TYPE_INT;
 				o.v=KlNum_from_long(0);
 				while (*(fo->dt+i)>=48&&*(fo->dt+i)<=55){
 					KlNum_add_oct_digit(o.v,*(fo->dt+i)-48);
@@ -1879,7 +1886,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 				return(o);
 			case 'x':
 				i+=2;
-				o.t=AST_TOKEN_TYPE_NUMBER;
+				o.t=AST_TOKEN_TYPE_INT;
 				o.v=KlNum_from_long(0);
 				while ((*(fo->dt+i)>=48&&*(fo->dt+i)<=57)||(*(fo->dt+i)>=65&&*(fo->dt+i)<=70)||(*(fo->dt+i)>=97&&*(fo->dt+i)<=102)){
 					if (*(fo->dt+i)<=57){
@@ -1898,7 +1905,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 		}
 	}
 	if (*(fo->dt+i)>=48&&*(fo->dt+i)<=57){
-		o.t=AST_TOKEN_TYPE_NUMBER;
+		o.t=AST_TOKEN_TYPE_INT;
 		o.v=KlNum_from_long(0);
 		while (true){
 			if (*(fo->dt+i)=='_'){
@@ -1906,9 +1913,9 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 				continue;
 			}
 			if (*(fo->dt+i)=='.'){
-				if (o.t==AST_TOKEN_TYPE_DECIMAL){
+				if (o.t==AST_TOKEN_TYPE_FLOAT){
 					o.t=AST_TOKEN_TYPE_UNKNOWN;
-					o.v=(void*)(PTR_TYPE)'.';
+					o.v=(void*)(uintptr_t)'.';
 					o.i=i;
 					print_token(o);
 					return(o);
@@ -1918,7 +1925,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 				continue;
 			}
 			if (*(fo->dt+i)>=48&&*(fo->dt+i)<=57){
-				if (o.t==AST_TOKEN_TYPE_NUMBER){
+				if (o.t==AST_TOKEN_TYPE_INT){
 					KlNum_add_digit(o.v,*(fo->dt+i)-48);
 				}
 				else{
@@ -2126,7 +2133,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 		if (*(char*)o.v>=48&&*(char*)o.v<=57){
 			KlMem_free(o.v);
 			o.t=AST_TOKEN_TYPE_UNKNOWN;
-			o.v=(void*)(PTR_TYPE)*(fo->dt+i-sz);
+			o.v=(void*)(uintptr_t)*(fo->dt+i-sz);
 			o.i=i-sz;
 			print_token(o);
 			return(o);
@@ -2139,7 +2146,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 		return(o);
 	}
 	o.t=AST_TOKEN_TYPE_UNKNOWN;
-	o.v=(void*)(PTR_TYPE)*(fo->dt+i);
+	o.v=(void*)(uintptr_t)*(fo->dt+i);
 	o.i=i;
 	print_token(o);
 	return(o);
@@ -2147,7 +2154,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struc
 
 
 
-char KlAst_parse_string_char(char* s,unsigned long* i,unsigned char* e){
+char KlAst_parse_string_char(char* s,size_t* i,unsigned char* e){
 	KlMem_enter_func();
 	*e=0;
 	if (*(s+*i)=='\\'){
@@ -2259,14 +2266,14 @@ char* KlAst_token_to_string(struct ASTToken t){
 		case AST_TOKEN_TYPE_CHAR:
 			{
 				char* o=KlMem_malloc(2);
-				*o=(char)(PTR_TYPE)t.v;
+				*o=(char)(uintptr_t)t.v;
 				*(o+1)=0;
 				return(o);
 			}
-		case AST_TOKEN_TYPE_NUMBER:
-			return("AST_TOKEN_TYPE_NUMBER");
+		case AST_TOKEN_TYPE_INT:
+			return("AST_TOKEN_TYPE_INT");
 		case AST_TOKEN_TYPE_KEYWORD:
-			switch ((unsigned char)(PTR_TYPE)t.v){
+			switch ((unsigned char)(uintptr_t)t.v){
 				default:
 				case AST_TOKEN_KEYWORD_UNKNOWN:
 					return("AST_TOKEN_KEYWORD_UNKNOWN");
@@ -2300,7 +2307,7 @@ char* KlAst_token_to_string(struct ASTToken t){
 					return("debugger");
 			}
 		case AST_TOKEN_TYPE_MODIFIER:
-			switch ((unsigned char)(PTR_TYPE)t.v){
+			switch ((unsigned char)(uintptr_t)t.v){
 				default:
 				case AST_TOKEN_MODIFIER_UNKNOWN:
 					return("AST_TOKEN_MODIFIER_UNKNOWN");
@@ -2319,11 +2326,11 @@ char* KlAst_token_to_string(struct ASTToken t){
 			}
 		case AST_TOKEN_TYPE_OPERATOR:
 			{
-				if ((unsigned char)(PTR_TYPE)t.v==AST_TOKEN_MODIFIER_UNKNOWN){
+				if ((unsigned char)(uintptr_t)t.v==AST_TOKEN_MODIFIER_UNKNOWN){
 					return("AST_TOKEN_MODIFIER_UNKNOWN");
 				}
 				char* o=KlMem_malloc(2);
-				switch ((unsigned char)(PTR_TYPE)t.v){
+				switch ((unsigned char)(uintptr_t)t.v){
 					case AST_TOKEN_OPERATOR_UNKNOWN:
 						return("AST_TOKEN_MODIFIER_UNKNOWN");
 					case AST_TOKEN_OPERATOR_AMP:
@@ -2557,10 +2564,10 @@ unsigned char KlAst_get_op_count(unsigned char op){
 
 unsigned char KlAst_get_decl(char* nm,struct Scope* sc){
 	KlMem_enter_func();
-	unsigned long ln=str_len(nm);
+	size_t ln=str_len(nm);
 	while (true){
 		if (sc->k!=NULL){
-			for (unsigned long i=0;i<sc->l;i++){
+			for (size_t i=0;i<sc->l;i++){
 				if (str_cmp(*(sc->k+i),nm,0,ln)==true){
 					return(*(sc->m+i));
 				}

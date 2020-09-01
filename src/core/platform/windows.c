@@ -2,7 +2,7 @@
 #include <platform.h>
 #include <memory.h>
 #include <string_utils.h>
-#include <types.h>
+#include <shared.h>
 
 
 
@@ -55,13 +55,13 @@ char* KlPlatform_get_full_path(const char* fp){
 
 
 
-char* KlPlatform_read_file_content(const char* fp,unsigned long* l){
+char* KlPlatform_read_file_content(const char* fp,size_t* l){
 	KlMem_enter_func();
 	HANDLE fh=CreateFileA(fp,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 	*l=GetFileSize(fh,NULL);
 	char* o=KlMem_malloc(*l+1);
 	unsigned long t;
-	ReadFile(fh,o,*l,&t,NULL);
+	ReadFile(fh,o,(unsigned long)*l,&t,NULL);
 	CloseHandle(fh);
 	*(o+*l)=0;
 	KlMem_ret(o);

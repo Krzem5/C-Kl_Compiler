@@ -1,6 +1,6 @@
 #include <io.h>
 #include <memory.h>
-#include <types.h>
+#include <shared.h>
 #include <string_utils.h>
 #include <sys.h>
 #include <stdarg.h>
@@ -21,7 +21,7 @@ void KlIo_printf(char* t,...){
 
 
 
-char* KlIo_read(struct File f,unsigned long l,unsigned long* r){
+char* KlIo_read(struct File f,size_t l,size_t* r){
 	KlMem_enter_func();
 	if ((f.m&FILE_MODIFIER_READ)==0){
 		*r=0;
@@ -32,7 +32,7 @@ char* KlIo_read(struct File f,unsigned long l,unsigned long* r){
 
 
 
-unsigned long KlIo_write(struct File f,char* s){
+size_t KlIo_write(struct File f,char* s){
 	KlMem_enter_func();
 	if ((f.m&FILE_MODIFIER_WRITE)==0){
 		return(0);
@@ -52,12 +52,11 @@ bool KlIo_flush(struct File f){
 
 
 
-#pragma warning(disable:4100)
-char* KlIo_default_read_func(void* p,unsigned char m,unsigned long l,unsigned long* r){
+char* KlIo_default_read_func(void* p,unsigned char m,size_t l,size_t* r){
 	KlMem_enter_func();
-#pragma warning(default:4100)
+	(void)m;
 	char* o=KlMem_malloc(l+1);
-	unsigned long i=0;
+	size_t i=0;
 	while (i<l){
 		if (*(o+i)==EOF){
 			if (i>0){
@@ -80,13 +79,12 @@ char* KlIo_default_read_func(void* p,unsigned char m,unsigned long l,unsigned lo
 
 
 
-#pragma warning(disable:4100)
-unsigned long KlIo_default_write_func(void* p,unsigned char m,char* s){
+size_t KlIo_default_write_func(void* p,unsigned char m,char* s){
 	KlMem_enter_func();
-#pragma warning(default:4100)
-	unsigned long o=0;
-	unsigned long ln=str_len(s);
-	for (unsigned long i=0;i<ln;i++){
+	(void)m;
+	size_t o=0;
+	size_t ln=str_len(s);
+	for (size_t i=0;i<ln;i++){
 		if (fputc(*(s+i),p)==EOF){
 			if (o>0){
 				o--;
@@ -100,10 +98,9 @@ unsigned long KlIo_default_write_func(void* p,unsigned char m,char* s){
 
 
 
-#pragma warning(disable:4100)
 bool KlIo_default_flush_func(void* p,unsigned char m){
 	KlMem_enter_func();
-#pragma warning(default:4100)
+	(void)m;
 	fflush(p);
 	return(true);
 }

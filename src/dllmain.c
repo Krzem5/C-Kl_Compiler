@@ -4,8 +4,8 @@
 
 
 int WINAPI DllMain(void* dll,unsigned long r,void* rs){
-	(void)dll; // C4100
-	(void)rs; // C4100
+	(void)dll;
+	(void)rs;
 	switch (r){
 		case DLL_PROCESS_ATTACH:
 			KlSys_init();

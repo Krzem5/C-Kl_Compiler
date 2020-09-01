@@ -1,50 +1,50 @@
 #ifndef STRING_H
 #define STRING_H
-#include <types.h>
+#include <shared.h>
 
 
 
-unsigned long str_len(char* s);
+size_t str_len(const char* s);
 
 
 
-char* str_clone(char* s);
+char* str_clone(const char* s);
 
 
 
-char* str_append(char* s,char c);
+char* str_append(const char* s,char c);
 
 
 
-char* str_concat(char* a,char* b);
+char* str_concat(const char* a,char* b);
 
 
 
-char* str_substr(char* s,unsigned long i,unsigned long j);
+char* str_substr(const char* s,size_t i,size_t j);
 
 
 
-unsigned long str_find(char* s,char c,unsigned long i);
+size_t str_find(const char* s,char c,size_t i);
 
 
 
-unsigned long str_rfind(char* s,char c,unsigned long i);
+size_t str_rfind(const char* s,char c,size_t i);
 
 
 
-bool str_cmp(char* a,char* b,unsigned long s,unsigned long l);
+bool str_cmp(const char* a,char* b,size_t s,size_t l);
 
 
 
-char* str_format(char* s,...);
+char* str_format(const char* s,...);
 
 
 
-char* str_format_va(char* t,va_list a);
+char* str_format_va(const char* t,va_list a);
 
 
 
-char* str_escape_ansi(unsigned long long int f);
+char* str_escape_ansi(uint64_t f);
 
 
 

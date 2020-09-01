@@ -2,3 +2,5 @@
 
 build
 preprocessed.c
+_frozenbuild
+freeze_py.bat

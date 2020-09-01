@@ -1,6 +1,6 @@
 #include <decimal.h>
 #include <memory.h>
-#include <types.h>
+#include <shared.h>
 #include <io.h>
 #include <stdint.h>
 
@@ -39,8 +39,8 @@ struct Decimal* KlDec_from_num(struct Number* n){
 #include <stdio.h>
 void KlDec_add_frac_digit(struct Decimal* o,unsigned char d){
 	KlMem_enter_func();
-	o--;// C4100
-	d--;// C4100
+	(void)o;
+	(void)d;
 	assert(0);
 	return();
 }

@@ -4,39 +4,39 @@
 #include <string_utils.h>
 #include <memory.h>
 #include <io.h>
-#include <types.h>
+#include <shared.h>
 #include <limits.h>
 
 
 
-void debug_print_ast_token(struct ASTToken t){
+void KlDebug_print_ast_token(struct ASTToken t){
 	KlMem_enter_func();
 	KlIo_printf("%fASTToken %f= {\n  %fType%f: %f",CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_TYPE);
 	switch (t.t){
 		default:
 			assert(0);
 		case AST_TOKEN_TYPE_UNKNOWN:
-			KlIo_printf("Unknown%f,\n  %fCharacter%f: %f'%c'%f,\n  %fFile Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_STRING,(char)(PTR_TYPE)t.v,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+			KlIo_printf("Unknown%f,\n  %fCharacter%f: %f'%c'%f,\n  %fFile Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_STRING,(char)(uintptr_t)t.v,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			break;
 		case AST_TOKEN_TYPE_STRING:
-			char* ss=debug_print_string(t.v);
-			KlIo_printf("String%f,\n  %fValue%f: %s%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,ss,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+			char* ss=KlDebug_print_string(t.v);
+			KlIo_printf("String%f,\n  %fValue%f: %s%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,ss,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			KlMem_free(ss);
 			break;
 		case AST_TOKEN_TYPE_CHAR:
-			KlIo_printf("Char%f,\n  %fValue%f: %f'%c'%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_STRING,(char)(PTR_TYPE)t.v,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+			KlIo_printf("Char%f,\n  %fValue%f: %f'%c'%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_STRING,(char)(uintptr_t)t.v,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			break;
-		case AST_TOKEN_TYPE_NUMBER:
+		case AST_TOKEN_TYPE_INT:
 			char* ns=KlNum_print((struct Number*)t.v);
-			KlIo_printf("Number%f,\n  %fValue%f: %f%s%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,ns,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+			KlIo_printf("Number%f,\n  %fValue%f: %f%s%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,ns,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			KlMem_free(ns);
 			break;
-		case AST_TOKEN_TYPE_DECIMAL:
-			KlIo_printf("Decimal%f,\n  %fValue%f: %f%p%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.v,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+		case AST_TOKEN_TYPE_FLOAT:
+			KlIo_printf("Decimal%f,\n  %fValue%f: %f%p%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.v,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			break;
 		case AST_TOKEN_TYPE_KEYWORD:
 			KlIo_printf("Keyword%f,\n  %fValue%f: %f",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEYWORD);
-			switch ((unsigned char)(PTR_TYPE)t.v){
+			switch ((unsigned char)(uintptr_t)t.v){
 				default:
 				case AST_TOKEN_KEYWORD_UNKNOWN:
 					KlIo_printf("<unknown>");
@@ -87,11 +87,11 @@ void debug_print_ast_token(struct ASTToken t){
 					KlIo_printf("debugger");
 					break;
 			}
-			KlIo_printf("%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+			KlIo_printf("%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			break;
 		case AST_TOKEN_TYPE_MODIFIER:
 			KlIo_printf("Modifier%f,\n  %fValue%f: %f",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_MODIFIER);
-			switch ((unsigned char)(PTR_TYPE)t.v){
+			switch ((unsigned char)(uintptr_t)t.v){
 				default:
 				case AST_TOKEN_MODIFIER_UNKNOWN:
 					KlIo_printf("<unknown>");
@@ -115,14 +115,14 @@ void debug_print_ast_token(struct ASTToken t){
 					KlIo_printf("frozentype");
 					break;
 			}
-			KlIo_printf("%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+			KlIo_printf("%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			break;
 		case AST_TOKEN_TYPE_IDENTIFIER:
-			KlIo_printf("Identifier%f,\n  %fValue%f: %f%s%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,(char*)t.v,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+			KlIo_printf("Identifier%f,\n  %fValue%f: %f%s%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,(char*)t.v,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			break;
 		case AST_TOKEN_TYPE_OPERATOR:
 			KlIo_printf("Operator%f,\n  %fValue%f: %f",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR);
-			switch ((unsigned char)(PTR_TYPE)t.v){
+			switch ((unsigned char)(uintptr_t)t.v){
 				default:
 				case AST_TOKEN_OPERATOR_UNKNOWN:
 					KlIo_printf("%f(Unknown)",CONST_COLOR_DEBUG_UTILS_TYPE);
@@ -197,10 +197,10 @@ void debug_print_ast_token(struct ASTToken t){
 					KlIo_printf("| %f(Vertical Bar)",CONST_COLOR_DEBUG_UTILS_TYPE);
 					break;
 			}
-			KlIo_printf("%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+			KlIo_printf("%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			break;
 		case AST_TOKEN_TYPE_WHITESPACE:
-			KlIo_printf("Whitespace%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_NUMBER,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+			KlIo_printf("Whitespace%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			break;
 		case AST_TOKEN_TYPE_ERROR:
 			KlIo_printf("Error\n%f};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
@@ -214,7 +214,7 @@ void debug_print_ast_token(struct ASTToken t){
 
 
 
-void debug_print_unopt_ast_object(struct UnoptimisedASTObject* o){
+void KlDebug_print_unopt_ast_object(struct UnoptimisedASTObject* o){
 	KlMem_enter_func();
 	KlIo_printf("%fUnoptimisedASTObject %f= {\n",CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 	for (struct UnoptimisedASTObjectElem* i=o->e;i<o->e+o->l;i++){
@@ -225,7 +225,7 @@ void debug_print_unopt_ast_object(struct UnoptimisedASTObject* o){
 				break;
 			case AST_OBJECT_ELEM_TYPE_EXPRESSION:
 				KlIo_printf("  %f(Expression) ",CONST_COLOR_DEBUG_UTILS_TYPE);
-				debug_print_ast_expr(&(i->v.e),2);
+				KlDebug_print_ast_expr(&(i->v.e),2);
 				break;
 		}
 	}
@@ -235,7 +235,7 @@ void debug_print_unopt_ast_object(struct UnoptimisedASTObject* o){
 
 
 
-void debug_print_ast_expr(struct ASTExpression* e,unsigned char i){
+void KlDebug_print_ast_expr(struct ASTExpression* e,unsigned char i){
 	KlMem_enter_func();
 	char* is=KlMem_malloc(i+1);
 	for (unsigned long j=0;j<i;j++){
@@ -258,7 +258,7 @@ void debug_print_ast_expr(struct ASTExpression* e,unsigned char i){
 			break;
 		case AST_EXPRESSION_TYPE_CONST:
 			KlIo_printf("%s  %fType%f: %f<const> %f(Const)%f,\n%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_LST:
 			KlIo_printf("%s  %fType%f: %f(...) %f(Tuple)%f,\n",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
@@ -270,23 +270,23 @@ void debug_print_ast_expr(struct ASTExpression* e,unsigned char i){
 			break;
 		case AST_EXPRESSION_TYPE_IMP:
 			KlIo_printf("%s  %fType%f: %f<import> %f(Import)%f,\n%s  %fModule Name%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_IMP_ALL:
 			KlIo_printf("%s  %fType%f: %f<import> * %f(Import All)%f,\n%s  %fModule Name%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_INC:
 			KlIo_printf("%s  %fType%f: %f++ %f(Increment)%f,\n%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_DEC:
 			KlIo_printf("%s  %fType%f: %f-- %f(Decrement)%f,\n%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_CALL:
 			KlIo_printf("%s  %fType%f: %f() %f(Function Call)%f,\n%s  %fFunc%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			if (e->bl==0){
 				KlIo_printf("%s  %fArguments%f: %fNone%f,\n",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 			}
@@ -296,7 +296,7 @@ void debug_print_ast_expr(struct ASTExpression* e,unsigned char i){
 			else{
 				for (unsigned long k=0;k<e->bl;k++){
 					KlIo_printf("%s  %fArgument#%i%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,k+1,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-					debug_print_ast_expr_arg(e->b+k,i+2);
+					KlDebug_print_ast_expr_arg(e->b+k,i+2);
 				}
 			}
 			break;
@@ -305,253 +305,253 @@ void debug_print_ast_expr(struct ASTExpression* e,unsigned char i){
 			break;
 		case AST_EXPRESSION_TYPE_ACS:
 			KlIo_printf("%s  %fType%f: %f. %f(Attribute Access)%f,\n%s  %fObject%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fAttribute%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_PLUS:
 			KlIo_printf("%s  %fType%f: %f+ %f(Unary Plus)%f,\n%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_MINUS:
 			KlIo_printf("%s  %fType%f: %f- %f(Unary Minus)%f,\n%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_NOT:
 			KlIo_printf("%s  %fType%f: %f~ %f(Bitwise Not)%f,\n%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_BNOT:
 			KlIo_printf("%s  %fType%f: %f! %f(Logical Not)%f,\n%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_POW:
 			KlIo_printf("%s  %fType%f: %f** %f(Exponentiation)%f,\n%s  %fBase%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fExponent%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_ROOT:
 			KlIo_printf("%s  %fType%f: %f*/ %f(Nth Root)%f,\n%s  %fRadicant%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fDegree%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_IROOT:
 			KlIo_printf("%s  %fType%f: %f*// %f(Nth Integer Root)%f,\n%s  %fRadicant%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fDegree%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_MLT:
 			KlIo_printf("%s  %fType%f: %f* %f(Multiplication)%f,\n%s  %fMultiplier%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fMultiplicand%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_DIV:
 			KlIo_printf("%s  %fType%f: %f/ %f(Division)%f,\n%s  %fDividend%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fDivisor%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_FDIV:
 			KlIo_printf("%s  %fType%f: %f// %f(Floor Division)%f,\n%s  %fDividend%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fDivisor%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_MOD:
 			KlIo_printf("%s  %fType%f: %f%% %f(Modulo)%f,\n%s  %fDividend%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fDivisor%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_MMLT:
 			KlIo_printf("%s  %fType%f: %f@ %f(Matrix Multiplication)%f,\n%s  %fMultiplier Matrix%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fMultiplicand Matrix%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_ADD:
 			KlIo_printf("%s  %fType%f: %f+ %f(Addition)%f,\n%s  %fLeft Term%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Term%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_SUB:
 			KlIo_printf("%s  %fType%f: %f- %f(Subtraction)%f,\n%s  %fLeft Term%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Term%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_LSH:
 			KlIo_printf("%s  %fType%f: %f<< %f(Bitwise Left Shift)%f,\n%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fOffset%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_RSH:
 			KlIo_printf("%s  %fType%f: %f>> %f(Bitwise Right Shift)%f,\n%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fOffset%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_LT:
 			KlIo_printf("%s  %fType%f: %f< %f(Less Than)%f,\n%s  %fLeft Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_LE:
 			KlIo_printf("%s  %fType%f: %f<= %f(Less Or Equal)%f,\n%s  %fLeft Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_GT:
 			KlIo_printf("%s  %fType%f: %f> %f(Greather Than)%f,\n%s  %fLeft Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_GE:
 			KlIo_printf("%s  %fType%f: %f>= %f(Greather Or Equal)%f,\n%s  %fLeft Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_EQ:
 			KlIo_printf("%s  %fType%f: %f== %f(Equal)%f,\n%s  %fLeft Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_NE:
 			KlIo_printf("%s  %fType%f: %f!= %f(Not Equal)%f,\n%s  %fLeft Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_BAND:
 			KlIo_printf("%s  %fType%f: %f& %f(Bitwise And)%f,\n%s  %fLeft Value%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Value%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_BXOR:
 			KlIo_printf("%s  %fType%f: %f^ %f(Bitwise Xor)%f,\n%s  %fLeft Value%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Value%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_BOR:
 			KlIo_printf("%s  %fType%f: %f| %f(Bitwise Or)%f,\n%s  %fLeft Value%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Value%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_AND:
 			KlIo_printf("%s  %fType%f: %f&& %f(Logical And)%f,\n%s  %fLeft Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_OR:
 			KlIo_printf("%s  %fType%f: %f|| %f(Logical Or)%f,\n%s  %fLeft Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fRight Expression%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_TCOND:
 			KlIo_printf("%s  %fType%f: %f(?:) %f(Ternary Conditional)%f,\n%s  %fCondition%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fExpression - True%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			KlIo_printf("%s  %fExpression - False%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b+1,i+2);
+			KlDebug_print_ast_expr_arg(e->b+1,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_EQU:
 			KlIo_printf("%s  %fType%f: %f= %f(Assignment)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			if (e->bl==2){
 				KlIo_printf("%s  %fModifiers%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-				debug_print_ast_expr_arg(e->b+1,i+2);
+				KlDebug_print_ast_expr_arg(e->b+1,i+2);
 			}
 			break;
 		case AST_EXPRESSION_TYPE_ADD_EQU:
 			KlIo_printf("%s  %fType%f: %f+= %f(Assignment by Sum)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_SUB_EQU:
 			KlIo_printf("%s  %fType%f: %f-= %f(Assignment by Diffrence)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_MLT_EQU:
 			KlIo_printf("%s  %fType%f: %f*= %f(Assignment by Product)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_DIV_EQU:
 			KlIo_printf("%s  %fType%f: %f/= %f(Assignment by Quotient)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_FDIV_EQU:
 			KlIo_printf("%s  %fType%f: %f//= %f(Assignment by Floored Quotient)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_MOD_EQU:
 			KlIo_printf("%s  %fType%f: %f%= %f(Assignment by Remainder)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_MMLT_EQU:
 			KlIo_printf("%s  %fType%f: %f@= %f(Assignment by Matrix Product)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_LSH_EQU:
 			KlIo_printf("%s  %fType%f: %f<<= %f(Assignment by Bitwise Left Shift)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_RSH_EQU:
 			KlIo_printf("%s  %fType%f: %f>>= %f(Assignment by Bitwise Right Shift)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_BAND_EQU:
 			KlIo_printf("%s  %fType%f: %f&= %f(Assignment by Bitwise And)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_BXOR_EQU:
 			KlIo_printf("%s  %fType%f: %f^= %f(Assignment by Bitwise Xor)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 		case AST_EXPRESSION_TYPE_BOR_EQU:
 			KlIo_printf("%s  %fType%f: %f|= %f(Assignment by Bitwise Or)%f,\n%s  %fVariable%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(&e->a,i+2);
+			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			KlIo_printf("%s  %fValue%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-			debug_print_ast_expr_arg(e->b,i+2);
+			KlDebug_print_ast_expr_arg(e->b,i+2);
 			break;
 	}
 	if (i==0){
@@ -566,7 +566,7 @@ void debug_print_ast_expr(struct ASTExpression* e,unsigned char i){
 
 
 
-void debug_print_ast_expr_arg(struct ASTExpressionArg* ea,unsigned char i){
+void KlDebug_print_ast_expr_arg(struct ASTExpressionArg* ea,unsigned char i){
 	KlMem_enter_func();
 	if (ea==NULL){
 		KlIo_printf("%fNULL%f,\n",CONST_COLOR_DEBUG_UTILS_NULL,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
@@ -582,7 +582,7 @@ void debug_print_ast_expr_arg(struct ASTExpressionArg* ea,unsigned char i){
 				KlIo_printf("%fNULL %f(Expression)%f,\n",CONST_COLOR_DEBUG_UTILS_NULL,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 			}
 			else{
-				debug_print_ast_expr(ea->v.ex,i);
+				KlDebug_print_ast_expr(ea->v.ex,i);
 			}
 			break;
 		case AST_EXPRESSION_ARG_TYPE_CHAR:
@@ -593,22 +593,22 @@ void debug_print_ast_expr_arg(struct ASTExpressionArg* ea,unsigned char i){
 				KlIo_printf("%fNULL %f(String)%f,\n",CONST_COLOR_DEBUG_UTILS_NULL,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 			}
 			else{
-				char* ss=debug_print_string(ea->v.s);
+				char* ss=KlDebug_print_string(ea->v.s);
 				KlIo_printf("%s %f(String)%f,\n",ss,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				KlMem_free(ss);
 			}
 			break;
-		case AST_EXPRESSION_ARG_TYPE_NUMBER:
+		case AST_EXPRESSION_ARG_TYPE_INT:
 			if (ea->v.n==NULL){
 				KlIo_printf("%fNULL %f(Number)%f,\n",CONST_COLOR_DEBUG_UTILS_NULL,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 			}
 			else{
 				char* ns=KlNum_print(ea->v.n);
-				KlIo_printf("%f%s %f(Number)%f,\n",CONST_COLOR_DEBUG_UTILS_NUMBER,ns,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+				KlIo_printf("%f%s %f(Number)%f,\n",CONST_COLOR_DEBUG_UTILS_INT,ns,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				KlMem_free(ns);
 			}
 			break;
-		case AST_EXPRESSION_ARG_TYPE_DECIMAL:
+		case AST_EXPRESSION_ARG_TYPE_FLOAT:
 			if (ea->v.d==NULL){
 				KlIo_printf("%fNULL %f(Decimal)%f,\n",CONST_COLOR_DEBUG_UTILS_NULL,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 			}
@@ -693,7 +693,7 @@ void debug_print_ast_expr_arg(struct ASTExpressionArg* ea,unsigned char i){
 
 
 
-void debug_print_unparsed_ast_expr(struct UnparsedASTExpression* e,unsigned char i){
+void KlDebug_print_unparsed_ast_expr(struct UnparsedASTExpression* e,unsigned char i){
 	KlMem_enter_func();
 	char* is=KlMem_malloc(i+1);
 	for (unsigned long j=0;j<i;j++){
@@ -713,7 +713,7 @@ void debug_print_unparsed_ast_expr(struct UnparsedASTExpression* e,unsigned char
 				KlIo_printf("%s  %f(Undefined)%f,\n",is,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_EXPRESSION:
-				debug_print_unparsed_ast_expr(j->v.ex,i+2);
+				KlDebug_print_unparsed_ast_expr(j->v.ex,i+2);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_OPERATOR:
 				KlIo_printf("%s  %f",is,CONST_COLOR_DEBUG_UTILS_OPERATOR);
@@ -889,16 +889,16 @@ void debug_print_unparsed_ast_expr(struct UnparsedASTExpression* e,unsigned char
 				KlIo_printf("%s  %f'%c' %f(Char)%f,\n",is,CONST_COLOR_DEBUG_UTILS_STRING,j->v.c,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_STRING:
-				char* ss=debug_print_string(j->v.s);
+				char* ss=KlDebug_print_string(j->v.s);
 				KlIo_printf("%s  %s %f(String)%f,\n",is,ss,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				KlMem_free(ss);
 				break;
-			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_NUMBER:
+			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_INT:
 				char* ns=KlNum_print(j->v.n);
-				KlIo_printf("%s  %f%s %f(Number)%f,\n",is,CONST_COLOR_DEBUG_UTILS_NUMBER,ns,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+				KlIo_printf("%s  %f%s %f(Number)%f,\n",is,CONST_COLOR_DEBUG_UTILS_INT,ns,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				KlMem_free(ns);
 				break;
-			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_DECIMAL:
+			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_FLOAT:
 				KlIo_printf("%s  %f%p %f(Decimal)%f,\n",is,CONST_COLOR_DEBUG_UTILS_POINTER,j->v.d,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_NATIVE_FUNCTION:
@@ -944,18 +944,18 @@ void debug_print_unparsed_ast_expr(struct UnparsedASTExpression* e,unsigned char
 
 
 
-char* debug_print_string(char* s){
+char* KlDebug_print_string(char* s){
 	KlMem_enter_func();
 	char* sf=str_escape_ansi(CONST_COLOR_DEBUG_UTILS_STRING);
 	char* bf=str_escape_ansi(CONST_COLOR_DEBUG_UTILS_STRING_BYTE);
-	unsigned long sf_ln=str_len(sf);
-	unsigned long bf_ln=str_len(bf);
-	unsigned long s_ln=str_len(s);
-	unsigned long ln=s_ln+sf_ln+3;
+	size_t sf_ln=str_len(sf);
+	size_t bf_ln=str_len(bf);
+	size_t s_ln=str_len(s);
+	size_t ln=s_ln+sf_ln+3;
 	char* o=KlMem_malloc(ln);
 	KlMem_memcpy(o,sf,sf_ln);
 	*(o+sf_ln)='"';
-	unsigned long i=sf_ln+1;
+	size_t i=sf_ln+1;
 	bool cbf=false;
 	for (char* c=s;c<s+s_ln;c++){
 		if (*c<=0x1f||*c==0x22||*c==0x27||*c==0x7f){

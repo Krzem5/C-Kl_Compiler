@@ -1,14 +1,14 @@
 #include <string_utils.h>
 #include <memory.h>
-#include <types.h>
+#include <shared.h>
 #include <stdarg.h>
 #include <limits.h>
 
 
 
-unsigned long str_len(char* s){
+size_t str_len(const char* s){
 	KlMem_enter_func();
-	unsigned long i=0;
+	size_t i=0;
 	while (*(s+i)!=0){
 		i++;
 	}
@@ -17,21 +17,21 @@ unsigned long str_len(char* s){
 
 
 
-char* str_clone(char* s){
+char* str_clone(const char* s){
 	KlMem_enter_func();
 	if (s==NULL){
 		return(NULL);
 	}
-	unsigned long ln=str_len(s)+1;
-	return(KlMem_memcpy(KlMem_malloc(ln),s,ln));
+	size_t ln=str_len(s)+1;
+	return(KlMem_memcpy(KlMem_malloc(ln),(char*)s,ln));
 }
 
 
 
-char* str_append(char* s,char c){
+char* str_append(const char* s,char c){
 	KlMem_enter_func();
-	unsigned long sz=str_len(s);
-	char* o=KlMem_realloc(s,sz+2);
+	size_t sz=str_len(s);
+	char* o=KlMem_realloc((char*)s,sz+2);
 	o[sz]=c;
 	o[sz+1]=0;
 	KlMem_ret(o);
@@ -40,10 +40,10 @@ char* str_append(char* s,char c){
 
 
 
-char* str_concat(char* a,char* b){
+char* str_concat(const char* a,char* b){
 	KlMem_enter_func();
 	char* o=KlMem_malloc(str_len(a)+str_len(b)+1);
-	KlMem_memcpy(o,a,str_len(a));
+	KlMem_memcpy(o,(char*)a,str_len(a));
 	KlMem_memcpy(o+str_len(a),b,str_len(b));
 	*(o+str_len(a)+str_len(b))=0;
 	KlMem_ret(o);
@@ -52,10 +52,10 @@ char* str_concat(char* a,char* b){
 
 
 
-char* str_substr(char* s,unsigned long i,unsigned long j){
+char* str_substr(const char* s,size_t i,size_t j){
 	KlMem_enter_func();
 	char* o=KlMem_malloc(j-i+1);
-	for (unsigned long k=i;k<j;k++){
+	for (size_t k=i;k<j;k++){
 		*(o+k-i)=*(s+k);
 	}
 	o[j-i]=0;
@@ -65,9 +65,9 @@ char* str_substr(char* s,unsigned long i,unsigned long j){
 
 
 
-unsigned long str_find(char* s,char c,unsigned long i){
+size_t str_find(const char* s,char c,size_t i){
 	KlMem_enter_func();
-	unsigned long j=i;
+	size_t j=i;
 	while (*(s+j)!=0){
 		if (*(s+j)==c){
 			return(j-i);
@@ -79,7 +79,7 @@ unsigned long str_find(char* s,char c,unsigned long i){
 
 
 
-unsigned long str_rfind(char* s,char c,unsigned long i){
+size_t str_rfind(const char* s,char c,size_t i){
 	KlMem_enter_func();
 	while (true){
 		if (*(s+i)==c){
@@ -94,9 +94,9 @@ unsigned long str_rfind(char* s,char c,unsigned long i){
 
 
 
-bool str_cmp(char* a,char* b,unsigned long s,unsigned long l){
+bool str_cmp(const char* a,char* b,size_t s,size_t l){
 	KlMem_enter_func();
-	for (unsigned long i=0;i<l;i++){
+	for (size_t i=0;i<l;i++){
 		if (*(a+s+i)!=*(b+i)){
 			return(false);
 		}
@@ -106,7 +106,7 @@ bool str_cmp(char* a,char* b,unsigned long s,unsigned long l){
 
 
 
-char* str_format(char* t,...){
+char* str_format(const char* t,...){
 	KlMem_enter_func();
 	va_list a;
 	va_start(a,t);
@@ -117,11 +117,11 @@ char* str_format(char* t,...){
 
 
 
-char* str_format_va(char* t,va_list a){
+char* str_format_va(const char* t,va_list a){
 	KlMem_enter_func();
-	unsigned long ln=str_len(t)+1;
+	size_t ln=str_len(t)+1;
 	char* o=KlMem_calloc(ln,1);
-	unsigned long i=0;
+	size_t i=0;
 	while (*t!=0){
 		if (*t=='%'){
 			t++;
@@ -172,7 +172,7 @@ char* str_format_va(char* t,va_list a){
 					case 'h':
 						*(o+i)='h';
 						i++;
-						// printH(va_arg(a,unsigned long));
+						// printH(va_arg(a,size_t));
 						break;
 					case 'l':
 						*(o+i)='l';
@@ -205,7 +205,7 @@ char* str_format_va(char* t,va_list a){
 							*(o+i)='0';
 							*(o+i+1)='x';
 							i+=2;
-							PTR_TYPE p=(PTR_TYPE)va_arg(a,void*);
+							uintptr_t p=(uintptr_t)va_arg(a,void*);
 #ifdef WIN32
 							for (signed char j=28;j>=0;j-=4){
 #else
@@ -236,7 +236,7 @@ char* str_format_va(char* t,va_list a){
 						break;
 					case 'f':
 						{
-							unsigned long long int f=va_arg(a,unsigned long long int);
+							uint64_t f=va_arg(a,uint64_t);
 							unsigned char m=(f>>48)&255;
 							if (m==0){
 								ln+=4;
@@ -383,7 +383,7 @@ char* str_format_va(char* t,va_list a){
 
 
 
-char* str_escape_ansi(unsigned long long int f){
+char* str_escape_ansi(uint64_t f){
 	KlMem_enter_func();
 	unsigned char m=(f>>48)&255;
 	if (m==0){

@@ -1,10 +1,12 @@
 #ifndef MEMORY_H
 #define MEMORY_H
-#include <types.h>
+#include <shared.h>
 
 
 
 #ifndef NDEBUG
+#define WARN_MEMCPY_TO_UNKNOWN false
+#define WARN_MEMCPY_FROM_UNKNOWN false
 #define KlMem_malloc(sz) KlMem_malloc_((sz),__FILE__,__LINE__,__func__)
 #define KlMem_calloc(ln,sz) KlMem_calloc_((ln),(sz),__FILE__,__LINE__,__func__)
 #define KlMem_realloc(s,sz) KlMem_realloc_((s),(sz),__FILE__,__LINE__,__func__)

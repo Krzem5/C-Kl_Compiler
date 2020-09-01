@@ -1,8 +1,6 @@
 #ifndef SYS_H
 #define SYS_H
-#include <io.h>
-#include <memory.h>
-#include <types.h>
+#include <shared.h>
 
 
 

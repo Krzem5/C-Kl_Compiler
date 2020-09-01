@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <io.h>
-#include <types.h>
+#include <shared.h>
 #undef return
 
 
 
 #ifndef NDEBUG
-const char* _s_sig="XYXYXYXY";
-const char* _e_sig="ABABABAB";
+const char* _s_sig="\x63\x57\xfd\xd4\x82\x5b\x10\xb5";
+const char* _e_sig="\x44\xaa\x66\x40\x7c\xcc\x54\x67";
 struct _Node{
 	struct _Node* p;
 	struct _Node* n;
@@ -83,7 +83,7 @@ void _dump(void* s,size_t sz){
 	char* f=malloc(mx+20);
 	sprintf_s(f,mx+19,"0x%%016llx + %% %ullu: ",mx);
 	for (size_t i=0;i<sz;i+=8){
-		printf(f,(unsigned long long int)s,(unsigned long long int)i);
+		printf(f,(uintptr_t)s,(uintptr_t)i);
 		unsigned char j;
 		for (j=0;j<8;j++){
 			if (i+j>=sz){
@@ -180,7 +180,7 @@ void _check_heap(const char* f,unsigned int ln,const char* fn){
 
 
 
-void* _get(void* p,const char* msg,const char* f,unsigned int ln,const char* fn){
+void* _get(void* p,const char* msg,bool wu,const char* f,unsigned int ln,const char* fn){
 	if (p==NULL){
 		printf("ERROR: %s:%u (%s): %s Null Pointer!\n",f,ln,fn,msg);
 		_m_err=true;
@@ -190,7 +190,9 @@ void* _get(void* p,const char* msg,const char* f,unsigned int ln,const char* fn)
 	struct _Node* n=&_head;
 	while (n->ptr!=(char*)p-8){
 		if (n->n==NULL){
-			printf("WARN:  %s:%u (%s): %s Unknown Pointer!\n",f,ln,fn,msg);
+			if (wu==true){
+				printf("WARN:  %s:%u (%s): %s Unknown Pointer!\n",f,ln,fn,msg);
+			}
 			return p;
 		}
 		n=n->n;
@@ -270,7 +272,7 @@ void* KlMem_malloc_(size_t sz,const char* f,unsigned int ln,const char* fn){
 	n->mln=ln;
 	n->mfn=fn;
 	n->r=false;
-	return (void*)((PTR_TYPE)n->ptr+8);
+	return (void*)((uintptr_t)n->ptr+8);
 }
 
 
@@ -331,7 +333,7 @@ void* KlMem_calloc_(size_t ln_,size_t sz,const char* f,unsigned int ln,const cha
 	n->mln=ln;
 	n->mfn=fn;
 	n->r=false;
-	return (void*)((PTR_TYPE)n->ptr+8);
+	return (void*)((uintptr_t)n->ptr+8);
 }
 
 
@@ -346,7 +348,7 @@ void* KlMem_realloc_(void* s,size_t sz,const char* f,unsigned int ln,const char*
 		return KlMem_malloc_(sz,f,ln,fn);
 	}
 	assert(sz>=0);
-	void* sn=_get(s,"Reallocating",f,ln,fn);
+	void* sn=_get(s,"Reallocating",true,f,ln,fn);
 	struct _Node* n;
 	if (sn==s){
 		n=&_head;
@@ -378,7 +380,7 @@ void* KlMem_realloc_(void* s,size_t sz,const char* f,unsigned int ln,const char*
 	n->ln=ln;
 	n->fn=fn;
 	n->fcl=_get_call_lvl(f,fn);
-	return (void*)((PTR_TYPE)n->ptr+8);
+	return (void*)((uintptr_t)n->ptr+8);
 }
 
 
@@ -390,14 +392,14 @@ void* KlMem_memcpy_(void* o,void* s,size_t sz,const char* f,unsigned int ln,cons
 	}
 	assert(o!=s);
 	_check_heap(f,ln,fn);
-	void* on=_get(o,"Memcpy To",f,ln,fn);
+	void* on=_get(o,"Memcpy To",WARN_MEMCPY_TO_UNKNOWN,f,ln,fn);
 	if (on!=o){
 		if (((struct _Node*)on)->t==true){
 			printf("TRACE: %s:%u (%s): %s (0x%016llx): Memory Copy To Self on Line %s:%u (%s)\n",f,ln,fn,((struct _Node*)on)->t_nm,(unsigned long long int)((struct _Node*)on)->ptr,f,ln,fn);
 		}
 		o=(char*)((struct _Node*)on)->ptr+8;
 	}
-	void* sn=_get(s,"Memcpy From",f,ln,fn);
+	void* sn=_get(s,"Memcpy From",WARN_MEMCPY_FROM_UNKNOWN,f,ln,fn);
 	if (sn!=s){
 		if (((struct _Node*)sn)->t==true){
 			printf("TRACE: %s:%u (%s): %s (0x%016llx): Memory Copy From Self on Line %s:%u (%s)\n",f,ln,fn,((struct _Node*)sn)->t_nm,(unsigned long long int)((struct _Node*)sn)->ptr,f,ln,fn);
@@ -419,7 +421,7 @@ void KlMem_free_(void* p,const char* f,unsigned int ln,const char* fn){
 	}
 	assert(p!=NULL);
 	_check_heap(f,ln,fn);
-	struct _Node* n=_get(p,"Freeing",f,ln,fn);
+	struct _Node* n=_get(p,"Freeing",false,f,ln,fn);
 	if (n==p){
 		printf("ERROR: %s:%u (%s): Freeing Unknown Pointer!\n",f,ln,fn);
 		_m_err=true;
@@ -463,7 +465,7 @@ void KlMem_trace_(void* p,const char* p_nm,const char* f,unsigned int ln,const c
 		_er=true;
 	}
 	_check_heap(f,ln,fn);
-	struct _Node* n=_get(p,"Tracing",f,ln,fn);
+	struct _Node* n=_get(p,"Tracing",false,f,ln,fn);
 	if (n==p){
 		printf("ERROR: %s:%u (%s): Tracing Unknown Pointer!\n",f,ln,fn);
 		_m_err=true;
@@ -487,7 +489,7 @@ void KlMem_ret_(void* p,const char* f,unsigned int ln,const char* fn){
 		_er=true;
 	}
 	_check_heap(f,ln,fn);
-	struct _Node* n=_get(p,"Returning",f,ln,fn);
+	struct _Node* n=_get(p,"Returning",false,f,ln,fn);
 	if ((void*)n==p){
 		printf("ERROR: %s:%u (%s): Returning Unknown Pointer!\n",f,ln,fn);
 		_m_err=true;
@@ -521,7 +523,7 @@ void KlMem_enter_func_(const char* f,unsigned int ln,const char* fn){
 		atexit(KlMem_check_all_allocated_);
 		_er=true;
 	}
-	ln--; //C4100
+	(void)ln;
 	struct _FuncLvl* fl=&_fl_head;
 	while (fl->f!=f||fl->fn!=fn){
 		if (fl->f==NULL&&fl->fn==NULL){

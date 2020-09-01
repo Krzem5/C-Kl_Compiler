@@ -1,6 +1,6 @@
-#ifndef NUMBER_H
-#define NUMBER_H
-#include <types.h>
+#ifndef INT_H
+#define INT_H
+#include <shared.h>
 
 
 

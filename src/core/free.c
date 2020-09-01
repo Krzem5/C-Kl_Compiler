@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <number.h>
 #include <io.h>
-#include <types.h>
+#include <shared.h>
 
 
 
@@ -14,13 +14,13 @@ void KlFree_free_code_file_object(struct CodeFileObject fo){
 
 
 
-unsigned long KlFree_free_token(struct ASTToken t){
+size_t KlFree_free_token(struct ASTToken t){
 	switch (t.t){
 		case AST_TOKEN_TYPE_STRING:
 		case AST_TOKEN_TYPE_IDENTIFIER:
 			KlMem_free(t.v);
 			break;
-		case AST_TOKEN_TYPE_NUMBER:
+		case AST_TOKEN_TYPE_INT:
 			KlNum_free(t.v);
 			break;
 	}
@@ -29,13 +29,13 @@ unsigned long KlFree_free_token(struct ASTToken t){
 
 
 
-unsigned long KlFree_free_token_p(struct ASTToken* t){
+size_t KlFree_free_token_p(struct ASTToken* t){
 	switch (t->t){
 		case AST_TOKEN_TYPE_STRING:
 		case AST_TOKEN_TYPE_IDENTIFIER:
 			KlMem_free(t->v);
 			break;
-		case AST_TOKEN_TYPE_NUMBER:
+		case AST_TOKEN_TYPE_INT:
 			KlNum_free(t->v);
 			break;
 	}
@@ -46,7 +46,7 @@ unsigned long KlFree_free_token_p(struct ASTToken* t){
 
 void KlFree_free_unopt_ast_object(struct UnoptimisedASTObject o){
 	KlMem_enter_func();
-	for (unsigned long i=0;i<o.l;i++){
+	for (size_t i=0;i<o.l;i++){
 		switch ((o.e+i)->t){
 			default:
 			case AST_OBJECT_ELEM_TYPE_UNKNOWN:
@@ -84,13 +84,13 @@ void KlFree_free_expression(struct ASTExpression ex){
 				KlMem_free(ex.a.v.s);
 			}
 			break;
-		case AST_EXPRESSION_ARG_TYPE_NUMBER:
+		case AST_EXPRESSION_ARG_TYPE_INT:
 			if (ex.a.v.n!=NULL){
 				KlMem_free(ex.a.v.n->v);
 				KlMem_free(ex.a.v.n);
 			}
 			break;
-		case AST_EXPRESSION_ARG_TYPE_DECIMAL:
+		case AST_EXPRESSION_ARG_TYPE_FLOAT:
 			if (ex.a.v.d!=NULL){
 				KlMem_free(ex.a.v.d->v);
 				KlMem_free(ex.a.v.d->fv);
@@ -118,7 +118,7 @@ void KlFree_free_expression(struct ASTExpression ex){
 			break;
 	}
 	if (ex.b!=NULL){
-		for (unsigned long i=0;i<ex.bl;i++){
+		for (size_t i=0;i<ex.bl;i++){
 			switch ((ex.b+i)->t){
 				default:
 				case AST_EXPRESSION_ARG_TYPE_UNKNOWN:
@@ -135,13 +135,13 @@ void KlFree_free_expression(struct ASTExpression ex){
 						KlMem_free((ex.b+i)->v.s);
 					}
 					break;
-				case AST_EXPRESSION_ARG_TYPE_NUMBER:
+				case AST_EXPRESSION_ARG_TYPE_INT:
 					if ((ex.b+i)->v.n!=NULL){
 						KlMem_free((ex.b+i)->v.n->v);
 						KlMem_free((ex.b+i)->v.n);
 					}
 					break;
-				case AST_EXPRESSION_ARG_TYPE_DECIMAL:
+				case AST_EXPRESSION_ARG_TYPE_FLOAT:
 					if ((ex.b+i)->v.d!=NULL){
 						KlMem_free((ex.b+i)->v.d->v);
 						KlMem_free((ex.b+i)->v.d->fv);
@@ -178,7 +178,7 @@ void KlFree_free_expression(struct ASTExpression ex){
 
 void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 	KlMem_enter_func();
-	for (unsigned long i=0;i<e.l;i++){
+	for (size_t i=0;i<e.l;i++){
 		switch ((e.e+i)->t){
 			default:
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_UNKNOWN:
@@ -194,10 +194,10 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_STRING:
 				KlMem_free((e.e+i)->v.s);
 				break;
-			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_NUMBER:
+			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_INT:
 				KlNum_free((e.e+i)->v.n);
 				break;
-			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_DECIMAL:
+			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_FLOAT:
 				///////
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_NATIVE_FUNCTION:
@@ -220,7 +220,7 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 
 void KlFree_free_scope(struct Scope sc){
 	if (sc.l>0){
-		for (unsigned long i=0;i<sc.l;i++){
+		for (size_t i=0;i<sc.l;i++){
 			KlMem_free(*(sc.k+i));
 		}
 		KlMem_free(sc.k);

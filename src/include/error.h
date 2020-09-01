@@ -1,6 +1,6 @@
 #ifndef ERROR_H
 #define ERROR_H
-#include <types.h>
+#include <shared.h>
 
 
 
@@ -24,15 +24,15 @@ void KlError_set_error(char* nm,char* msg,struct CallStack* cs);
 
 
 
-struct CallStack* KlError_extend_call_stack(struct CallStack* cs,struct CodeFileObject* c,unsigned long sl,unsigned long el,unsigned long su,unsigned long eu,char* f);
+struct CallStack* KlError_extend_call_stack(struct CallStack* cs,struct CodeFileObject* c,size_t sl,size_t el,size_t su,size_t eu,char* f);
 
 
 
-unsigned long KlError_offset_to_line(char* dt,unsigned long i);
+size_t KlError_offset_to_line(char* dt,size_t i);
 
 
 
-void KlError_unimplemented(char* t,unsigned long ln);
+void KlError_unimplemented(char* t,unsigned int ln);
 
 
 

@@ -4,17 +4,17 @@
 #include <platform.h>
 #include <sys.h>
 #include <free.h>
-#include <types.h>
+#include <shared.h>
 #include <memory.h>
 #include <string_utils.h>
-#ifndef NDEBUG
-#include <stdio.h>
+#ifndef DEBUG
+#include <io.h>
 #endif
 
 
 
 int KlCore_run_all(int argc,const char** argv){
-	argc--; // C4100
+	(void)argc;
 	KlMem_enter_func();
 	assert(KlSys_stdout.p!=NULL);
 	KlPlatform_setup_console();

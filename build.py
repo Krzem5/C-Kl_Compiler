@@ -13,7 +13,7 @@ if (ntpath.exists("build")):
 os.mkdir("build")
 os.chdir(os.getcwd()+"\\build\\")
 ti,tp,os.environ["INCLUDE"],os.environ["PATH"],os.environ["_NO_DEBUG_HEAP"]=os.environ["INCLUDE"],os.environ["PATH"],".\\..\\src\\include;"+os.environ["INCLUDE"],"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.25.28610\\bin\\Hostx64\\x64;"+os.environ["PATH"],"1"
-rel=(True if len(sys.argv)==2 and sys.argv[1]=="release" else False)
+rel=(True if len(sys.argv)==2 and sys.argv[1]=="-r" else False)
 s=""
 for fn in os.listdir(".\\..\\src\\include"):
 	if (fn[-2:]==".h"):
@@ -33,6 +33,7 @@ p=[]
 o=[]
 il=[]
 pl=[]
+d={}
 while (i<len(s)):
 	s[i]=s[i].strip()
 	if (len(s[i].strip())==0):
@@ -79,11 +80,21 @@ while (i<len(s)):
 			if (if_ not in il):
 				pl+=[s[i]]
 				il+=[if_]
+	elif (s[i].startswith("#define")):
+		if (r[-1]==False):
+			d[s[i].split(" ")[1]]=s[i][9+len(s[i].split(" ")[1]):]
+			pl+=[s[i]]
 	elif (r[-1]==False):
 		if (s[i][0]=="#"):
 			pl+=[s[i]]
 		else:
 			o+=[s[i]]
+			ok=False
+			while (True):
+				for k in d.keys():
+					o[-1]=re.sub(rf"\b{k}\b",lambda x:(exec("ok=True"),d[k])[1],o[-1])
+				if (ok==False):
+					break
 	i+=1
 i=0
 s=o[:]
@@ -92,7 +103,7 @@ while (i<len(s)):
 	if (s[i][0]=="#"):
 		o+=[s[i]]
 	else:
-		if (s[i].startswith("struct") and "{" in s[i] and s[i].count("{")!=s[i].count("}")):
+		if (re.match(r"^(?:const)?\s*(?:static)?\s*(?:const)?\s*struct",s[i])!=None and "{" in s[i] and s[i].count("{")!=s[i].count("}")):
 			o+=[s[i]]
 			b=s[i].count("{")-s[i].count("}")
 			i+=1
@@ -113,11 +124,13 @@ for k in re.findall(r"^extern(?:[ \t\r]+\w+)+\*{0,2}[ \t\r]+(\w+)[ \t\r]*;[ \t\r
 	el+=[f"/EXPORT:{k},@{oi},NONAME,DATA"]
 	oi+=1
 with open("kl.h","w") as f:
-	f.write("#ifndef KL_H\n#define KL_H\n"+"\n".join(pl)+"\n".join(o)+"\n#endif")
-if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sdl /Zc:inline /fp:precise /D \"{('_' if rel==False else 'N')}DEBUG\"  /D \"_WINDOWS\" /D \"_USRDLL\" /D \"_WINDLL\" /D \"_UNICODE\" /D \"UNICODE\" /errorReport:none /WX /Zc:forScope /Gd /Oi /FC /D \"DLL1_EXPORTS\" /EHsc /nologo /diagnostics:column {('/ZI /Od /RTC1 /MDd' if rel==False else '/GL /Gy /Zi /O2 /Oi /MD')} ..\\\\src\\\\dllmain.c ..\\\\src\\\\core\\\\platform\\\\windows.c "+' '.join(glob.glob("..\\src\\core\\*.c")+glob.glob("..\\src\\core\\util\\*.c")).replace("\\","\\\\"))).returncode==0 and subprocess.run(shlex.split(f"link {' '.join(glob.glob('*.obj'))} /OUT:kl.dll /IMPLIB:kl.lib /NXCOMPAT /DYNAMICBASE \"kernel32.lib\" \"user32.lib\" \"gdi32.lib\" \"winspool.lib\" \"comdlg32.lib\" \"advapi32.lib\" \"shell32.lib\" \"ole32.lib\" \"oleaut32.lib\" \"uuid.lib\" \"odbc32.lib\" \"odbccp32.lib\" /DLL /MACHINE:X64 /SUBSYSTEM:WINDOWS /ERRORREPORT:none /NOLOGO /TLBID:1 /WX {('/DEBUG /INCREMENTAL' if rel==False else '/LTCG /OPT:REF /INCREMENTAL:NO /OPT:ICF')} {' '.join(el)}")).returncode==0):
+	f.write("#ifndef KL_H\n#define KL_H\n"+"\n".join(pl)+"\n"+"\n".join(o)+"\n#endif")
+with open("tmp.c","w") as f:
+	f.write("\n".join([f"#include <{fn}>" for fn in os.listdir(".\\..\\src\\include")]))
+if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sdl /Zc:inline /fp:precise /D \"{('_' if rel==False else 'N')}DEBUG\"  /D \"_WINDOWS\" /D \"_USRDLL\" /D \"_WINDLL\" /D \"_UNICODE\" /D \"UNICODE\" /errorReport:none /WX /Zc:forScope /Gd /Oi /FC /D \"DLL1_EXPORTS\" /EHsc /nologo /diagnostics:column {('/ZI /Od /RTC1 /MDd' if rel==False else '/GL /Gy /Zi /O2 /Oi /MD')} tmp.c ..\\\\src\\\\dllmain.c ..\\\\src\\\\core\\\\platform\\\\windows.c "+' '.join(glob.glob("..\\src\\core\\*.c")+glob.glob("..\\src\\core\\util\\*.c")).replace("\\","\\\\"))).returncode==0 and subprocess.run(shlex.split(f"link {' '.join(glob.glob('*.obj'))} /OUT:kl.dll /IMPLIB:kl.lib /NXCOMPAT /DYNAMICBASE \"kernel32.lib\" \"user32.lib\" \"gdi32.lib\" \"winspool.lib\" \"comdlg32.lib\" \"advapi32.lib\" \"shell32.lib\" \"ole32.lib\" \"oleaut32.lib\" \"uuid.lib\" \"odbc32.lib\" \"odbccp32.lib\" /DLL /MACHINE:X64 /SUBSYSTEM:WINDOWS /ERRORREPORT:none /NOLOGO /TLBID:1 /WX {('/DEBUG /INCREMENTAL' if rel==False else '/LTCG /OPT:REF /INCREMENTAL:NO /OPT:ICF')} {' '.join(el)}")).returncode==0):
 		os.environ["INCLUDE"]=".\\;"+ti
 		if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sdl /Zc:inline /fp:precise /D \"{('_' if rel==False else 'N')}DEBUG\"  /D \"_WINDOWS\" /D \"_USRDLL\" /D \"_WINDLL\" /D \"_UNICODE\" /D \"UNICODE\" /errorReport:none /WX /Zc:forScope /Gd /Oi /FC /D \"DLL1_EXPORTS\" /EHsc /nologo /diagnostics:column {('/ZI /Od /RTC1 /MDd' if rel==False else '/GL /Gy /Zi /O2 /Oi /MD')} ..\\\\src\\\\main.c")).returncode==0 and subprocess.run(shlex.split(f"link main.obj /OUT:kl.exe /DYNAMICBASE \"kernel32.lib\" \"user32.lib\" \"gdi32.lib\" \"winspool.lib\" \"comdlg32.lib\" \"advapi32.lib\" \"shell32.lib\" \"ole32.lib\" \"oleaut32.lib\" \"uuid.lib\" \"odbc32.lib\" \"odbccp32.lib\" \"kl.lib\" /MACHINE:X64 /SUBSYSTEM:CONSOLE /ERRORREPORT:none /NOLOGO /TLBID:1 /WX {('/DEBUG /INCREMENTAL' if rel==False else '/LTCG /OPT:REF /INCREMENTAL:NO /OPT:ICF')}")).returncode==0):
-			os.system(f"del *obj&&del *.pdb&&del *.exp{('' if rel==True else '&&del *.ilk&&del *.idb')}&&cls")
+			os.system(f"del tmp.c&&del *obj&&del *.pdb&&del *.exp{('' if rel==True else '&&del *.ilk&&del *.idb')}&&cls")
 			subprocess.run(["kl.exe",".\\..\\test.kl"])
 os.environ["INCLUDE"],os.environ["PATH"]=ti,tp
 os.chdir(os.getcwd()+"\\..\\")

@@ -2,10 +2,10 @@
 #include <error.h>
 #include <platform.h>
 #include <sys.h>
-#include <types.h>
+#include <shared.h>
 #include <string_utils.h>
 #include <memory.h>
-#include <stdio.h>
+#include <io.h>
 
 
 
@@ -20,18 +20,18 @@ struct Error _err={
 void KlError_raise(void){
 	KlMem_enter_func();
 	if (_err.cs!=NULL){
-		unsigned long j;
-		unsigned long k;
+		size_t j;
+		size_t k;
 		char* ln=NULL;
-		unsigned long dt_ln;
-		unsigned long sz;
+		size_t dt_ln;
+		size_t sz;
 		bool h;
 		bool s;
 		unsigned char a;
 		char* cl=str_escape_ansi(CONST_COLOR_ERROR_SRC_HIGHLIGHT);
 		char* c_cl=str_escape_ansi(CONST_COLOR_RESET);
-		unsigned long cl_ln=str_len(cl);
-		unsigned long c_cl_ln=str_len(c_cl);
+		size_t cl_ln=str_len(cl);
+		size_t c_cl_ln=str_len(c_cl);
 		for (struct CallStackElem* i=_err.cs->e;i<_err.cs->e+_err.cs->l;i++){
 			j=0;
 			k=0;
@@ -55,13 +55,13 @@ void KlError_raise(void){
 							*(ln+sz+1)=' ';
 							*(ln+sz+2)=' ';
 							sz+=3;
-							for (unsigned long n=0;n<cl_ln;n++){
+							for (size_t n=0;n<cl_ln;n++){
 								*(ln+sz+n)=*(cl+n);
 							}
 							sz+=cl_ln;
 						}
 						s=false;
-						for (unsigned long l=str_rfind(i->c->dt,'\n',j-2)+1;l<j-1;l++){
+						for (size_t l=str_rfind(i->c->dt,'\n',j-2)+1;l<j-1;l++){
 							if (s==false&&(*(i->c->dt+l)==' '||*(i->c->dt+l)=='\t'||*(i->c->dt+l)=='\r'||*(i->c->dt+l)=='\v')){
 								continue;
 							}
@@ -70,7 +70,7 @@ void KlError_raise(void){
 							if (k==i->sl&&l==i->su){
 								h=true;
 								ln=KlMem_realloc(ln,sz+cl_ln+a);
-								for (unsigned long n=0;n<cl_ln;n++){
+								for (size_t n=0;n<cl_ln;n++){
 									*(ln+sz+n)=*(cl+n);
 								}
 								sz+=cl_ln;
@@ -85,7 +85,7 @@ void KlError_raise(void){
 							if (k==i->el&&l==i->eu){
 								h=false;
 								ln=KlMem_realloc(ln,sz+c_cl_ln+1);
-								for (unsigned long n=0;n<c_cl_ln;n++){
+								for (size_t n=0;n<c_cl_ln;n++){
 									*(ln+sz+n)=*(c_cl+n);
 								}
 								sz+=c_cl_ln;
@@ -95,7 +95,7 @@ void KlError_raise(void){
 							break;
 						}
 						ln=KlMem_realloc(ln,sz+c_cl_ln+1);
-						for (unsigned long n=0;n<c_cl_ln;n++){
+						for (size_t n=0;n<c_cl_ln;n++){
 							*(ln+sz+n)=*(c_cl+n);
 						}
 						sz+=c_cl_ln;
@@ -105,12 +105,12 @@ void KlError_raise(void){
 							*(ln+sz+1)=' ';
 							*(ln+sz+2)=' ';
 							sz+=3;
-							for (unsigned long n=0;n<cl_ln;n++){
+							for (size_t n=0;n<cl_ln;n++){
 								*(ln+sz+n)=*(cl+n);
 							}
 							*(ln+sz+cl_ln)=' ';
 							sz+=cl_ln+1;
-							for (unsigned long n=0;n<c_cl_ln;n++){
+							for (size_t n=0;n<c_cl_ln;n++){
 								*(ln+sz+n)=*(c_cl+n);
 							}
 							sz+=c_cl_ln;
@@ -149,7 +149,7 @@ void KlError_set_error(char* nm,char* msg,struct CallStack* cs){
 
 
 
-struct CallStack* KlError_extend_call_stack(struct CallStack* cs,struct CodeFileObject* c,unsigned long sl,unsigned long el,unsigned long su,unsigned long eu,char* f){
+struct CallStack* KlError_extend_call_stack(struct CallStack* cs,struct CodeFileObject* c,size_t sl,size_t el,size_t su,size_t eu,char* f){
 	KlMem_enter_func();
 	struct CallStack o;
 	struct CallStackElem e;
@@ -182,10 +182,10 @@ struct CallStack* KlError_extend_call_stack(struct CallStack* cs,struct CodeFile
 
 
 
-unsigned long KlError_offset_to_line(char* dt,unsigned long i){
+size_t KlError_offset_to_line(char* dt,size_t i){
 	KlMem_enter_func();
-	unsigned long o=0;
-	for (unsigned long j=0;j<=i;j++){
+	size_t o=0;
+	for (size_t j=0;j<=i;j++){
 		if (*(dt+j)=='\n'){
 			o++;
 		}
@@ -195,7 +195,7 @@ unsigned long KlError_offset_to_line(char* dt,unsigned long i){
 
 
 
-void KlError_unimplemented(char* t,unsigned long ln){
+void KlError_unimplemented(char* t,unsigned int ln){
 	KlMem_enter_func();
 	KlError_set_error("UnimplementedError",str_format("Unimplemented %s on Line %i.",t,ln),NULL);
 	return();

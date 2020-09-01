@@ -1,6 +1,6 @@
 #ifndef AST_H
 #define AST_H
-#include <types.h>
+#include <shared.h>
 
 
 
@@ -32,11 +32,11 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex);
 
 
 
-struct ASTToken KlAst_next_token(struct CodeFileObject* fo,unsigned long i,struct CallStack* cs);
+struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallStack* cs);
 
 
 
-char KlAst_parse_string_char(char* s,unsigned long* i,unsigned char* e);
+char KlAst_parse_string_char(char* s,size_t* i,unsigned char* e);
 
 
 
