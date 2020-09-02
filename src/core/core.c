@@ -24,20 +24,20 @@ int KlCore_run_all(int argc,const char** argv){
 		KlPlatform_restore_console();
 		return(1);
 	}
-	struct UnoptimisedASTObject* ast=KlAst_parse_ast(fo,NULL);
+	struct ASTScope* ast=KlAst_parse_ast(fo,NULL);
 	if (ast==NULL){
 		KlError_raise();
 		KlPlatform_restore_console();
 		KlFree_free_code_file_object(*fo);
 		KlMem_free(fo);
-		KlFree_free_unopt_ast_object(*ast);
+		KlFree_free_scope(*ast);
 		KlMem_free(ast);
 		return(1);
 	}
 	KlPlatform_restore_console();
 	KlFree_free_code_file_object(*fo);
 	KlMem_free(fo);
-	KlFree_free_unopt_ast_object(*ast);
+	KlFree_free_scope(*ast);
 	KlMem_free(ast);
 	return(0);
 }

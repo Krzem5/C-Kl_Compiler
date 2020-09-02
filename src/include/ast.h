@@ -4,7 +4,7 @@
 
 
 
-struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct CallStack* cs);
+struct ASTScope* KlAst_parse_ast(struct CodeFileObject* fo,struct CallStack* cs);
 
 
 
@@ -12,7 +12,7 @@ struct ModifierData KlAst_parse_modifiers(struct CodeFileObject* fo,struct ASTTo
 
 
 
-struct ASTExpression* KlAst_parse_expression(struct CodeFileObject* fo,struct ASTToken* t,struct CallStack* cs,struct Scope* sc,struct ModifierData md,bool e,unsigned char et);
+bool KlAst_process_expression(struct CodeFileObject* fo,struct ASTExpression* t,struct CallStack* cs,struct ASTScope* sc,struct ModifierData md);
 
 
 
@@ -20,7 +20,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 
 
 
-struct ASTExpression* KlAst_parse_unparsed_expression(struct CodeFileObject* fo,struct UnparsedASTExpression* e,struct CallStack* cs,struct Scope* sc);
+struct ASTExpression* KlAst_parse_unparsed_expression(struct CodeFileObject* fo,struct UnparsedASTExpression* e,struct CallStack* cs,struct ASTScope* sc);
 
 
 
@@ -29,6 +29,14 @@ struct ASTExpression* KlAst_gen_expression(const char* f,...);
 
 
 struct ASTExpression KlAst_clone_expression(struct ASTExpression ex);
+
+
+
+bool KlAst_optimize_check_ast_expr(struct CodeFileObject* fo,struct ASTExpression* ex,struct CallStack* cs,struct ASTScope* sc);
+
+
+
+bool KlAst_optimize_check_ast_expr_arg(struct CodeFileObject* fo,struct ASTExpressionArg* a,struct CallStack* cs,struct ASTScope* sc,bool ic);
 
 
 
@@ -52,11 +60,11 @@ unsigned char KlAst_get_op_count(unsigned char op);
 
 
 
-unsigned char KlAst_get_decl(char* nm,struct Scope* sc);
+unsigned char KlAst_get_decl(char* nm,struct ASTScope* sc);
 
 
 
-void KlAst_add_expression(struct UnoptimisedASTObject* o,struct ASTExpression e);
+size_t KlAst_get_decl_refc(char* nm,struct ASTScope* sc);
 
 
 

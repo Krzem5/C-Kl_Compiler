@@ -15,7 +15,7 @@
 
 #define NOT_TEXT(i) (*(fo->dt+i)<=47||(*(fo->dt+i)>=58&&*(fo->dt+i)<=64)||(*(fo->dt+i)>=91&&*(fo->dt+i)!=95&&*(fo->dt+i)<=96)||(*(fo->dt+i)>=123&&*(fo->dt+i)<=126))
 #define CMP_STR_RET(s,l,g,v_) \
-	else if (str_cmp(fo->dt,s,i,l)==true&&NOT_TEXT(i+l)){ \
+	else if (str_cmp_sub(fo->dt,s,i,l)==true&&NOT_TEXT(i+l)){ \
 		o.t=g; \
 		o.v=(void*)v_; \
 		o.i=i+l; \
@@ -31,19 +31,19 @@
 #include <debug_utils.h>
 #define print_token(x) KlDebug_print_ast_token(x)
 #define print_ast_expr(x) KlDebug_print_ast_expr(x,0)
-#define print_unopt_ast_object(x) KlDebug_print_unopt_ast_object(x)
+#define print_ast_scope(x) KlDebug_print_ast_scope(x,0)
 #define print_unparsed_ast_expr(x) KlDebug_print_unparsed_ast_expr(x,0)
 #else
 #include <debug_utils.h>
 #define print_token(x)
 #define print_ast_expr(x)
-#define print_unopt_ast_object(x) KlDebug_print_unopt_ast_object(x)
+#define print_ast_scope(x) KlDebug_print_ast_scope(x,0)
 #define print_unparsed_ast_expr(x)
 #endif
 
 
 
-struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct CallStack* cs){
+struct ASTScope* KlAst_parse_ast(struct CodeFileObject* fo,struct CallStack* cs){
 	KlMem_enter_func();
 	struct ASTToken t=KlAst_next_token(fo,0,cs);
 	struct ModifierData md={
@@ -51,15 +51,14 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 		0,
 		0
 	};
-	struct UnoptimisedASTObject o={
+	struct ASTScope o={
+		NULL,
+		NULL,
+		NULL,
 		NULL,
 		0,
-		{
-			NULL,
-			NULL,
-			NULL,
-			0
-		}
+		NULL,
+		0
 	};
 	while (t.t!=AST_TOKEN_TYPE_END_OF_DATA&&t.t!=AST_TOKEN_TYPE_ERROR){
 		if ((t.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)t.v==AST_TOKEN_OPERATOR_SEMICOLON)||t.t==AST_TOKEN_TYPE_WHITESPACE){
@@ -67,7 +66,7 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 			continue;
 		}
 		if (t.t==AST_TOKEN_TYPE_UNKNOWN){
-			KlError_set_error("UnexpectedCharacterError",str_format("Unexpected Character '%c'.",t.v),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),ULONG_MAX,t.i,ULONG_MAX,NULL));
+			KlError_set_error("UnexpectedCharacterError",str_format("Unexpected Character '%c'.",t.v),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),SIZE_MAX,t.i,SIZE_MAX,NULL));
 			return(NULL);
 		}
 		if (t.t==AST_TOKEN_TYPE_MODIFIER){
@@ -94,9 +93,7 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 							return(NULL);
 						}
 						struct ASTToken nt=KlAst_next_token(fo,m_nm.i,cs);
-						struct ASTExpression* ie=KlAst_gen_expression("(i((s)i)m)",AST_EXPRESSION_TYPE_EQU,NULL,AST_EXPRESSION_TYPE_ACS,AST_EXPRESSION_TYPE_IMP,m_nm.v,NULL,OBJECT_MODIFIER_EXPORT|OBJECT_MODIFIER_FROZEN);
 						struct ASTToken m_e_nm;
-						m_e_nm.t=AST_TOKEN_TYPE_UNKNOWN;
 						while (true){
 							if (nt.t==AST_TOKEN_TYPE_WHITESPACE){
 								nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
@@ -110,9 +107,6 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 								m_e_nm=KlAst_next_token(fo,KlFree_free_token(m_e_nm),cs);
 							}
 							if (m_e_nm.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)m_e_nm.v==AST_TOKEN_OPERATOR_STAR){
-								struct ASTExpression* ex=KlAst_gen_expression("(s)",AST_EXPRESSION_TYPE_IMP_ALL,m_nm.v);
-								KlAst_add_expression(&o,*ex);
-								KlMem_free(ex);
 								m_e_nm=KlAst_next_token(fo,KlFree_free_token(m_e_nm),cs);
 								if (m_e_nm.t==AST_TOKEN_TYPE_WHITESPACE){
 									m_e_nm=KlAst_next_token(fo,KlFree_free_token(m_e_nm),cs);
@@ -122,6 +116,16 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 									return(NULL);
 								}
 								else if (m_e_nm.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)m_e_nm.v==AST_TOKEN_OPERATOR_SEMICOLON){
+									char* m_fp=KlImport_find_module(fo,m_nm.v,cs);
+									if (m_fp==NULL){
+										return(NULL);
+									}
+									struct Module* m=KlImport_load_module(fo,m_fp,KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),KlError_offset_to_line(fo->dt,m_e_nm.i),t.i,m_e_nm.i,"<import>"));
+									KlMem_free(m_fp);
+									if (m==NULL){
+										return(NULL);
+									}
+									printf("LOAD MODULE AS OBJECT...\n");
 									KlFree_free_token(nt);
 									nt=KlAst_next_token(fo,KlFree_free_token(m_e_nm),cs);
 									break;
@@ -135,13 +139,6 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 								if (nt.t==AST_TOKEN_TYPE_WHITESPACE){
 									nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 								}
-								if (ie->b->v.ex->b->v.i!=NULL){
-									KlMem_free(ie->b->v.ex->b->v.i);
-								}
-								ie->b->v.ex->b->v.i=str_clone(m_e_nm.v);
-								if (ie->a.v.i!=NULL){
-									KlMem_free(ie->a.v.i);
-								}
 								if (nt.t==AST_TOKEN_TYPE_KEYWORD&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_KEYWORD_AS){
 									nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 									if (nt.t==AST_TOKEN_TYPE_WHITESPACE){
@@ -151,16 +148,49 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 										KlError_unimplemented_error();
 										return(NULL);
 									}
-									ie->a.v.i=str_clone(nt.v);
-									KlAst_add_expression(&o,KlAst_clone_expression(*ie));
+									char* v_nm=str_clone(nt.v);
 									nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 									if (nt.t==AST_TOKEN_TYPE_WHITESPACE){
 										nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
 									}
+									char* m_fp=KlImport_find_module(fo,m_nm.v,cs);
+									if (m_fp==NULL){
+										return(NULL);
+									}
+									struct Module* m=KlImport_load_module(fo,m_fp,KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),KlError_offset_to_line(fo->dt,nt.i),t.i,nt.i,"<import>"));
+									KlMem_free(m_fp);
+									if (m==NULL){
+										return(NULL);
+									}
+									printf("LOAD MODULE AS OBJECT...\n");
+									/****TMP****/
+									o.el++;
+									o.e=KlMem_realloc(o.e,o.el*sizeof(struct ASTExpression*));
+									KlMem_ret(o.e);
+									*(o.e+o.el-1)=KlAst_gen_expression("(i((s)i))",AST_EXPRESSION_TYPE_EQU,v_nm,AST_EXPRESSION_TYPE_ACS,AST_EXPRESSION_TYPE_IMP,m_nm.v,m_e_nm.v);
+									KlMem_free(v_nm);
+									if (KlAst_process_expression(fo,*(o.e+o.el-1),cs,&o,(struct ModifierData){OBJECT_MODIFIER_EXPORT|OBJECT_MODIFIER_FROZEN,0,0})==true){
+										return(NULL);
+									}
+									/****TMP****/
 								}
 								else{
-									ie->a.v.i=str_clone(m_e_nm.v);
-									KlAst_add_expression(&o,KlAst_clone_expression(*ie));
+									char* m_fp=KlImport_find_module(fo,m_nm.v,cs);
+									if (m_fp==NULL){
+										return(NULL);
+									}
+									struct Module* m=KlImport_load_module(fo,m_fp,KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),KlError_offset_to_line(fo->dt,nt.i),t.i,nt.i,"<import>"));
+									KlMem_free(m_fp);
+									if (m==NULL){
+										return(NULL);
+									}
+									printf("LOAD MODULE AS OBJECT...\n");
+									/****TMP****/
+									o.el++;
+									o.e=KlMem_realloc(o.e,o.el*sizeof(struct ASTExpression*));
+									KlMem_ret(o.e);
+									*(o.e+o.el-1)=KlAst_gen_expression("(i((s)i))",AST_EXPRESSION_TYPE_EQU,m_e_nm.v,AST_EXPRESSION_TYPE_ACS,AST_EXPRESSION_TYPE_IMP,m_nm.v,m_e_nm.v);
+									/****TMP****/
 								}
 								KlFree_free_token(m_e_nm);
 								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_COMMA){
@@ -177,8 +207,6 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 							KlError_unimplemented_error();
 							return(NULL);
 						}
-						KlFree_free_expression(*ie);
-						KlMem_free(ie);
 						t.i=nt.i;
 						KlFree_free_token(nt);
 						KlFree_free_token(m_nm);
@@ -200,7 +228,7 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 						}
 						char* m_v_nm;
 						if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_SEMICOLON){
-							m_v_nm=str_clone(m_nm.v);
+							m_v_nm=m_nm.v;
 						}
 						else if (nt.t==AST_TOKEN_TYPE_KEYWORD&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_KEYWORD_AS){
 							nt=KlAst_next_token(fo,KlFree_free_token(nt),cs);
@@ -211,28 +239,43 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 								KlError_unimplemented_error();
 								return(NULL);
 							}
-							m_v_nm=str_clone(nt.v);
+							m_v_nm=nt.v;
 						}
 						else{
 							KlError_unimplemented_error();
 							return(NULL);
 						}
+						char* m_fp=KlImport_find_module(fo,m_nm.v,cs);
+						if (m_fp==NULL){
+							return(NULL);
+						}
+						struct Module* m=KlImport_load_module(fo,m_fp,KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),KlError_offset_to_line(fo->dt,nt.i),t.i,nt.i,"<import>"));
+						KlMem_free(m_fp);
+						if (m==NULL){
+							return(NULL);
+						}
+						printf("LOAD MODULE AS OBJECT...\n");
+						/****TMP****/
+						o.el++;
+						o.e=KlMem_realloc(o.e,o.el*sizeof(struct ASTExpression*));
+						KlMem_ret(o.e);
+						*(o.e+o.el-1)=KlAst_gen_expression("(i(s))",AST_EXPRESSION_TYPE_EQU,m_v_nm,AST_EXPRESSION_TYPE_IMP,m_nm.v);
+						if (KlAst_process_expression(fo,*(o.e+o.el-1),cs,&o,(struct ModifierData){OBJECT_MODIFIER_EXPORT|OBJECT_MODIFIER_FROZEN,0,0})==true){
+							return(NULL);
+						}
+						/****TMP****/
 						t.i=nt.i;
-						struct ASTExpression* ie=KlAst_gen_expression("(i(s)m)",AST_EXPRESSION_TYPE_EQU,m_v_nm,AST_EXPRESSION_TYPE_IMP,m_nm.v,OBJECT_MODIFIER_EXPORT|OBJECT_MODIFIER_FROZEN);
-						KlMem_free(m_v_nm);
 						KlFree_free_token(m_nm);
 						KlFree_free_token(nt);
-						KlAst_add_expression(&o,*ie);
-						KlMem_free(ie);
 						break;
 					}
 				case AST_TOKEN_KEYWORD_AS:
 					if (md.m!=0){
-						KlError_set_error("UnexpectedKeywordError",str_format("Expected a func/class/var declaration, found 'as'."),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),ULONG_MAX,t.i-2,t.i-1,NULL));
+						KlError_set_error("UnexpectedKeywordError",str_format("Expected a func/class/var declaration, found 'as'."),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),SIZE_MAX,t.i-2,t.i-1,NULL));
 						return(NULL);
 					}
 					else{
-						KlError_set_error("UnexpectedKeywordError","Unexpected Keyword 'as'.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),ULONG_MAX,t.i-2,t.i-1,NULL));
+						KlError_set_error("UnexpectedKeywordError","Unexpected Keyword 'as'.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),SIZE_MAX,t.i-2,t.i-1,NULL));
 					}
 					return(NULL);
 				case AST_TOKEN_KEYWORD_DEF:
@@ -275,21 +318,32 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 			t=KlAst_next_token(fo,KlFree_free_token(t),cs);
 			continue;
 		}
-		struct ASTExpression* ex=KlAst_parse_expression(fo,&t,cs,&o.sc,md,true,AST_TOKEN_END_SEMICOLON);
+		struct UnparsedASTExpression* uex=KlAst_read_expression(fo,&t,cs,true,AST_TOKEN_END_SEMICOLON);
+		if (uex==NULL){
+			return(NULL);
+		}
+		struct ASTExpression* ex=KlAst_parse_unparsed_expression(fo,uex,cs,&o);
+		KlFree_free_unparsed_expression(*uex);
+		KlMem_free(uex);
 		if (ex==NULL){
+			return(NULL);
+		}
+		if (KlAst_process_expression(fo,ex,cs,&o,md)==true){
 			return(NULL);
 		}
 		md.m=0;
 		md.s=0;
 		md.e=0;
 		if (ex->t!=AST_EXPRESSION_TYPE_EMPTY){
-			KlAst_add_expression(&o,*ex);
-			KlMem_free(ex);
+			o.el++;
+			o.e=KlMem_realloc(o.e,o.el*sizeof(struct ASTExpression*));
+			KlMem_ret(o.e);
+			*(o.e+o.el-1)=ex;
 			continue;
 		}
 		KlMem_free(ex);
 		char* s=KlAst_token_to_string(t);
-		KlError_set_error("UnexpectedTokenError",str_format("Unexpected Token '%s'.",s),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),ULONG_MAX,t.i-str_len(s),t.i-1,NULL));
+		KlError_set_error("UnexpectedTokenError",str_format("Unexpected Token '%s'.",s),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),SIZE_MAX,t.i-str_len(s),t.i-1,NULL));
 		return(NULL);
 	}
 	if (t.t==AST_TOKEN_TYPE_ERROR){
@@ -297,8 +351,8 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 		return(NULL);
 	}
 	KlFree_free_token(t);
-	print_unopt_ast_object(&o);
-	return(KlMem_const(&o,sizeof(struct UnoptimisedASTObject)));
+	print_ast_scope(&o);
+	return(KlMem_const(&o,sizeof(struct ASTScope)));
 }
 
 
@@ -306,13 +360,13 @@ struct UnoptimisedASTObject* KlAst_parse_ast(struct CodeFileObject* fo,struct Ca
 struct ModifierData KlAst_parse_modifiers(struct CodeFileObject* fo,struct ASTToken* t,struct CallStack* cs){
 	KlMem_enter_func();
 	struct ModifierData o;
-	o.m=UCHAR_MAX;
+	o.m=0;
 	o.s=0;
 	o.e=0;
 	while (t->t==AST_TOKEN_TYPE_MODIFIER){
 		if (t->v!=0){
 			if (o.m==0){
-				o.s=t->i-((unsigned char)(uintptr_t)t->v==AST_TOKEN_MODIFIER_PRIVATE?7:((unsigned char)(uintptr_t)t->v==AST_TOKEN_MODIFIER_FROZENTYPE?10:6));
+				o.s=t->i-((unsigned char)(uintptr_t)t->v==OBJECT_MODIFIER_PRIVATE?7:((unsigned char)(uintptr_t)t->v==OBJECT_MODIFIER_FROZENTYPE?10:((unsigned char)(uintptr_t)t->v==OBJECT_MODIFIER_CONST?5:6)));
 			}
 			o.e=t->i-1;
 			o.m+=(unsigned char)(uintptr_t)t->v;
@@ -325,13 +379,23 @@ struct ModifierData KlAst_parse_modifiers(struct CodeFileObject* fo,struct ASTTo
 		}
 		*t=KlAst_next_token(fo,KlFree_free_token_p(t),cs);
 	}
-	if ((o.m&AST_TOKEN_MODIFIER_PUBLIC)!=0&&(o.m&AST_TOKEN_MODIFIER_PRIVATE)!=0){
-		KlError_set_error("UncompatibleModifierError","Modifier 'public' isn't Compatible with Modifier 'private'.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),ULONG_MAX,o.s,o.e,NULL));
+	if ((o.m&OBJECT_MODIFIER_PUBLIC)!=0&&(o.m&OBJECT_MODIFIER_PRIVATE)!=0){
+		KlError_set_error("UncompatibleModifierError","Modifier 'public' isn't Compatible with Modifier 'private'.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),SIZE_MAX,o.s,o.e,NULL));
 		o.m=UCHAR_MAX;
 		return(o);
 	}
-	if ((o.m&AST_TOKEN_MODIFIER_FROZEN)!=0&&(o.m&AST_TOKEN_MODIFIER_FROZENTYPE)!=0){
-		KlError_set_error("UncompatibleModifierError","Modifier 'frozen' already Implements Modifier 'frozentype'.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),ULONG_MAX,o.s,o.e,NULL));
+	if ((o.m&OBJECT_MODIFIER_CONST)!=0&&(o.m&OBJECT_MODIFIER_FROZEN)!=0){
+		KlError_set_error("UncompatibleModifierError","Modifier 'const' already Implies Modifier 'frozen'.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),SIZE_MAX,o.s,o.e,NULL));
+		o.m=UCHAR_MAX;
+		return(o);
+	}
+	if ((o.m&OBJECT_MODIFIER_CONST)!=0&&(o.m&OBJECT_MODIFIER_FROZENTYPE)!=0){
+		KlError_set_error("UncompatibleModifierError","Modifier 'const' already Implies Modifier 'frozentype'.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),SIZE_MAX,o.s,o.e,NULL));
+		o.m=UCHAR_MAX;
+		return(o);
+	}
+	if ((o.m&OBJECT_MODIFIER_FROZEN)!=0&&(o.m&OBJECT_MODIFIER_FROZENTYPE)!=0){
+		KlError_set_error("UncompatibleModifierError","Modifier 'frozen' already Implies Modifier 'frozentype'.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),SIZE_MAX,o.s,o.e,NULL));
 		o.m=UCHAR_MAX;
 		return(o);
 	}
@@ -340,38 +404,50 @@ struct ModifierData KlAst_parse_modifiers(struct CodeFileObject* fo,struct ASTTo
 
 
 
-struct ASTExpression* KlAst_parse_expression(struct CodeFileObject* fo,struct ASTToken* t,struct CallStack* cs,struct Scope* sc,struct ModifierData md,bool e,unsigned char et){
+bool KlAst_process_expression(struct CodeFileObject* fo,struct ASTExpression* o,struct CallStack* cs,struct ASTScope* sc,struct ModifierData md){
 	KlMem_enter_func();
-	struct UnparsedASTExpression* o=KlAst_read_expression(fo,t,cs,e,et);
-	if (o==NULL){
-		return(NULL);
-	}
-	struct ASTExpression* po=KlAst_parse_unparsed_expression(fo,o,cs,sc);
-	KlFree_free_unparsed_expression(*o);
-	KlMem_free(o);
-	if (po==NULL){
-		return(NULL);
-	}
-	if (po->t==AST_EXPRESSION_TYPE_EQU){
-		unsigned char m=KlAst_get_decl(po->a.v.i,sc);
+	if (o->t==AST_EXPRESSION_TYPE_EQU){
+		unsigned char m=KlAst_get_decl(o->a.v.i,sc);
 		if (m!=UCHAR_MAX&&md.m!=0){
 			KlError_unimplemented_error();
-			return(NULL);
+			return(true);
 		}
 		sc->l++;
 		sc->k=KlMem_realloc(sc->k,sc->l*sizeof(char*));
 		sc->m=KlMem_realloc(sc->m,sc->l*sizeof(char*));
+		sc->rc=KlMem_realloc(sc->rc,sc->l*sizeof(char*));
 		KlMem_ret(sc->k);
 		KlMem_ret(sc->m);
-		*(sc->k+sc->l-1)=str_clone(po->a.v.i);
+		KlMem_ret(sc->rc);
+		*(sc->k+sc->l-1)=str_clone(o->a.v.i);
+		*(sc->m+sc->l-1)=md.m|OBJECT_MODIFIER_ASSIGNED;
+		*(sc->rc+sc->l-1)=1;
+	}
+	else if (o->t==AST_EXPRESSION_TYPE_CONST&&o->a.t==AST_EXPRESSION_ARG_TYPE_IDENTIFIER){
+		unsigned char m=KlAst_get_decl(o->a.v.i,sc);
+		if (m!=UCHAR_MAX&&md.m!=0){
+			KlError_unimplemented_error();
+			return(true);
+		}
+		sc->l++;
+		sc->k=KlMem_realloc(sc->k,sc->l*sizeof(char*));
+		sc->m=KlMem_realloc(sc->m,sc->l*sizeof(char*));
+		sc->rc=KlMem_realloc(sc->rc,sc->l*sizeof(char*));
+		KlMem_ret(sc->k);
+		KlMem_ret(sc->m);
+		KlMem_ret(sc->rc);
+		*(sc->k+sc->l-1)=str_clone(o->a.v.i);
 		*(sc->m+sc->l-1)=md.m;
-		// printf("ASSIGN: '%s' with modif '0x%02x'\n",po->a.v.i,md.m);
+		*(sc->rc+sc->l-1)=0;
 	}
 	else if (md.m!=0){
 		KlError_unimplemented_error();
-		return(NULL);
+		return(true);
 	}
-	return(po);
+	if (KlAst_optimize_check_ast_expr(fo,o,cs,sc)==true){
+		return(true);
+	}
+	return(false);
 }
 
 
@@ -394,7 +470,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 		switch (t->t){
 			default:
 			case AST_TOKEN_TYPE_UNKNOWN:
-				KlError_set_error("UnexpectedCharacterError",str_format("Unexpected Character '%c'.",t->v),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),ULONG_MAX,t->i,ULONG_MAX,NULL));
+				KlError_set_error("UnexpectedCharacterError",str_format("Unexpected Character '%c'.",t->v),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),SIZE_MAX,t->i,SIZE_MAX,NULL));
 				return(NULL);
 			case AST_TOKEN_TYPE_STRING:
 				{
@@ -911,7 +987,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 		}
 		*t=KlAst_next_token(fo,KlFree_free_token_p(t),cs);
 		if (t->t==AST_TOKEN_TYPE_UNKNOWN){
-			KlError_set_error("UnexpectedCharacterError",str_format("Unexpected Character '%c'.",t->v),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),ULONG_MAX,t->i,ULONG_MAX,NULL));
+			KlError_set_error("UnexpectedCharacterError",str_format("Unexpected Character '%c'.",t->v),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t->i),SIZE_MAX,t->i,SIZE_MAX,NULL));
 			return(NULL);
 		}
 		if (t->t==AST_TOKEN_TYPE_ERROR){
@@ -925,7 +1001,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 
 
 
-struct ASTExpression* KlAst_parse_unparsed_expression(struct CodeFileObject* fo,struct UnparsedASTExpression* e,struct CallStack* cs,struct Scope* sc){
+struct ASTExpression* KlAst_parse_unparsed_expression(struct CodeFileObject* fo,struct UnparsedASTExpression* e,struct CallStack* cs,struct ASTScope* sc){
 	KlMem_enter_func();
 	struct ASTExpression* c=KlMem_malloc(sizeof(struct ASTExpression));
 	c->t=AST_EXPRESSION_TYPE_EMPTY;
@@ -1737,6 +1813,79 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex){
 
 
 
+bool KlAst_optimize_check_ast_expr(struct CodeFileObject* fo,struct ASTExpression* ex,struct CallStack* cs,struct ASTScope* sc){
+	KlMem_enter_func();
+	assert(ex!=NULL);
+	if (KlAst_optimize_check_ast_expr_arg(fo,&ex->a,cs,sc,true)==true){
+		return(true);
+	}
+	for (size_t i=0;i<ex->bl;i++){
+		if (KlAst_optimize_check_ast_expr_arg(fo,ex->b+i,cs,sc,(i==0&&ex->t==AST_EXPRESSION_TYPE_ACS?false:true))==true){
+			return(true);
+		}
+	}
+	return(false);
+}
+
+
+
+bool KlAst_optimize_check_ast_expr_arg(struct CodeFileObject* fo,struct ASTExpressionArg* a,struct CallStack* cs,struct ASTScope* sc,bool ic){
+	KlMem_enter_func();
+	assert(a!=NULL);
+	switch (a->t){
+		default:
+		case AST_EXPRESSION_ARG_TYPE_UNKNOWN:
+			KlError_unimplemented_error();
+			return(true);
+		case AST_EXPRESSION_ARG_TYPE_EXPRESSION:
+			if (KlAst_optimize_check_ast_expr(fo,a->v.ex,cs,sc)==true){
+				return(true);
+			}
+			break;
+		case AST_EXPRESSION_ARG_TYPE_SCOPE:
+			for (size_t i=0;i<a->v.sc->el;i++){
+				if (KlAst_optimize_check_ast_expr(fo,*(a->v.sc->e+i),cs,a->v.sc)==true){
+					return(true);
+				}
+			}
+			break;
+		case AST_EXPRESSION_ARG_TYPE_CHAR:
+		case AST_EXPRESSION_ARG_TYPE_STRING:
+		case AST_EXPRESSION_ARG_TYPE_INT:
+		case AST_EXPRESSION_ARG_TYPE_FLOAT:
+		case AST_EXPRESSION_ARG_TYPE_FUNCTION:
+		case AST_EXPRESSION_ARG_TYPE_NATIVE_FUNCTION:
+			break;
+		case AST_EXPRESSION_ARG_TYPE_IDENTIFIER:
+			if (ic==true){
+				size_t rc=KlAst_get_decl_refc(a->v.i,sc);
+				/*if (rc==SIZE_MAX){
+					KlError_unimplemented_error();
+					return(true);
+				}
+				if (rc==0){
+					KlError_unimplemented_error();
+					return(true);
+				}*/
+			}
+			break;
+		case AST_EXPRESSION_ARG_TYPE_MODIFIERS:
+			break;
+		case AST_EXPRESSION_ARG_TYPE_OBJECT:
+			KlError_unimplemented_code();
+			break;
+	}
+	if (a->t==AST_EXPRESSION_ARG_TYPE_EXPRESSION&&a->v.ex->t==AST_EXPRESSION_TYPE_CONST){
+		struct ASTExpression* tmp=a->v.ex;
+		a->t=tmp->a.t;
+		a->v=tmp->a.v;
+		KlMem_free(tmp);
+	}
+	return(false);
+}
+
+
+
 struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallStack* cs){
 	KlMem_enter_func();
 	struct ASTToken o={
@@ -1765,7 +1914,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 		i++;
 		if (*(fo->dt+i)=='\''){
 			o.t=AST_TOKEN_TYPE_ERROR;
-			KlError_set_error("EmptyCharacterStringError","Empty Character String.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),ULONG_MAX,i-1,i,"<char>"));
+			KlError_set_error("EmptyCharacterStringError","Empty Character String.",KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),SIZE_MAX,i-1,i,"<char>"));
 			print_token(o);
 			return(o);
 		}
@@ -1776,19 +1925,19 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 			o.t=AST_TOKEN_TYPE_ERROR;
 			switch (e){
 				case 1:
-					KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Any of 'b e f n o r t v x', found '%c'",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),ULONG_MAX,i-1,i,"<char>"));
+					KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Any of 'b e f n o r t v x', found '%c'",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),SIZE_MAX,i-1,i,"<char>"));
 					print_token(o);
 					return(o);
 				case 2:
-					KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Decimal Digit, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),ULONG_MAX,i,ULONG_MAX,"<char>"));
+					KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Decimal Digit, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),SIZE_MAX,i,SIZE_MAX,"<char>"));
 					print_token(o);
 					return(o);
 				case 3:
-					KlError_set_error("InvalidEscapeSequenceError",str_format("Expected an Octal Digit, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),ULONG_MAX,i,ULONG_MAX,"<char>"));
+					KlError_set_error("InvalidEscapeSequenceError",str_format("Expected an Octal Digit, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),SIZE_MAX,i,SIZE_MAX,"<char>"));
 					print_token(o);
 					return(o);
 				case 4:
-					KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Hexadecimal Character, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),ULONG_MAX,i,ULONG_MAX,"<char>"));
+					KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Hexadecimal Character, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),SIZE_MAX,i,SIZE_MAX,"<char>"));
 					print_token(o);
 					return(o);
 				default:
@@ -1799,7 +1948,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 		}
 		if (*(fo->dt+i)!='\''){
 			o.t=AST_TOKEN_TYPE_ERROR;
-			KlError_set_error("UnmachedQuoteError",str_format("Expected String Quote ('\\''), found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i),ULONG_MAX,i,ULONG_MAX,"<char>"));
+			KlError_set_error("UnmachedQuoteError",str_format("Expected String Quote ('\\''), found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i),SIZE_MAX,i,SIZE_MAX,"<char>"));
 			print_token(o);
 			return(o);
 		}
@@ -1827,19 +1976,19 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 				o.t=AST_TOKEN_TYPE_ERROR;
 				switch (e){
 					case 1:
-						KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Any of 'b e f n o r t v x', found '%c'",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),ULONG_MAX,i=1,i,"<string>"));
+						KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Any of 'b e f n o r t v x', found '%c'",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),SIZE_MAX,i=1,i,"<string>"));
 						print_token(o);
 						return(o);
 					case 2:
-						KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Decimal Digit, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),ULONG_MAX,i,ULONG_MAX,"<string>"));
+						KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Decimal Digit, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),SIZE_MAX,i,SIZE_MAX,"<string>"));
 						print_token(o);
 						return(o);
 					case 3:
-						KlError_set_error("InvalidEscapeSequenceError",str_format("Expected an Octal Digit, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),ULONG_MAX,i,ULONG_MAX,"<string>"));
+						KlError_set_error("InvalidEscapeSequenceError",str_format("Expected an Octal Digit, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),SIZE_MAX,i,SIZE_MAX,"<string>"));
 						print_token(o);
 						return(o);
 					case 4:
-						KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Hexadecimal Character, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),ULONG_MAX,i,ULONG_MAX,"<string>"));
+						KlError_set_error("InvalidEscapeSequenceError",str_format("Expected a Hexadecimal Character, found '%c'.",*(fo->dt+i)),KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,i-1),SIZE_MAX,i,SIZE_MAX,"<string>"));
 						return(o);
 					default:
 						KlError_unimplemented_error();
@@ -1955,12 +2104,13 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 	CMP_STR_RET("delete",6,AST_TOKEN_TYPE_KEYWORD,AST_TOKEN_KEYWORD_DELETE)
 	CMP_STR_RET("return",6,AST_TOKEN_TYPE_KEYWORD,AST_TOKEN_KEYWORD_RETURN)
 	CMP_STR_RET("debugger",8,AST_TOKEN_TYPE_KEYWORD,AST_TOKEN_KEYWORD_DEBUGGER)
-	CMP_STR_RET("public",6,AST_TOKEN_TYPE_MODIFIER,AST_TOKEN_MODIFIER_PUBLIC)
-	CMP_STR_RET("private",7,AST_TOKEN_TYPE_MODIFIER,AST_TOKEN_MODIFIER_PRIVATE)
-	CMP_STR_RET("static",6,AST_TOKEN_TYPE_MODIFIER,AST_TOKEN_MODIFIER_STATIC)
-	CMP_STR_RET("export",6,AST_TOKEN_TYPE_MODIFIER,AST_TOKEN_MODIFIER_EXPORT)
-	CMP_STR_RET("frozentype",10,AST_TOKEN_TYPE_MODIFIER,AST_TOKEN_MODIFIER_FROZENTYPE)
-	CMP_STR_RET("frozen",6,AST_TOKEN_TYPE_MODIFIER,AST_TOKEN_MODIFIER_FROZEN)
+	CMP_STR_RET("public",6,AST_TOKEN_TYPE_MODIFIER,OBJECT_MODIFIER_PUBLIC)
+	CMP_STR_RET("private",7,AST_TOKEN_TYPE_MODIFIER,OBJECT_MODIFIER_PRIVATE)
+	CMP_STR_RET("static",6,AST_TOKEN_TYPE_MODIFIER,OBJECT_MODIFIER_STATIC)
+	CMP_STR_RET("export",6,AST_TOKEN_TYPE_MODIFIER,OBJECT_MODIFIER_EXPORT)
+	CMP_STR_RET("frozen",6,AST_TOKEN_TYPE_MODIFIER,OBJECT_MODIFIER_FROZEN)
+	CMP_STR_RET("frozentype",10,AST_TOKEN_TYPE_MODIFIER,OBJECT_MODIFIER_FROZENTYPE)
+	CMP_STR_RET("const",5,AST_TOKEN_TYPE_MODIFIER,OBJECT_MODIFIER_CONST)
 	else if (*(fo->dt+i)=='&'){
 		o.t=AST_TOKEN_TYPE_OPERATOR;
 		o.v=(void*)AST_TOKEN_OPERATOR_AMP;
@@ -2122,7 +2272,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 		print_token(o);
 		return(o);
 	}
-	unsigned long sz=0;
+	size_t sz=0;
 	while ((*(fo->dt+i)>47&&*(fo->dt+i)<58)||(*(fo->dt+i)>64&&*(fo->dt+i)<91)||*(fo->dt+i)==95||(*(fo->dt+i)>96&&*(fo->dt+i)<123)||*(fo->dt+i)>126){
 		sz++;
 		o.v=KlMem_realloc(o.v,sz+1);
@@ -2309,30 +2459,32 @@ char* KlAst_token_to_string(struct ASTToken t){
 		case AST_TOKEN_TYPE_MODIFIER:
 			switch ((unsigned char)(uintptr_t)t.v){
 				default:
-				case AST_TOKEN_MODIFIER_UNKNOWN:
-					return("AST_TOKEN_MODIFIER_UNKNOWN");
-				case AST_TOKEN_MODIFIER_PUBLIC:
+				case OBJECT_MODIFIER_UNKNOWN:
+					return("OBJECT_MODIFIER_UNKNOWN");
+				case OBJECT_MODIFIER_PUBLIC:
 					return("public");
-				case AST_TOKEN_MODIFIER_PRIVATE:
+				case OBJECT_MODIFIER_PRIVATE:
 					return("private");
-				case AST_TOKEN_MODIFIER_STATIC:
+				case OBJECT_MODIFIER_STATIC:
 					return("static");
-				case AST_TOKEN_MODIFIER_EXPORT:
+				case OBJECT_MODIFIER_EXPORT:
 					return("export");
-				case AST_TOKEN_MODIFIER_FROZEN:
+				case OBJECT_MODIFIER_FROZEN:
 					return("frozen");
-				case AST_TOKEN_MODIFIER_FROZENTYPE:
+				case OBJECT_MODIFIER_FROZENTYPE:
 					return("frozentype");
+				case OBJECT_MODIFIER_CONST:
+					return("const");
 			}
 		case AST_TOKEN_TYPE_OPERATOR:
 			{
-				if ((unsigned char)(uintptr_t)t.v==AST_TOKEN_MODIFIER_UNKNOWN){
-					return("AST_TOKEN_MODIFIER_UNKNOWN");
+				if ((unsigned char)(uintptr_t)t.v==OBJECT_MODIFIER_UNKNOWN){
+					return("OBJECT_MODIFIER_UNKNOWN");
 				}
 				char* o=KlMem_malloc(2);
 				switch ((unsigned char)(uintptr_t)t.v){
 					case AST_TOKEN_OPERATOR_UNKNOWN:
-						return("AST_TOKEN_MODIFIER_UNKNOWN");
+						return("OBJECT_MODIFIER_UNKNOWN");
 					case AST_TOKEN_OPERATOR_AMP:
 						*o='&';
 						break;
@@ -2562,13 +2714,13 @@ unsigned char KlAst_get_op_count(unsigned char op){
 
 
 
-unsigned char KlAst_get_decl(char* nm,struct Scope* sc){
+unsigned char KlAst_get_decl(char* nm,struct ASTScope* sc){
 	KlMem_enter_func();
 	size_t ln=str_len(nm);
 	while (true){
 		if (sc->k!=NULL){
 			for (size_t i=0;i<sc->l;i++){
-				if (str_cmp(*(sc->k+i),nm,0,ln)==true){
+				if (str_cmp_sub(nm,*(sc->k+i),0,ln)==true){
 					return(*(sc->m+i));
 				}
 			}
@@ -2582,16 +2734,22 @@ unsigned char KlAst_get_decl(char* nm,struct Scope* sc){
 
 
 
-void KlAst_add_expression(struct UnoptimisedASTObject* o,struct ASTExpression e){
+size_t KlAst_get_decl_refc(char* nm,struct ASTScope* sc){
 	KlMem_enter_func();
-	struct UnoptimisedASTObjectElem el;
-	el.t=AST_OBJECT_ELEM_TYPE_EXPRESSION;
-	el.v.e=e;
-	o->l++;
-	o->e=KlMem_realloc(o->e,sizeof(struct UnoptimisedASTObjectElem)*o->l);
-	KlMem_ret(o->e);
-	*(o->e+o->l-1)=el;
-	return();
+	size_t ln=str_len(nm);
+	while (true){
+		if (sc->k!=NULL){
+			for (size_t i=0;i<sc->l;i++){
+				if (str_cmp_sub(nm,*(sc->k+i),0,ln)==true){
+					return(*(sc->rc+i));
+				}
+			}
+		}
+		if (sc->p==NULL){
+			return(SIZE_MAX);
+		}
+		sc=sc->p;
+	}
 }
 
 

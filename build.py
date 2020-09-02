@@ -89,45 +89,73 @@ while (i<len(s)):
 			pl+=[s[i]]
 		else:
 			o+=[s[i]]
-			ok=False
+			ok=True
 			while (True):
 				for k in d.keys():
-					o[-1]=re.sub(rf"\b{k}\b",lambda x:(exec("ok=True"),d[k])[1],o[-1])
-				if (ok==False):
+					o[-1]=re.sub(rf"\b{k}\b",lambda x:(exec("ok=False"),d[k])[1],o[-1])
+				if (ok==True):
 					break
 	i+=1
 i=0
 s=o[:]
 o=[]
-while (i<len(s)):
-	if (s[i][0]=="#"):
-		o+=[s[i]]
-	else:
-		if (re.match(r"^(?:const)?\s*(?:static)?\s*(?:const)?\s*struct",s[i])!=None and "{" in s[i] and s[i].count("{")!=s[i].count("}")):
-			o+=[s[i]]
-			b=s[i].count("{")-s[i].count("}")
-			i+=1
-			while (b!=0):
-				o[-1]+=s[i].strip();
-				b+=s[i].count("{")-s[i].count("}")
-				i+=1
-			i-=1
-		else:
-			o+=[s[i]]
-	i+=1
+tl=[]
+edl=[]
 el=[]
+sdl=[]
+sl=[]
+vdl=[]
+vl=[]
+while (i<len(s)):
+	if (s[i][:7]=="struct " and s[i][-1]==";" and len(s[i].split(" "))==2):
+		i+=1
+		continue
+	elif ("=" not in s[i] and re.match(r"^(?:const)?\s*(?:static)?\s*(?:const)?\s*struct",s[i])!=None and "{" in s[i] and s[i].count("{")!=s[i].count("}")):
+		sdl+=[f"struct {s[i].split('{')[0].split(' ')[-1]};"]
+		sl+=[s[i]]
+		b=s[i].count("{")-s[i].count("}")
+		i+=1
+		while (b!=0):
+			sl[-1]+=s[i].strip();
+			b+=s[i].count("{")-s[i].count("}")
+			i+=1
+		i-=1
+	elif (s[i][:5]=="enum "):
+		edl+=[f"enum {s[i].split('{')[0].split(' ')[-1]};"]
+		el+=[s[i]]
+	elif (s[i][:8]=="typedef "):
+		tl+=[s[i]]
+	elif ("=" in s[i]):
+		vdl+=[s[i].split("=")[0].strip()+";"]
+		vl+=[s[i]]
+		b=s[i].count("{")-s[i].count("}")
+		while (b!=0):
+			i+=1
+			vl[-1]+=s[i]
+			b+=s[i].count("{")-s[i].count("}")
+	elif (s[i][:7]=="extern "):
+		vdl+=[s[i]]
+	else:
+		o+=[s[i]]
+		b=s[i].count("{")-s[i].count("}")
+		while (b!=0):
+			i+=1
+			o[-1]+=s[i]
+			b+=s[i].count("{")-s[i].count("}")
+	i+=1
+lel=[]
 oi=1
 for k in re.findall(r"^\w+(?:[ \t\r]+\w+)*\*{0,2}[ \t\r]+(\w+)\(","\n".join(o),re.M):
-	el+=[f"/EXPORT:{k},@{oi},NONAME"]
+	lel+=[f"/EXPORT:{k},@{oi},NONAME"]
 	oi+=1
 for k in re.findall(r"^extern(?:[ \t\r]+\w+)+\*{0,2}[ \t\r]+(\w+)[ \t\r]*;[ \t\r]*$","\n".join(o),re.M):
-	el+=[f"/EXPORT:{k},@{oi},NONAME,DATA"]
+	lel+=[f"/EXPORT:{k},@{oi},NONAME,DATA"]
 	oi+=1
 with open("kl.h","w") as f:
-	f.write("#ifndef KL_H\n#define KL_H\n"+"\n".join(pl)+"\n"+"\n".join(o)+"\n#endif")
+	f.write("#ifndef KL_H\n#define KL_H\n"+"\n".join(pl+sorted(edl)+sorted(sdl)+tl+el+sl+sorted(vdl)+o+vl)+"\n#endif")
 with open("tmp.c","w") as f:
 	f.write("\n".join([f"#include <{fn}>" for fn in os.listdir(".\\..\\src\\include")]))
-if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sdl /Zc:inline /fp:precise /D \"{('_' if rel==False else 'N')}DEBUG\"  /D \"_WINDOWS\" /D \"_USRDLL\" /D \"_WINDLL\" /D \"_UNICODE\" /D \"UNICODE\" /errorReport:none /WX /Zc:forScope /Gd /Oi /FC /D \"DLL1_EXPORTS\" /EHsc /nologo /diagnostics:column {('/ZI /Od /RTC1 /MDd' if rel==False else '/GL /Gy /Zi /O2 /Oi /MD')} tmp.c ..\\\\src\\\\dllmain.c ..\\\\src\\\\core\\\\platform\\\\windows.c "+' '.join(glob.glob("..\\src\\core\\*.c")+glob.glob("..\\src\\core\\util\\*.c")).replace("\\","\\\\"))).returncode==0 and subprocess.run(shlex.split(f"link {' '.join(glob.glob('*.obj'))} /OUT:kl.dll /IMPLIB:kl.lib /NXCOMPAT /DYNAMICBASE \"kernel32.lib\" \"user32.lib\" \"gdi32.lib\" \"winspool.lib\" \"comdlg32.lib\" \"advapi32.lib\" \"shell32.lib\" \"ole32.lib\" \"oleaut32.lib\" \"uuid.lib\" \"odbc32.lib\" \"odbccp32.lib\" /DLL /MACHINE:X64 /SUBSYSTEM:WINDOWS /ERRORREPORT:none /NOLOGO /TLBID:1 /WX {('/DEBUG /INCREMENTAL' if rel==False else '/LTCG /OPT:REF /INCREMENTAL:NO /OPT:ICF')} {' '.join(el)}")).returncode==0):
+if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sdl /Zc:inline /fp:precise /D \"{('_' if rel==False else 'N')}DEBUG\"  /D \"_WINDOWS\" /D \"_USRDLL\" /D \"_WINDLL\" /D \"_UNICODE\" /D \"UNICODE\" /errorReport:none /WX /Zc:forScope /Gd /Oi /FC /D \"DLL1_EXPORTS\" /EHsc /nologo /diagnostics:column {('/ZI /Od /RTC1 /MDd' if rel==False else '/GL /Gy /Zi /O2 /Oi /MD')} tmp.c ..\\\\src\\\\dllmain.c ..\\\\src\\\\core\\\\platform\\\\windows.c "+' '.join(glob.glob("..\\src\\core\\*.c")+glob.glob("..\\src\\core\\util\\*.c")).replace("\\","\\\\"))).returncode==0 and subprocess.run(shlex.split(f"link {' '.join(glob.glob('*.obj'))} /OUT:kl.dll /IMPLIB:kl.lib /NXCOMPAT /DYNAMICBASE \"kernel32.lib\" \"user32.lib\" \"gdi32.lib\" \"winspool.lib\" \"comdlg32.lib\" \"advapi32.lib\" \"shell32.lib\" \"ole32.lib\" \"oleaut32.lib\" \"uuid.lib\" \"odbc32.lib\" \"odbccp32.lib\" /DLL /MACHINE:X64 /SUBSYSTEM:WINDOWS /ERRORREPORT:none /NOLOGO /TLBID:1 /WX {('/DEBUG /INCREMENTAL' if rel==False else '/LTCG /OPT:REF /INCREMENTAL:NO /OPT:ICF')} {' '.join(lel)}")).returncode==0):
 		os.environ["INCLUDE"]=".\\;"+ti
 		if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sdl /Zc:inline /fp:precise /D \"{('_' if rel==False else 'N')}DEBUG\"  /D \"_WINDOWS\" /D \"_USRDLL\" /D \"_WINDLL\" /D \"_UNICODE\" /D \"UNICODE\" /errorReport:none /WX /Zc:forScope /Gd /Oi /FC /D \"DLL1_EXPORTS\" /EHsc /nologo /diagnostics:column {('/ZI /Od /RTC1 /MDd' if rel==False else '/GL /Gy /Zi /O2 /Oi /MD')} ..\\\\src\\\\main.c")).returncode==0 and subprocess.run(shlex.split(f"link main.obj /OUT:kl.exe /DYNAMICBASE \"kernel32.lib\" \"user32.lib\" \"gdi32.lib\" \"winspool.lib\" \"comdlg32.lib\" \"advapi32.lib\" \"shell32.lib\" \"ole32.lib\" \"oleaut32.lib\" \"uuid.lib\" \"odbc32.lib\" \"odbccp32.lib\" \"kl.lib\" /MACHINE:X64 /SUBSYSTEM:CONSOLE /ERRORREPORT:none /NOLOGO /TLBID:1 /WX {('/DEBUG /INCREMENTAL' if rel==False else '/LTCG /OPT:REF /INCREMENTAL:NO /OPT:ICF')}")).returncode==0):
 			os.system(f"del tmp.c&&del *obj&&del *.pdb&&del *.exp{('' if rel==True else '&&del *.ilk&&del *.idb')}&&cls")

@@ -3,6 +3,7 @@
 #include <shared.h>
 #include <stdarg.h>
 #include <limits.h>
+#include <shared.h>
 
 
 
@@ -94,8 +95,27 @@ size_t str_rfind(const char* s,char c,size_t i){
 
 
 
-bool str_cmp(const char* a,char* b,size_t s,size_t l){
+bool str_cmp(const char* a,const char* b){
 	KlMem_enter_func();
+	size_t ln=str_len(a)+1;
+	if (str_len(b)+1!=ln){
+		return(false);
+	}
+	for (size_t i=0;i<ln;i++){
+		if (*(a+i)!=*(b+i)){
+			return(false);
+		}
+	}
+	return(true);
+}
+
+
+
+bool str_cmp_sub(const char* a,char* b,size_t s,size_t l){
+	KlMem_enter_func();
+	if (l!=str_len(b)){
+		return(false);
+	}
 	for (size_t i=0;i<l;i++){
 		if (*(a+s+i)!=*(b+i)){
 			return(false);
@@ -169,48 +189,48 @@ char* str_format_va(const char* t,va_list a){
 							}
 							break;
 						}
-					case 'h':
-						*(o+i)='h';
-						i++;
-						// printH(va_arg(a,size_t));
-						break;
-					case 'l':
-						*(o+i)='l';
-						i++;
-						// printL(va_arg(a,long));
-						break;
-					case 'L':
-						*(o+i)='L';
-						i++;
-						// printLL(va_arg(a,long long int));
-						break;
-					case 'd':
-						*(o+i)='d';
-						i++;
-						// printD(va_arg(a,double));
-						break;
-					case 'D':
-						*(o+i)='D';
-						i++;
-						// printLD(va_arg(a,long double));
-						break;
+					case 'S':
+						{
+							size_t v=va_arg(a,size_t);
+							if (v==0){
+								ln++;
+								o=KlMem_realloc(o,ln);
+								*(o+i)='0';
+								i++;
+							}
+							else{
+								unsigned char sz=1;
+								size_t pw=10;
+								while (pw<v){
+									sz++;
+									if (sz==20){
+										break;
+									}
+									pw*=10;
+								}
+								ln+=sz;
+								o=KlMem_realloc(o,ln);
+								if (sz!=20){
+									pw/=10;
+								}
+								while (sz>0){
+									*(o+i)=48+(v/pw)%10;
+									i++;
+									sz--;
+									pw/=10;
+								}
+							}
+							break;
+						}
 					case 'p':
 						{
-#ifdef WIN32
-							ln+=10;
-#else
-							ln+=18;
-#endif
+							ln+=sizeof(uintptr_t)*2+2;
 							o=KlMem_realloc(o,ln);
 							*(o+i)='0';
 							*(o+i+1)='x';
 							i+=2;
 							uintptr_t p=(uintptr_t)va_arg(a,void*);
-#ifdef WIN32
-							for (signed char j=28;j>=0;j-=4){
-#else
-							for (signed char j=60;j>=0;j-=4){
-#endif
+							for (signed char j=sizeof(uintptr_t)*8-4;j>=0;j-=4){
 								unsigned char v=(p>>j)%16;
 								if (v<=9){
 									*(o+i)=48+v;
@@ -225,15 +245,28 @@ char* str_format_va(const char* t,va_list a){
 					case 's':
 						{
 							char* s=va_arg(a,char*);
-							ln+=str_len(s);
-							o=KlMem_realloc(o,ln);
-							while (*s!=0){
-								*(o+i)=*s;
-								i++;
-								s++;
+							if (s==NULL){
+								ln+=6;
+								o=KlMem_realloc(o,ln);
+								*(o+i)='(';
+								*(o+i+1)='N';
+								*(o+i+2)='U';
+								*(o+i+3)='L';
+								*(o+i+4)='L';
+								*(o+i+5)=')';
+								i+=6;
 							}
+							else{
+								ln+=str_len(s);
+								o=KlMem_realloc(o,ln);
+								while (*s!=0){
+									*(o+i)=*s;
+									i++;
+									s++;
+								}
+							}
+							break;
 						}
-						break;
 					case 'f':
 						{
 							uint64_t f=va_arg(a,uint64_t);

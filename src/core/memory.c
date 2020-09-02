@@ -61,6 +61,14 @@ bool _m_err=false;
 
 
 
+void KlMem_abrt_(int p){
+	_m_err=true;
+	signal(SIGABRT,SIG_DFL);
+	raise(SIGABRT);
+}
+
+
+
 unsigned long _get_call_lvl(const char* f,const char* fn){
 	struct _FuncLvl* fl=&_fl_head;
 	while (fl->f!=f||fl->fn!=fn){
@@ -223,6 +231,7 @@ void* _get(void* p,const char* msg,bool wu,const char* f,unsigned int ln,const c
 void* KlMem_malloc_(size_t sz,const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
 	_check_heap(f,ln,fn);
@@ -280,6 +289,7 @@ void* KlMem_malloc_(size_t sz,const char* f,unsigned int ln,const char* fn){
 void* KlMem_calloc_(size_t ln_,size_t sz,const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
 	_check_heap(f,ln,fn);
@@ -341,6 +351,7 @@ void* KlMem_calloc_(size_t ln_,size_t sz,const char* f,unsigned int ln,const cha
 void* KlMem_realloc_(void* s,size_t sz,const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
 	_check_heap(f,ln,fn);
@@ -388,6 +399,7 @@ void* KlMem_realloc_(void* s,size_t sz,const char* f,unsigned int ln,const char*
 void* KlMem_memcpy_(void* o,void* s,size_t sz,const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
 	assert(o!=s);
@@ -417,9 +429,9 @@ void* KlMem_memcpy_(void* o,void* s,size_t sz,const char* f,unsigned int ln,cons
 void KlMem_free_(void* p,const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
-	assert(p!=NULL);
 	_check_heap(f,ln,fn);
 	struct _Node* n=_get(p,"Freeing",false,f,ln,fn);
 	if (n==p){
@@ -462,6 +474,7 @@ void KlMem_free_(void* p,const char* f,unsigned int ln,const char* fn){
 void KlMem_trace_(void* p,const char* p_nm,const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
 	_check_heap(f,ln,fn);
@@ -486,6 +499,7 @@ void KlMem_trace_(void* p,const char* p_nm,const char* f,unsigned int ln,const c
 void KlMem_ret_(void* p,const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
 	_check_heap(f,ln,fn);
@@ -504,6 +518,7 @@ void KlMem_ret_(void* p,const char* f,unsigned int ln,const char* fn){
 void KlMem_ret_null_(const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
 	_check_heap(f,ln,fn);
@@ -521,6 +536,7 @@ void KlMem_ret_null_(const char* f,unsigned int ln,const char* fn){
 void KlMem_enter_func_(const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
 	(void)ln;
@@ -550,6 +566,7 @@ void KlMem_enter_func_(const char* f,unsigned int ln,const char* fn){
 void KlMem_check_allocated_(const char* f,unsigned int ln,const char* fn){
 	if (_er==false){
 		atexit(KlMem_check_all_allocated_);
+		signal(SIGABRT,KlMem_abrt_);
 		_er=true;
 	}
 	_check_heap(f,ln,fn);
@@ -570,7 +587,7 @@ void KlMem_check_allocated_(const char* f,unsigned int ln,const char* fn){
 		n=n->n;
 	}
 	if (pc>0){
-		printf("%lu Pointers (%llu bytes) Not Freed, Aborting.\n",pc,bc);
+		printf("%lu Pointer(s) (%llu byte(s)) Not Freed, Aborting.\n",pc,bc);
 		_m_err=true;
 		raise(SIGABRT);
 	}
@@ -600,7 +617,7 @@ void KlMem_check_all_allocated_(){
 		n=n->n;
 	}
 	if (pc>0){
-		printf("%lu Pointers (%llu bytes) Not Freed, Aborting.\n",pc,bc);
+		printf("%lu Pointer(s) (%llu byte(s)) Not Freed, Aborting.\n",pc,bc);
 	}
 	else{
 		printf("Everything Freed!");

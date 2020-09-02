@@ -1183,6 +1183,9 @@ struct Number* KlNum_iroot(struct Number* r,struct Number* dg){
 	if (r->l==1&&*r->v<2){
 		return(KlNum_assign(NULL,r));
 	}
+	if (KlNum_cmp(r,dg)==-1){
+		return(KlNum_from_long(0));
+	}
 	if (KlNum_is_zero(dg)==true){
 		return(KlNum_from_long(1));
 	}
@@ -1243,6 +1246,9 @@ struct Number* KlNum_iroot_long(struct Number* r,unsigned long dg){
 	}
 	if (r->l==1&&*r->v<2){
 		return(KlNum_assign(NULL,r));
+	}
+	if (KlNum_cmp_long(r,dg)==-1){
+		return(KlNum_from_long(0));
 	}
 	if (dg==0){
 		return(KlNum_from_long(1));

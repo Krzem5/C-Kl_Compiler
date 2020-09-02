@@ -93,26 +93,29 @@ void KlDebug_print_ast_token(struct ASTToken t){
 			KlIo_printf("Modifier%f,\n  %fValue%f: %f",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_MODIFIER);
 			switch ((unsigned char)(uintptr_t)t.v){
 				default:
-				case AST_TOKEN_MODIFIER_UNKNOWN:
+				case OBJECT_MODIFIER_UNKNOWN:
 					KlIo_printf("<unknown>");
 					break;
-				case AST_TOKEN_MODIFIER_PUBLIC:
+				case OBJECT_MODIFIER_PUBLIC:
 					KlIo_printf("public");
 					break;
-				case AST_TOKEN_MODIFIER_PRIVATE:
+				case OBJECT_MODIFIER_PRIVATE:
 					KlIo_printf("private");
 					break;
-				case AST_TOKEN_MODIFIER_STATIC:
+				case OBJECT_MODIFIER_STATIC:
 					KlIo_printf("static");
 					break;
-				case AST_TOKEN_MODIFIER_EXPORT:
+				case OBJECT_MODIFIER_EXPORT:
 					KlIo_printf("export");
 					break;
-				case AST_TOKEN_MODIFIER_FROZEN:
+				case OBJECT_MODIFIER_FROZEN:
 					KlIo_printf("frozen");
 					break;
-				case AST_TOKEN_MODIFIER_FROZENTYPE:
+				case OBJECT_MODIFIER_FROZENTYPE:
 					KlIo_printf("frozentype");
+					break;
+				case OBJECT_MODIFIER_CONST:
+					KlIo_printf("const");
 					break;
 			}
 			KlIo_printf("%f,\n  %fNext File Offset%f: %f%i%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
@@ -214,22 +217,77 @@ void KlDebug_print_ast_token(struct ASTToken t){
 
 
 
-void KlDebug_print_unopt_ast_object(struct UnoptimisedASTObject* o){
+void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i){
 	KlMem_enter_func();
-	KlIo_printf("%fUnoptimisedASTObject %f= {\n",CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-	for (struct UnoptimisedASTObjectElem* i=o->e;i<o->e+o->l;i++){
-		switch (i->t){
-			default:
-			case AST_OBJECT_ELEM_TYPE_UNKNOWN:
-				KlIo_printf("  %f(Undefined: %u)%f,\n",CONST_COLOR_DEBUG_UTILS_TYPE,i->t,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
-				break;
-			case AST_OBJECT_ELEM_TYPE_EXPRESSION:
-				KlIo_printf("  %f(Expression) ",CONST_COLOR_DEBUG_UTILS_TYPE);
-				KlDebug_print_ast_expr(&(i->v.e),2);
-				break;
-		}
+	char* is=KlMem_malloc(i+1);
+	for (unsigned char j=0;j<i;j++){
+		*(is+j)=' ';
 	}
-	KlIo_printf("%f};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+	*(is+i)=0;
+	if (i==0){
+		KlIo_printf("%fASTScope %f= {\n  %fVariables%f: ",CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	else{
+		KlIo_printf("%s%f(Scope)%f {\n%s  %fVariables%f: ",is,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	if (o->l==0){
+		KlIo_printf("%f(None)%f,\n%s  %fExpressions%f: ",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	else{
+		KlIo_printf("{\n");
+		for (size_t j=0;j<o->l;j++){
+			KlIo_printf("%s    {\n      %fName%f: %f%s%f,\n      %fModifiers%f:%f",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,*(o->k+j),CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_MODIFIER);
+			if (*(o->m+j)==0){
+				KlIo_printf(" %f(None)",CONST_COLOR_DEBUG_UTILS_TYPE);
+			}
+			else{
+				if ((*(o->m+j)&OBJECT_MODIFIER_ASSIGNED)!=0){
+					KlIo_printf(" <assigned>");
+				}
+				if ((*(o->m+j)&OBJECT_MODIFIER_PUBLIC)!=0){
+					KlIo_printf(" public");
+				}
+				if ((*(o->m+j)&OBJECT_MODIFIER_PRIVATE)!=0){
+					KlIo_printf(" private");
+				}
+				if ((*(o->m+j)&OBJECT_MODIFIER_STATIC)!=0){
+					KlIo_printf(" static");
+				}
+				if ((*(o->m+j)&OBJECT_MODIFIER_EXPORT)!=0){
+					KlIo_printf(" export");
+				}
+				if ((*(o->m+j)&OBJECT_MODIFIER_FROZEN)!=0){
+					KlIo_printf(" frozen");
+				}
+				if ((*(o->m+j)&OBJECT_MODIFIER_FROZENTYPE)!=0){
+					KlIo_printf(" frozentype");
+				}
+				if ((*(o->m+j)&OBJECT_MODIFIER_CONST)!=0){
+					KlIo_printf(" const");
+				}
+			}
+			KlIo_printf("%f,\n%s      %fReferences%f: %f%S%f,\n%s    },\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,*(o->rc+j),CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is);
+		}
+		KlIo_printf("%s  },\n%s  %fExpressions%f: ",is,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	if (o->el==0){
+		KlIo_printf("%f(None)%f,\n",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	else{
+		KlIo_printf("{\n");
+		for (size_t j=0;j<o->el;j++){
+			KlIo_printf("%s    ",is);
+			KlDebug_print_ast_expr(*(o->e+j),i+4);
+		}
+		KlIo_printf("%s  },\n",is);
+	}
+	if (i==0){
+		KlIo_printf("%f};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+	}
+	else{
+		KlIo_printf("%s%f},%f\n",is,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
+	}
+	KlMem_free(is);
 	return();
 }
 
@@ -288,7 +346,7 @@ void KlDebug_print_ast_expr(struct ASTExpression* e,unsigned char i){
 			KlIo_printf("%s  %fType%f: %f() %f(Function Call)%f,\n%s  %fFunc%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 			KlDebug_print_ast_expr_arg(&e->a,i+2);
 			if (e->bl==0){
-				KlIo_printf("%s  %fArguments%f: %fNone%f,\n",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+				KlIo_printf("%s  %fArguments%f: %f(None)%f,\n",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 			}
 			else if (e->b==NULL){
 				KlIo_printf("%s  %fArguments%f: %f(Null)%f,\n",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
@@ -655,9 +713,12 @@ void KlDebug_print_ast_expr_arg(struct ASTExpressionArg* ea,unsigned char i){
 		case AST_EXPRESSION_ARG_TYPE_MODIFIERS:
 			KlIo_printf("%f",CONST_COLOR_DEBUG_UTILS_MODIFIER);
 			if (ea->v.m==0){
-				KlIo_printf("<empty> ");
+				KlIo_printf("%f(None) ",CONST_COLOR_DEBUG_UTILS_TYPE);
 			}
 			else{
+				if ((ea->v.m&OBJECT_MODIFIER_ASSIGNED)!=0){
+					KlIo_printf("<assigned> ");
+				}
 				if ((ea->v.m&OBJECT_MODIFIER_PUBLIC)!=0){
 					KlIo_printf("public ");
 				}
@@ -675,6 +736,9 @@ void KlDebug_print_ast_expr_arg(struct ASTExpressionArg* ea,unsigned char i){
 				}
 				if ((ea->v.m&OBJECT_MODIFIER_FROZENTYPE)!=0){
 					KlIo_printf("frozentype ");
+				}
+				if ((ea->v.m&OBJECT_MODIFIER_CONST)!=0){
+					KlIo_printf("const ");
 				}
 			}
 			KlIo_printf("%f(Modifiers)%f,\n",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);

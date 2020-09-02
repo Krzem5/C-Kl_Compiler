@@ -44,26 +44,6 @@ size_t KlFree_free_token_p(struct ASTToken* t){
 
 
 
-void KlFree_free_unopt_ast_object(struct UnoptimisedASTObject o){
-	KlMem_enter_func();
-	for (size_t i=0;i<o.l;i++){
-		switch ((o.e+i)->t){
-			default:
-			case AST_OBJECT_ELEM_TYPE_UNKNOWN:
-				KlError_unimplemented_error();
-				return();
-			case AST_OBJECT_ELEM_TYPE_EXPRESSION:
-				KlFree_free_expression((o.e+i)->v.e);
-				break;
-		}
-	}
-	KlMem_free(o.e);
-	KlFree_free_scope(o.sc);
-	return();
-}
-
-
-
 void KlFree_free_expression(struct ASTExpression ex){
 	KlMem_enter_func();
 	switch (ex.a.t){
@@ -218,12 +198,27 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 
 
 
-void KlFree_free_scope(struct Scope sc){
+void KlFree_free_scope(struct ASTScope sc){
 	if (sc.l>0){
 		for (size_t i=0;i<sc.l;i++){
 			KlMem_free(*(sc.k+i));
 		}
 		KlMem_free(sc.k);
 		KlMem_free(sc.m);
+		KlMem_free(sc.rc);
 	}
+	if (sc.el>0){
+		for (size_t i=0;i<sc.el;i++){
+			KlFree_free_expression(**(sc.e+i));
+			KlMem_free(*(sc.e+i));
+		}
+		KlMem_free(sc.e);
+	}
+}
+
+
+
+void KlFree_free_sha256(struct SHA256 sha){
+	KlMem_free(sha.dt);
+	KlMem_free(sha.st);
 }

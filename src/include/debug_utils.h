@@ -8,7 +8,7 @@ void KlDebug_print_ast_token(struct ASTToken t);
 
 
 
-void KlDebug_print_unopt_ast_object(struct UnoptimisedASTObject* o);
+void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i);
 
 
 

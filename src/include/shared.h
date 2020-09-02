@@ -4,12 +4,15 @@
 
 
 
-#ifndef NULL
-#define NULL ((void*)0)
+#ifdef NULL
+#undef NULL
 #endif
+#define NULL ((void*)0)
+#define NONE (SIZE_MAX)
+#define UNKNOWN_SIZE (SIZE_MAX)
 #define OBJ(o) ((struct Object*)(o))
 #define OBJECT_HEAD const struct Type* t;size_t sz;
-#define OBJECT_HEAD_INIT(t,sz) (const struct Type*)t,(size_t)sz,
+#define OBJECT_HEAD_INIT(t_,sz_) .t=&(t_),.sz=(size_t)(sz_),
 #define bool _Bool
 #define false 0
 #define true 1
@@ -99,11 +102,14 @@
 struct Object;
 struct Type;
 struct UnparsedASTExpression;
-struct Expression;
-struct UnoptimisedASTObject;
+struct ASTExpression;
+struct _uint128_t;
+struct _uint256_t;
 
 
 
+typedef struct _uint128_t uint128_t;
+typedef struct _uint256_t uint256_t;
 typedef struct Object* (*NullaryFunc)(void);
 typedef struct Object* (*UnaryFunc)(struct Object* a);
 typedef bool (*UnaryBoolFunc)(struct Object* a);
@@ -124,10 +130,10 @@ typedef struct Object* (*TernarySizeT2Func)(struct Object* a,size_t b,size_t c);
 typedef struct Object* (*TernaryStrFunc)(struct Object* a,char* b,struct Object* c);
 typedef struct Object* (*TernaryListFunc)(struct Object* a,struct Object** b,size_t c);
 typedef void (*TernaryListVoidFunc)(struct Object* a,struct Object** b,size_t c);
+typedef void (*TernaryVoidFunc)(struct Object* a,struct Object* b,struct Object* c);
 typedef struct Object* (*QuaternarySizeTFunc)(struct Object* a,size_t b,size_t c,struct Object* d);
 typedef struct Object* (*QuaternarySizeT3Func)(struct Object* a,size_t b,size_t c,size_t d);
 typedef struct Object* (*QuinaryFunc)(struct Object* a,size_t b,size_t c,size_t d,struct Object* e);
-typedef void (*TernaryVoidFunc)(struct Object* a,struct Object* b,struct Object* c);
 typedef char* (*FileReadFunc)(void* p,unsigned char m,size_t l,size_t* r);
 typedef size_t (*FileWriteFunc)(void* p,unsigned char m,char* s);
 typedef bool (*FileFlushFunc)(void* p,unsigned char m);
@@ -180,18 +186,6 @@ enum AST_TOKEN_KEYWORD{
 	AST_TOKEN_KEYWORD_DELETE=0x0d,
 	AST_TOKEN_KEYWORD_RETURN=0x0e,
 	AST_TOKEN_KEYWORD_DEBUGGER=0x0f
-};
-
-
-
-enum AST_TOKEN_MODIFIER{
-	AST_TOKEN_MODIFIER_UNKNOWN=0x00,
-	AST_TOKEN_MODIFIER_PUBLIC=0x01,
-	AST_TOKEN_MODIFIER_PRIVATE=0x02,
-	AST_TOKEN_MODIFIER_STATIC=0x04,
-	AST_TOKEN_MODIFIER_EXPORT=0x08,
-	AST_TOKEN_MODIFIER_FROZEN=0x10,
-	AST_TOKEN_MODIFIER_FROZENTYPE=0x20
 };
 
 
@@ -316,24 +310,25 @@ enum AST_EXPRESSION_TYPE{
 enum AST_EXPRESSION_ARG_TYPE{
 	AST_EXPRESSION_ARG_TYPE_UNKNOWN=0x00,
 	AST_EXPRESSION_ARG_TYPE_EXPRESSION=0x01,
-	AST_EXPRESSION_ARG_TYPE_CHAR=0x02,
-	AST_EXPRESSION_ARG_TYPE_STRING=0x03,
-	AST_EXPRESSION_ARG_TYPE_INT=0x04,
-	AST_EXPRESSION_ARG_TYPE_FLOAT=0x05,
-	AST_EXPRESSION_ARG_TYPE_FUNCTION=0x06,
-	AST_EXPRESSION_ARG_TYPE_NATIVE_FUNCTION=0x07,
-	AST_EXPRESSION_ARG_TYPE_IDENTIFIER=0x08,
-	AST_EXPRESSION_ARG_TYPE_MODIFIERS=0x09,
-	AST_EXPRESSION_ARG_TYPE_OBJECT=0x0a
+	AST_EXPRESSION_ARG_TYPE_SCOPE=0x02,
+	AST_EXPRESSION_ARG_TYPE_CHAR=0x03,
+	AST_EXPRESSION_ARG_TYPE_STRING=0x04,
+	AST_EXPRESSION_ARG_TYPE_INT=0x05,
+	AST_EXPRESSION_ARG_TYPE_FLOAT=0x06,
+	AST_EXPRESSION_ARG_TYPE_FUNCTION=0x07,
+	AST_EXPRESSION_ARG_TYPE_NATIVE_FUNCTION=0x08,
+	AST_EXPRESSION_ARG_TYPE_IDENTIFIER=0x09,
+	AST_EXPRESSION_ARG_TYPE_MODIFIERS=0x0a,
+	AST_EXPRESSION_ARG_TYPE_OBJECT=0x0b
 };
 
 
 
-enum AST_OBJECT_ELEM_TYPE{
-	AST_OBJECT_ELEM_TYPE_UNKNOWN=0x00,
-	AST_OBJECT_ELEM_TYPE_EXPRESSION=0x01,
-	AST_OBJECT_ELEM_TYPE_FUNC_DECLARATION=0x02,
-	AST_OBJECT_ELEM_TYPE_CLASS_DECLARATION=0x03
+enum UNOPTIMISED_AST_OBJECT_ELEM_TYPE{
+	UNOPTIMISED_AST_OBJECT_ELEM_TYPE_UNKNOWN=0x00,
+	UNOPTIMISED_AST_OBJECT_ELEM_TYPE_EXPRESSION=0x01,
+	UNOPTIMISED_AST_OBJECT_ELEM_TYPE_FUNC_DECLARATION=0x02,
+	UNOPTIMISED_AST_OBJECT_ELEM_TYPE_CLASS_DECLARATION=0x03
 };
 
 
@@ -407,13 +402,15 @@ enum NATIVE_FUNCITON_TYPE{
 
 
 enum OBJECT_MODIFIER{
-	OBJECT_MODIFIER_NONE=0x00,
+	OBJECT_MODIFIER_UNKNOWN=0x00,
 	OBJECT_MODIFIER_PUBLIC=0x01,
 	OBJECT_MODIFIER_PRIVATE=0x02,
 	OBJECT_MODIFIER_STATIC=0x04,
 	OBJECT_MODIFIER_EXPORT=0x08,
 	OBJECT_MODIFIER_FROZEN=0x10,
-	OBJECT_MODIFIER_FROZENTYPE=0x20
+	OBJECT_MODIFIER_FROZENTYPE=0x20,
+	OBJECT_MODIFIER_CONST=0x40,
+	OBJECT_MODIFIER_ASSIGNED=0x80
 };
 
 
@@ -427,6 +424,31 @@ enum FILE_MODIFIER{
 	FILE_MODIFIER_WRITE=0x10,
 	FILE_MODIFIER_TEXT=0x20,
 	FILE_MODIFIER_BINARY=0x40
+};
+
+
+
+struct _uint128_t{
+	uint64_t a;
+	uint64_t b;
+};
+
+
+
+struct _uint256_t{
+	uint64_t a;
+	uint64_t b;
+	uint64_t c;
+	uint64_t d;
+};
+
+
+
+struct SHA256{
+	unsigned int dln;
+	size_t bln;
+	unsigned char* dt;
+	unsigned long* st;
 };
 
 
@@ -469,10 +491,18 @@ struct Decimal{
 
 
 
+struct TypeSlot{
+	const char* nm;
+	UnaryFunc get;
+	BinaryFunc set;
+	UnaryFunc del;
+};
+
+
+
 struct Type{
 	const char* nm;
 	const struct Type* base;
-	size_t m_sz;
 	size_t sz;
 	NullaryFunc alloc_f;
 	TernaryListVoidFunc init_f;
@@ -484,6 +514,7 @@ struct Type{
 	BinaryStrFunc get_attr_str_f;
 	TernaryStrFunc set_attr_str_f;
 	BinaryStrFunc del_attr_str_f;
+	struct TypeSlot* get_set_del;
 	UnaryStrFunc repr_f;
 	UnaryHashFunc hash_f;
 	BinaryTypeFunc cast_f;
@@ -600,15 +631,6 @@ struct ModifierData{
 
 
 
-struct Scope{
-	struct Scope* p;
-	char** k;
-	uint8_t* m;
-	size_t l;
-};
-
-
-
 struct UnparsedASTExpressionElem{
 	enum UNPARSED_AST_EXPRESSION_ELEM_TYPE t;
 	union{
@@ -634,10 +656,23 @@ struct UnparsedASTExpression{
 
 
 
+struct ASTScope{
+	struct ASTScope* p;
+	char** k;
+	uint8_t* m;
+	size_t* rc;
+	size_t l;
+	struct ASTExpression** e;
+	size_t el;
+};
+
+
+
 struct ASTExpressionArg{
 	enum AST_EXPRESSION_ARG_TYPE t;
 	union{
 		struct ASTExpression* ex;
+		struct ASTScope* sc;
 		char c;
 		char* s;
 		struct Number* n;
@@ -657,44 +692,6 @@ struct ASTExpression{
 	struct ASTExpressionArg a;
 	struct ASTExpressionArg* b;
 	size_t bl;
-};
-
-
-
-struct ASTFuncDeclaration{//////
-	char* nm;
-	uint8_t m;
-	size_t a_l;
-	char** a_nm;
-	struct UnoptimisedASTObject* c;
-};
-
-
-
-struct ASTClassDeclaration{/////
-	char* nm;
-	uint8_t m;
-	size_t ml_l;
-	struct ASTFuncDeclaration** ml;
-};
-
-
-
-struct UnoptimisedASTObjectElem{
-	enum AST_OBJECT_ELEM_TYPE t;
-	union{
-		struct ASTExpression e;
-		struct ASTFuncDeclaration fd;
-		struct ASTClassDeclaration cd;
-	} v;
-};
-
-
-
-struct UnoptimisedASTObject{
-	struct UnoptimisedASTObjectElem* e;
-	size_t l;
-	struct Scope sc;
 };
 
 

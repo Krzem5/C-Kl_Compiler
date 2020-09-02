@@ -1,14 +1,15 @@
-use sysA;
+use sys;
+use sysAAA;
 from sys use *;
 from sys use dd3hio, use dwhiu as dgdid;
 use sys as system;
 
 
-
+private frozen tes='W';
 public static export frozen s="R-^df*I";
 
 
 
-sys.stdout.write("char:",'a',0_102983+478__3794*//3,sk);
+sys.stdout.write("char:",'a',0_102983+478__3794*//3,tes*67);
 system.stdout.writeln("\"HEY!\d34");
 stdout.writeln("\n ");

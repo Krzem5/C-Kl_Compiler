@@ -4,7 +4,11 @@
 
 
 
-struct Object* KlImport_import_module(const char* nm);
+char* KlImport_find_module(struct CodeFileObject* fo,const char* nm,struct CallStack* cs);
+
+
+
+struct Module* KlImport_load_module(struct CodeFileObject* fo,const char* fp,struct CallStack* cs);
 
 
 

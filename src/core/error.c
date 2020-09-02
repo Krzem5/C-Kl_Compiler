@@ -120,7 +120,7 @@ void KlError_raise(void){
 						k++;
 					}
 					*(ln+sz)=0;
-					KlIo_write(KlSys_stderr,str_format("%fFile '%s', Line%s%s:%f%s\n",CONST_COLOR_ERROR_TXT,i->c->fp,(i->sl==i->el?str_format(" %i",i->sl+1):str_format("s %i-%i",i->sl+1,i->el+1)),(i->f!=NULL?str_format(" in '%s'",i->f):""),CONST_COLOR_RESET,ln));
+					KlIo_write(KlSys_stderr,str_format("%fFile '%s', Line%s%s:%f%s\n",CONST_COLOR_ERROR_TXT,i->c->fp,(i->sl==i->el?str_format(" %S",i->sl+1):str_format("s %S-%S",i->sl+1,i->el+1)),(i->f!=NULL?str_format(" in '%s'",i->f):""),CONST_COLOR_RESET,ln));
 					KlMem_free(ln);
 					break;
 				}
@@ -144,6 +144,10 @@ void KlError_set_error(char* nm,char* msg,struct CallStack* cs){
 	_err.nm=nm;
 	_err.msg=msg;
 	_err.cs=cs;
+#ifndef NDEBUG
+	KlError_raise();
+	assert(0);
+#endif
 	return();
 }
 

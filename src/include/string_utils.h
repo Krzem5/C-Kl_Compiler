@@ -32,7 +32,11 @@ size_t str_rfind(const char* s,char c,size_t i);
 
 
 
-bool str_cmp(const char* a,char* b,size_t s,size_t l);
+bool str_cmp(const char* a,const char* b);
+
+
+
+bool str_cmp_sub(const char* a,char* b,size_t s,size_t l);
 
 
 
