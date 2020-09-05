@@ -1,0 +1,14 @@
+export class Stream{
+	private h;
+	private m;
+	public operator init(h,m){
+		this.h=h;
+		this.m=m;
+	}
+	public write(...a){
+		this.h.write(...a);
+	}
+	public writeln(...a){
+		this.h.write(...a,'\n');
+	}
+}

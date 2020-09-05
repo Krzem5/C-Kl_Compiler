@@ -174,7 +174,7 @@ char* str_format_va(const char* t,va_list a){
 							}
 							unsigned char sz=1;
 							unsigned int pw=10;
-							while (pw<(unsigned int)v){
+							while (pw<(unsigned int)v-1){
 								sz++;
 								pw*=10;
 							}
@@ -201,7 +201,7 @@ char* str_format_va(const char* t,va_list a){
 							else{
 								unsigned char sz=1;
 								size_t pw=10;
-								while (pw<v){
+								while (pw<v+1){
 									sz++;
 									if (sz==20){
 										break;

@@ -5,6 +5,7 @@
 #include <shared.h>
 #include <string_utils.h>
 #include <memory.h>
+#include <stdlib.h>
 #include <io.h>
 
 
@@ -14,6 +15,9 @@ struct Error _err={
 	NULL,
 	NULL
 };
+struct CallStack** _cs;
+size_t _csl;
+bool _ar;
 
 
 
@@ -134,7 +138,24 @@ void KlError_raise(void){
 	else{
 		KlIo_write(KlSys_stderr,str_format("%f%s: %s%f\n",CONST_COLOR_ERROR_TXT,_err.nm,_err.msg,CONST_COLOR_RESET));
 	}
+	KlError_cleanup();
 	return();
+}
+
+
+
+void KlError_cleanup(void){
+	if (_err.nm!=NULL){
+		KlMem_free(_err.nm);
+		KlMem_free(_err.msg);
+	}
+	if (_cs!=NULL){
+		for (size_t i=0;i<_csl;i++){
+			KlMem_free((*(_cs+i))->e);
+			KlMem_free(*(_cs+i));
+		}
+		KlMem_free(_cs);
+	}
 }
 
 
@@ -155,6 +176,10 @@ void KlError_set_error(char* nm,char* msg,struct CallStack* cs){
 
 struct CallStack* KlError_extend_call_stack(struct CallStack* cs,struct CodeFileObject* c,size_t sl,size_t el,size_t su,size_t eu,char* f){
 	KlMem_enter_func();
+	if (_ar==false){
+		_ar=true;
+		atexit(KlError_cleanup);
+	}
 	struct CallStack o;
 	struct CallStackElem e;
 	if (cs==NULL){
@@ -181,7 +206,13 @@ struct CallStack* KlError_extend_call_stack(struct CallStack* cs,struct CodeFile
 		o.e[cs->l]=e;
 		o.l=cs->l+1;
 	}
-	return(KlMem_const(&o,sizeof(o)));
+	_csl++;
+	_cs=KlMem_realloc(_cs,_csl*sizeof(struct CallStack*));
+	KlMem_ret(_cs);
+	struct CallStack* op=KlMem_const(&o,sizeof(o));
+	*(_cs+_csl-1)=op;
+	KlMem_ret(op);
+	return(op);
 }
 
 

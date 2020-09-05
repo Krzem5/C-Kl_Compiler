@@ -199,20 +199,33 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 
 
 void KlFree_free_scope(struct ASTScope sc){
-	if (sc.l>0){
-		for (size_t i=0;i<sc.l;i++){
-			KlMem_free(*(sc.k+i));
+	if (sc.cl>0){
+		for (size_t i=0;i<sc.cl;i++){
+			KlFree_free_expression(**(sc.c+i));
+			KlMem_free(*(sc.c+i));
 		}
-		KlMem_free(sc.k);
-		KlMem_free(sc.m);
-		KlMem_free(sc.rc);
+		KlMem_free(sc.c);
 	}
-	if (sc.el>0){
-		for (size_t i=0;i<sc.el;i++){
-			KlFree_free_expression(**(sc.e+i));
-			KlMem_free(*(sc.e+i));
+	if (sc.fl>0){
+		for (size_t i=0;i<sc.fl;i++){
+			KlFree_free_scope(**(sc.f+i));
+			KlMem_free(*(sc.f+i));
 		}
-		KlMem_free(sc.e);
+		KlMem_free(sc.f);
+	}
+	if (sc.vl>0){
+		for (size_t i=0;i<sc.vl;i++){
+			KlMem_free(*(sc.vnm+i));
+		}
+		KlMem_free(sc.vnm);
+		KlMem_free(sc.vm);
+		KlMem_free(sc.vrc);
+	}
+	if (sc.al>0){
+		for (size_t i=0;i<sc.al;i++){
+			KlMem_free(*(sc.anm+i));
+		}
+		KlMem_free(sc.anm);
 	}
 }
 

@@ -4,7 +4,11 @@
 
 
 
-struct ASTScope* KlAst_parse_ast(struct CodeFileObject* fo,struct CallStack* cs);
+struct ASTScope* KlAst_parse_ast_all(struct CodeFileObject* fo,struct CallStack* cs);
+
+
+
+bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,struct ASTScope* o,bool be);
 
 
 
@@ -60,7 +64,7 @@ unsigned char KlAst_get_op_count(unsigned char op);
 
 
 
-unsigned char KlAst_get_decl(char* nm,struct ASTScope* sc);
+uint16_t KlAst_get_decl(char* nm,struct ASTScope* sc);
 
 
 

@@ -20,6 +20,10 @@ extern struct File KlSys_stdin;
 
 
 
+extern const struct ASTScope KlSys_Module;
+
+
+
 void KlSys_init(void);
 
 

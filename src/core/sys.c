@@ -1,12 +1,13 @@
 #include <io.h>
 #include <memory.h>
 #include <sys.h>
+#include <import.h>
 #include <stdio.h>
 #include <shared.h>
 
 
 
-char* KlSys_import_path="this/is/the/default;sys/import/path;";
+char* KlSys_import_path="lib;";
 
 
 
@@ -19,6 +20,10 @@ struct File KlSys_stderr={0};
 
 
 struct File KlSys_stdin={0};
+
+
+
+static const struct ASTScope KlSys_Module={0};
 
 
 
@@ -40,5 +45,6 @@ void KlSys_init(void){
 	KlSys_stdin.p=stdin;
 	KlSys_stdin.m=FILE_MODIFIER_EXISTS|FILE_MODIFIER_VIRTUAL|FILE_MODIFIER_READ;
 	KlSys_stdin.rf=KlIo_default_read_func;
+	KlImport_define_native_module("_sys",((struct ASTScope*)&KlSys_Module));
 	return();
 }

@@ -20,6 +20,10 @@ void KlError_raise(void);
 
 
 
+void KlError_cleanup(void);
+
+
+
 void KlError_set_error(char* nm,char* msg,struct CallStack* cs);
 
 

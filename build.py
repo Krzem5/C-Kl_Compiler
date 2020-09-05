@@ -158,6 +158,12 @@ with open("tmp.c","w") as f:
 if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sdl /Zc:inline /fp:precise /D \"{('_' if rel==False else 'N')}DEBUG\"  /D \"_WINDOWS\" /D \"_USRDLL\" /D \"_WINDLL\" /D \"_UNICODE\" /D \"UNICODE\" /errorReport:none /WX /Zc:forScope /Gd /Oi /FC /D \"DLL1_EXPORTS\" /EHsc /nologo /diagnostics:column {('/ZI /Od /RTC1 /MDd' if rel==False else '/GL /Gy /Zi /O2 /Oi /MD')} tmp.c ..\\\\src\\\\dllmain.c ..\\\\src\\\\core\\\\platform\\\\windows.c "+' '.join(glob.glob("..\\src\\core\\*.c")+glob.glob("..\\src\\core\\util\\*.c")).replace("\\","\\\\"))).returncode==0 and subprocess.run(shlex.split(f"link {' '.join(glob.glob('*.obj'))} /OUT:kl.dll /IMPLIB:kl.lib /NXCOMPAT /DYNAMICBASE \"kernel32.lib\" \"user32.lib\" \"gdi32.lib\" \"winspool.lib\" \"comdlg32.lib\" \"advapi32.lib\" \"shell32.lib\" \"ole32.lib\" \"oleaut32.lib\" \"uuid.lib\" \"odbc32.lib\" \"odbccp32.lib\" /DLL /MACHINE:X64 /SUBSYSTEM:WINDOWS /ERRORREPORT:none /NOLOGO /TLBID:1 /WX {('/DEBUG /INCREMENTAL' if rel==False else '/LTCG /OPT:REF /INCREMENTAL:NO /OPT:ICF')} {' '.join(lel)}")).returncode==0):
 		os.environ["INCLUDE"]=".\\;"+ti
 		if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sdl /Zc:inline /fp:precise /D \"{('_' if rel==False else 'N')}DEBUG\"  /D \"_WINDOWS\" /D \"_USRDLL\" /D \"_WINDLL\" /D \"_UNICODE\" /D \"UNICODE\" /errorReport:none /WX /Zc:forScope /Gd /Oi /FC /D \"DLL1_EXPORTS\" /EHsc /nologo /diagnostics:column {('/ZI /Od /RTC1 /MDd' if rel==False else '/GL /Gy /Zi /O2 /Oi /MD')} ..\\\\src\\\\main.c")).returncode==0 and subprocess.run(shlex.split(f"link main.obj /OUT:kl.exe /DYNAMICBASE \"kernel32.lib\" \"user32.lib\" \"gdi32.lib\" \"winspool.lib\" \"comdlg32.lib\" \"advapi32.lib\" \"shell32.lib\" \"ole32.lib\" \"oleaut32.lib\" \"uuid.lib\" \"odbc32.lib\" \"odbccp32.lib\" \"kl.lib\" /MACHINE:X64 /SUBSYSTEM:CONSOLE /ERRORREPORT:none /NOLOGO /TLBID:1 /WX {('/DEBUG /INCREMENTAL' if rel==False else '/LTCG /OPT:REF /INCREMENTAL:NO /OPT:ICF')}")).returncode==0):
+			for r,_,fl in os.walk("../src/lib/"):
+				if (not ntpath.exists(r.replace("../src/lib/","lib/"))):
+					os.mkdir(r.replace("../src/lib/","lib/"))
+				for f in fl:
+					with open(ntpath.join(r,f),"rb") as rf,open(ntpath.join(r,f).replace("../src/lib/","lib/"),"wb") as wf:
+						wf.write(rf.read())
 			os.system(f"del tmp.c&&del *obj&&del *.pdb&&del *.exp{('' if rel==True else '&&del *.ilk&&del *.idb')}&&cls")
 			subprocess.run(["kl.exe",".\\..\\test.kl"])
 os.environ["INCLUDE"],os.environ["PATH"]=ti,tp

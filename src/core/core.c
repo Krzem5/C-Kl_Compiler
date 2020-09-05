@@ -24,7 +24,7 @@ int KlCore_run_all(int argc,const char** argv){
 		KlPlatform_restore_console();
 		return(1);
 	}
-	struct ASTScope* ast=KlAst_parse_ast(fo,NULL);
+	struct ASTScope* ast=KlAst_parse_ast_all(fo,NULL);
 	if (ast==NULL){
 		KlError_raise();
 		KlPlatform_restore_console();
