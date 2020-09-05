@@ -1,5 +1,4 @@
 use sys;
-use sys;
 from sys use *;
 from sys use dd3hio, use dwhiu as dgdid;
 use sys as system;
