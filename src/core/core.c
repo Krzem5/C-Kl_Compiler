@@ -4,6 +4,7 @@
 #include <platform.h>
 #include <sys.h>
 #include <free.h>
+#include <import.h>
 #include <shared.h>
 #include <memory.h>
 #include <string_utils.h>
@@ -27,18 +28,20 @@ int KlCore_run_all(int argc,const char** argv){
 	struct ASTScope* ast=KlAst_parse_ast_all(fo,NULL);
 	if (ast==NULL){
 		KlError_raise();
-		KlPlatform_restore_console();
+		KlImport_free_modules();
 		KlFree_free_code_file_object(*fo);
 		KlMem_free(fo);
 		KlFree_free_scope(*ast);
 		KlMem_free(ast);
+		KlPlatform_restore_console();
 		return(1);
 	}
-	KlPlatform_restore_console();
+	KlImport_free_modules();
 	KlFree_free_code_file_object(*fo);
 	KlMem_free(fo);
 	KlFree_free_scope(*ast);
 	KlMem_free(ast);
+	KlPlatform_restore_console();
 	return(0);
 }
 

@@ -23,7 +23,22 @@ struct File KlSys_stdin={0};
 
 
 
-static const struct ASTScope KlSys_Module={0};
+static const struct ASTScope KlSys_Module={
+	AST_SCOPE_TYPE_DEFAULT,
+	NULL,
+	"_sys",
+	NULL,
+	0,
+	NULL,
+	0,
+	NULL,
+	NULL,
+	NULL,
+	0,
+	OBJECT_MODIFIER_NATIVE,
+	NULL,
+	0
+};
 
 
 
@@ -45,6 +60,6 @@ void KlSys_init(void){
 	KlSys_stdin.p=stdin;
 	KlSys_stdin.m=FILE_MODIFIER_EXISTS|FILE_MODIFIER_VIRTUAL|FILE_MODIFIER_READ;
 	KlSys_stdin.rf=KlIo_default_read_func;
-	KlImport_define_native_module("_sys",((struct ASTScope*)&KlSys_Module));
+	KlImport_define_module("_sys",((struct ASTScope*)&KlSys_Module));
 	return();
 }

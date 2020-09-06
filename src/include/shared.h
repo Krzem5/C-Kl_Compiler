@@ -11,8 +11,13 @@
 #define NONE (SIZE_MAX)
 #define UNKNOWN_SIZE (SIZE_MAX)
 #define OBJ(o) ((struct Object*)(o))
-#define OBJECT_HEAD const struct Type* t;size_t sz;
-#define OBJECT_HEAD_INIT(t_,sz_) .t=&(t_),.sz=(size_t)(sz_),
+#define OBJECT_HEAD const struct Type* __t;size_t __sz;
+#define OBJECT_HEAD_INIT(t,sz) .__t=&(t),.__sz=(size_t)(sz),
+#define OBJECT_TYPE(a) a.__t
+#define OBJECT_TYPE_P(a) a->__t
+#define OBJECT_SIZE(a) a.__sz
+#define OBJECT_SIZE_P(a) a->__sz
+#define OFFSETOF(t,o) ((size_t)((unsigned char*)&((t*)0)->o-(unsigned char*)0))
 #define bool _Bool
 #define false 0
 #define true 1
@@ -120,17 +125,14 @@ typedef void (*UnaryVoidFunc)(struct Object* a);
 typedef struct Object* (*BinaryFunc)(struct Object* a,struct Object* b);
 typedef bool (*BinaryBoolFunc)(struct Object* a,struct Object* b);
 typedef struct Object* (*BinarySizeTFunc)(struct Object* a,size_t b);
-typedef void (*BinarySizeTVoidFunc)(struct Object* a,size_t b);
 typedef struct Object* (*BinaryStrFunc)(struct Object* a,char* b);
 typedef struct Object* (*BinaryTypeFunc)(struct Object* a,const struct Type* b);
-typedef void (*BinaryVoidFunc)(struct Object* a,struct Object* b);
 typedef struct Object* (*TernaryFunc)(struct Object* a,struct Object* b,struct Object* c);
 typedef struct Object* (*TernarySizeTFunc)(struct Object* a,size_t b,struct Object* c);
 typedef struct Object* (*TernarySizeT2Func)(struct Object* a,size_t b,size_t c);
 typedef struct Object* (*TernaryStrFunc)(struct Object* a,char* b,struct Object* c);
 typedef struct Object* (*TernaryListFunc)(struct Object* a,struct Object** b,size_t c);
 typedef void (*TernaryListVoidFunc)(struct Object* a,struct Object** b,size_t c);
-typedef void (*TernaryVoidFunc)(struct Object* a,struct Object* b,struct Object* c);
 typedef struct Object* (*QuaternarySizeTFunc)(struct Object* a,size_t b,size_t c,struct Object* d);
 typedef struct Object* (*QuaternarySizeT3Func)(struct Object* a,size_t b,size_t c,size_t d);
 typedef struct Object* (*QuinaryFunc)(struct Object* a,size_t b,size_t c,size_t d,struct Object* e);
@@ -294,8 +296,7 @@ enum AST_EXPRESSION_TYPE{
 	AST_EXPRESSION_TYPE_BAND_EQU=0x34,
 	AST_EXPRESSION_TYPE_BXOR_EQU=0x35,
 	AST_EXPRESSION_TYPE_BOR_EQU=0x36,
-	AST_EXPRESSION_TYPE_BNOT_EQU=0x37,
-	AST_EXPRESSION_TYPE_SEP=0x38
+	AST_EXPRESSION_TYPE_SEP=0x37
 };
 
 
@@ -326,7 +327,7 @@ enum AST_SCOPE_TYPE{
 
 
 
-enum OPCODE{
+/*enum OPCODE{
 	OPCODE_NOP			=0x00,
 	OPCODE_POP			=0x01,
 	OPCODE_ROT			=0x02,
@@ -380,7 +381,7 @@ enum OPCODE{
 	OPCODE_JMP_GE		=0x32,
 	OPCODE_JMP_EQ		=0x33,
 	OPCODE_JMP_NE		=0x34
-};
+};*/
 
 
 
@@ -397,6 +398,7 @@ enum NATIVE_FUNCITON_TYPE{
 enum OBJECT_MODIFIER{
 	OBJECT_MODIFIER_UNKNOWN=0x000,
 	OBJECT_MODIFIER_PUBLIC=0x001,
+	OBJECT_MODIFIER_NATIVE=0x001,
 	OBJECT_MODIFIER_PRIVATE=0x002,
 	OBJECT_MODIFIER_STATIC=0x004,
 	OBJECT_MODIFIER_EXPORT=0x008,
@@ -470,7 +472,7 @@ struct File{
 
 
 
-struct Number{
+struct BigInt{
 	intmax_t l;
 	uint32_t* v;
 };
@@ -515,6 +517,8 @@ struct Type{
 	BinaryTypeFunc cast_f;
 	TernaryListFunc call_f;
 	UnaryBoolFunc bool_f;
+	UnaryFunc inc_f;
+	UnaryFunc dec_f;
 	BinaryFunc add_f;
 	BinaryFunc sub_f;
 	BinaryFunc mlt_f;
@@ -549,23 +553,24 @@ struct Type{
 	QuaternarySizeTFunc slice_ass_f;
 	QuinaryFunc slice_step_ass_f;
 	BinaryBoolFunc includes_f;
-	BinaryVoidFunc inp_add_f;
-	BinaryVoidFunc inp_sub_f;
-	BinaryVoidFunc inp_mlt_f;
-	BinaryVoidFunc inp_div_f;
-	BinaryVoidFunc inp_fdiv_f;
-	BinaryVoidFunc inp_mod_f;
-	BinaryVoidFunc inp_mmlt_f;
-	TernaryVoidFunc inp_pow_f;
-	BinaryVoidFunc inp_root_f;
-	BinaryVoidFunc inp_iroot_f;
-	BinaryVoidFunc inp_lsh_f;
-	BinaryVoidFunc inp_rsh_f;
-	BinaryVoidFunc inp_band_f;
-	BinaryVoidFunc inp_bxor_f;
-	BinaryVoidFunc inp_bor_f;
-	BinaryVoidFunc inp_concat_f;
-	BinarySizeTVoidFunc inp_repeat_f;
+	BinaryFunc ass_f;
+	BinaryFunc inp_add_f;
+	BinaryFunc inp_sub_f;
+	BinaryFunc inp_mlt_f;
+	BinaryFunc inp_div_f;
+	BinaryFunc inp_fdiv_f;
+	BinaryFunc inp_mod_f;
+	BinaryFunc inp_mmlt_f;
+	TernaryFunc inp_pow_f;
+	BinaryFunc inp_root_f;
+	BinaryFunc inp_iroot_f;
+	BinaryFunc inp_lsh_f;
+	BinaryFunc inp_rsh_f;
+	BinaryFunc inp_band_f;
+	BinaryFunc inp_bxor_f;
+	BinaryFunc inp_bor_f;
+	BinaryFunc inp_concat_f;
+	BinarySizeTFunc inp_repeat_f;
 };
 
 
@@ -573,19 +578,6 @@ struct Type{
 struct Object{
 	OBJECT_HEAD
 };
-
-
-
-/*struct Module{
-	char** ek;
-	size_t el;
-	char** vk;
-	uint16_t* vm;
-	size_t* vrc;
-	size_t vl;
-	struct ASTExpression** ex;
-	size_t exl;
-};*/
 
 
 
@@ -646,7 +638,7 @@ struct UnparsedASTExpressionElem{
 		enum AST_EXPRESSION_TYPE op;
 		char c;
 		char* s;
-		struct Number* n;
+		struct BigInt* n;
 		struct Decimal* d;
 		struct NativeFunction nf;
 		char* i;
@@ -690,7 +682,7 @@ struct ASTExpressionArg{
 		struct ASTScope* sc;
 		char c;
 		char* s;
-		struct Number* n;
+		struct BigInt* n;
 		struct Decimal* d;
 		struct Function* f;
 		struct NativeFunction nf;

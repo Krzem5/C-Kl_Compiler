@@ -5,11 +5,13 @@
 #include <shared.h>
 #include <error.h>
 #include <string_utils.h>
-#include <object.h>
 #include <type.h>
+#include <free.h>
 #include <ast.h>
 #include <core.h>
 #include <io.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 
 
@@ -86,6 +88,8 @@ struct ASTScope* KlImport_load_module(struct CodeFileObject* fo,const char* fp,s
 	}
 	struct CodeFileObject* nfo=KlCore_read_file(fp,cs);
 	struct ASTScope* o=KlAst_parse_ast_all(nfo,cs);
+	KlFree_free_code_file_object(*nfo);
+	KlMem_free(nfo);
 	size_t nm_l=0;
 	char* nm=NULL;
 	size_t i=ln-1;
@@ -106,13 +110,13 @@ struct ASTScope* KlImport_load_module(struct CodeFileObject* fo,const char* fp,s
 	}
 	*(nm+nm_l)=0;
 	KlMem_ret(nm);
-	KlImport_define_native_module(nm,o);
+	KlImport_define_module(nm,o);
 	return(o);
 }
 
 
 
-void KlImport_define_native_module(char* nm,struct ASTScope* m){
+void KlImport_define_module(char* nm,struct ASTScope* m){
 	KlMem_enter_func();
 	_cll++;
 	_ckl=KlMem_realloc(_ckl,_cll*sizeof(char*));
@@ -122,4 +126,23 @@ void KlImport_define_native_module(char* nm,struct ASTScope* m){
 	*(_ckl+_cll-1)=nm;
 	*(_cvl+_cll-1)=m;
 	return();
+}
+
+
+
+void KlImport_free_modules(void){
+	if (_cll>0){
+		for (size_t i=0;i<_cll;i++){
+			if (((*(_cvl+i))->m&OBJECT_MODIFIER_NATIVE)==0){
+				KlMem_free(*(_ckl+i));
+				KlFree_free_scope(**(_cvl+i));
+				KlMem_free(*(_cvl+i));
+			}
+		}
+		KlMem_free(_ckl);
+		KlMem_free(_cvl);
+		_ckl=NULL;
+		_cvl=NULL;
+		_cll=0;
+	}
 }

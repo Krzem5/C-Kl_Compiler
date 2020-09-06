@@ -165,6 +165,12 @@ if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sd
 					with open(ntpath.join(r,f),"rb") as rf,open(ntpath.join(r,f).replace("../src/lib/","lib/"),"wb") as wf:
 						wf.write(rf.read())
 			os.system(f"del tmp.c&&del *obj&&del *.pdb&&del *.exp{('' if rel==True else '&&del *.ilk&&del *.idb')}&&cls")
-			subprocess.run(["kl.exe",".\\..\\test.kl"])
+			ec="0x"+hex(subprocess.run(["kl.exe",".\\..\\test.kl"]).returncode)[2:].rjust(8,"0")
+			if (ec!="0x00000000"):
+				o=re.search(rf"<err n=\'{ec}\' name=\'([^\']+)\' src=\'[^\']+\'>([^<]*?)</err>",str(subprocess.run(["err.exe","/:xml","/winerror.h","/ntstatus.h",str(ec)],stdout=subprocess.PIPE).stdout,"utf-8"))
+				if (o==None):
+					print(f"\nUnknown Error Code: {ec} ({int(ec,16)})")
+				else:
+					print(f"\n{ec} ({o[1]}): {(o[1] if len(o[2].strip())==0 else o[2])}")
 os.environ["INCLUDE"],os.environ["PATH"]=ti,tp
 os.chdir(os.getcwd()+"\\..\\")

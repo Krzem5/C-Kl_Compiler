@@ -1,5 +1,5 @@
 #include <error.h>
-#include <number.h>
+#include <bigint.h>
 #include <memory.h>
 #include <stdint.h>
 #include <io.h>
@@ -7,9 +7,9 @@
 
 
 
-struct Number* KlNum_from_long(long long ll){
+struct BigInt* KLBigInt_from_long(long long ll){
 	KlMem_enter_func();
-	struct Number o;
+	struct BigInt o;
 	signed char s=(ll<0?-1:1);
 	unsigned long long t=ll*s;
 	unsigned char ln=0;
@@ -32,16 +32,16 @@ struct Number* KlNum_from_long(long long ll){
 		i++;
 	}
 	KlMem_ret(o.v);
-	return(KlMem_const(&o,sizeof(struct Number)));
+	return(KlMem_const(&o,sizeof(struct BigInt)));
 }
 
 
 
-struct Number* KlNum_assign(struct Number* o,struct Number* v){
+struct BigInt* KLBigInt_assign(struct BigInt* o,struct BigInt* v){
 	KlMem_enter_func();
 	assert(v!=NULL);
 	if (o==NULL){
-		o=KlMem_malloc(sizeof(struct Number));
+		o=KlMem_malloc(sizeof(struct BigInt));
 		o->v=NULL;
 	}
 	o->l=v->l;
@@ -53,10 +53,10 @@ struct Number* KlNum_assign(struct Number* o,struct Number* v){
 
 
 
-struct Number* KlNum_assign_long(struct Number* o,long v){
+struct BigInt* KLBigInt_assign_long(struct BigInt* o,long v){
 	KlMem_enter_func();
 	if (o==NULL){
-		o=KlMem_malloc(sizeof(struct Number));
+		o=KlMem_malloc(sizeof(struct BigInt));
 	}
 	o->l=(v<0?-1:1);
 	intmax_t uv=v*o->l;
@@ -66,7 +66,7 @@ struct Number* KlNum_assign_long(struct Number* o,long v){
 
 
 
-void KlNum_free(struct Number* n){
+void KLBigInt_free(struct BigInt* n){
 	KlMem_enter_func();
 	if (n!=NULL){
 		if (n->v!=NULL){
@@ -79,7 +79,7 @@ void KlNum_free(struct Number* n){
 
 
 
-struct Number* KlNum_trunc(struct Number* o){
+struct BigInt* KLBigInt_trunc(struct BigInt* o){
 	KlMem_enter_func();
 	assert(o!=NULL);
 	signed char s=(o->l<0?-1:1);
@@ -96,66 +96,66 @@ struct Number* KlNum_trunc(struct Number* o){
 
 
 
-bool KlNum_is_zero(struct Number* n){
+bool KLBigInt_is_zero(struct BigInt* n){
 	KlMem_enter_func();
 	assert(n!=NULL);
-	KlNum_trunc(n);
+	KLBigInt_trunc(n);
 	return(((n->l==1||n->l==-1)&&*n->v==0));
 }
 
 
 
-bool KlNum_is_one(struct Number* n){
+bool KLBigInt_is_one(struct BigInt* n){
 	KlMem_enter_func();
 	assert(n!=NULL);
-	KlNum_trunc(n);
+	KLBigInt_trunc(n);
 	return((n->l==1&&*n->v==1));
 }
 
 
 
-struct Number* KlNum_abs(struct Number* a){
+struct BigInt* KLBigInt_abs(struct BigInt* a){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	struct Number o;
+	struct BigInt o;
 	o.l=(a->l<0?-a->l:a->l);
 	o.v=KlMem_memcpy(KlMem_malloc(o.l*sizeof(uint32_t)),a->v,o.l*sizeof(uint32_t));
 	assert(o.l>0);
-	return(KlMem_const(&o,sizeof(struct Number)));
+	return(KlMem_const(&o,sizeof(struct BigInt)));
 }
 
 
 
-struct Number* KlNum_neg(struct Number* a){
+struct BigInt* KLBigInt_neg(struct BigInt* a){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	struct Number o;
-	if (KlNum_is_zero(a)==true){
-		return(KlNum_assign(NULL,a));
+	struct BigInt o;
+	if (KLBigInt_is_zero(a)==true){
+		return(KLBigInt_assign(NULL,a));
 	}
 	o.l=(a->l<0?a->l:-a->l);
 	o.v=KlMem_memcpy(KlMem_malloc(o.l*sizeof(uint32_t)),a->v,o.l*sizeof(uint32_t));
-	return(KlMem_const(&o,sizeof(struct Number)));
+	return(KlMem_const(&o,sizeof(struct BigInt)));
 }
 
 
 
-struct Number* KlNum_add(struct Number* a,struct Number* b){
+struct BigInt* KLBigInt_add(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
 	if ((a->l<0)==(b->l<0)){
-		struct Number* o=KlNum_add_abs(a,b);
+		struct BigInt* o=KLBigInt_add_abs(a,b);
 		o->l*=(a->l<0?-1:1);
 		return(o);
 	}
 	else{
-		struct Number* o=KlNum_sub_abs(a,b);
-		if (KlNum_is_zero(o)){
+		struct BigInt* o=KLBigInt_sub_abs(a,b);
+		if (KLBigInt_is_zero(o)){
 			o->l=1;
 		}
 		else{
-			o->l*=((KlNum_cmp_abs(a,b)>0?a->l<0:b->l<0)==true?-1:1);
+			o->l*=((KLBigInt_cmp_abs(a,b)>0?a->l<0:b->l<0)==true?-1:1);
 		}
 		return(o);
 	}
@@ -163,21 +163,21 @@ struct Number* KlNum_add(struct Number* a,struct Number* b){
 
 
 
-struct Number* KlNum_add_long(struct Number* a,long b){
+struct BigInt* KLBigInt_add_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	if ((a->l<0)==(b<0)){
-		struct Number* o=KlNum_add_long_abs(a,b);
+		struct BigInt* o=KLBigInt_add_long_abs(a,b);
 		o->l*=(a->l<0?-1:1);
 		return(o);
 	}
 	else{
-		struct Number* o=KlNum_sub_long_abs(a,b);
-		if (KlNum_is_zero(o)){
+		struct BigInt* o=KLBigInt_sub_long_abs(a,b);
+		if (KLBigInt_is_zero(o)){
 			o->l=1;
 		}
 		else{
-			o->l*=((KlNum_cmp_long_abs(a,b)>0?a->l<0:b<0)==true?-1:1);
+			o->l*=((KLBigInt_cmp_long_abs(a,b)>0?a->l<0:b<0)==true?-1:1);
 		}
 		return(o);
 	}
@@ -185,21 +185,21 @@ struct Number* KlNum_add_long(struct Number* a,long b){
 
 
 
-struct Number* KlNum_add_abs(struct Number* a,struct Number* b){
+struct BigInt* KLBigInt_add_abs(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
 	intmax_t lna=(a->l<0?-a->l:a->l);
 	intmax_t lnb=(b->l<0?-b->l:b->l);
 	if (lna<lnb){
-		struct Number* t=a;
+		struct BigInt* t=a;
 		a=b;
 		b=t;
 		intmax_t lnt=lna;
 		lna=lnb;
 		lnb=lnt;
 	}
-	struct Number o;
+	struct BigInt o;
 	o.l=(lna+1)*(a->l<0?-1:1);
 	o.v=KlMem_malloc((lna+1)*sizeof(uint32_t));
 	uint32_t c=0;
@@ -215,16 +215,16 @@ struct Number* KlNum_add_abs(struct Number* a,struct Number* b){
 		c>>=NUM_SHIFT;
 	}
 	o.v[i]=c;
-	return(KlMem_const(KlNum_trunc(&o),sizeof(struct Number)));
+	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct Number* KlNum_add_long_abs(struct Number* a,unsigned long b){
+struct BigInt* KLBigInt_add_long_abs(struct BigInt* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	intmax_t lna=(a->l<0?-a->l:a->l);
-	struct Number o;
+	struct BigInt o;
 	o.l=(lna+1)*(a->l<0?-1:1);
 	o.v=KlMem_malloc((lna+1)*sizeof(uint32_t));
 	uint32_t c=a->v[0]+b;
@@ -238,50 +238,50 @@ struct Number* KlNum_add_long_abs(struct Number* a,unsigned long b){
 	}
 	o.v[i]=c;
 	KlMem_ret(o.v);
-	return(KlMem_const(KlNum_trunc(&o),sizeof(struct Number)));
+	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct Number* KlNum_sub(struct Number* a,struct Number* b){
+struct BigInt* KLBigInt_sub(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
-	struct Number* o=((a->l<0)==(b->l<0)?KlNum_sub_abs(a,b):KlNum_add_abs(a,b));
-	if (KlNum_is_zero(o)){
+	struct BigInt* o=((a->l<0)==(b->l<0)?KLBigInt_sub_abs(a,b):KLBigInt_add_abs(a,b));
+	if (KLBigInt_is_zero(o)){
 		o->l=1;
 	}
 	else{
-		o->l*=(KlNum_cmp(a,b)>0?1:-1);
+		o->l*=(KLBigInt_cmp(a,b)>0?1:-1);
 	}
 	return(o);
 }
 
 
 
-struct Number* KlNum_sub_long(struct Number* a,long b){
+struct BigInt* KLBigInt_sub_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	struct Number* o=((a->l<0)==(b<0)?KlNum_sub_long_abs(a,b):KlNum_add_long_abs(a,b));
-	if (KlNum_is_zero(o)){
+	struct BigInt* o=((a->l<0)==(b<0)?KLBigInt_sub_long_abs(a,b):KLBigInt_add_long_abs(a,b));
+	if (KLBigInt_is_zero(o)){
 		o->l=1;
 	}
 	else{
-		o->l*=(KlNum_cmp_long(a,b)>0?1:-1);
+		o->l*=(KLBigInt_cmp_long(a,b)>0?1:-1);
 	}
 	return(o);
 }
 
 
 
-struct Number* KlNum_sub_abs(struct Number* a,struct Number* b){
+struct BigInt* KLBigInt_sub_abs(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
 	intmax_t lna=(a->l<0?-a->l:a->l);
 	intmax_t lnb=(b->l<0?-b->l:b->l);
 	if (lna<lnb){
-		struct Number* t=a;
+		struct BigInt* t=a;
 		a=b;
 		b=t;
 		intmax_t lnt=lna;
@@ -292,18 +292,18 @@ struct Number* KlNum_sub_abs(struct Number* a,struct Number* b){
 		intmax_t i=lna;
 		while (a->v[i]==b->v[i]){
 			if (i==0){
-				return(KlNum_from_long(0));
+				return(KLBigInt_from_long(0));
 			}
 			i--;
 		}
 		if (a->v[i]<b->v[i]){
-			struct Number* t=a;
+			struct BigInt* t=a;
 			a=b;
 			b=t;
 		}
 		lna=lnb=i+1;
 	}
-	struct Number o;
+	struct BigInt o;
 	o.l=lna;
 	o.v=KlMem_malloc(lna*sizeof(uint32_t));
 	uint32_t br=0;
@@ -320,18 +320,18 @@ struct Number* KlNum_sub_abs(struct Number* a,struct Number* b){
 		br>>=NUM_SHIFT;
 		br&=1;
 	}
-	return(KlMem_const(KlNum_trunc(&o),sizeof(struct Number)));
+	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct Number* KlNum_sub_long_abs(struct Number* a,unsigned long b){
+struct BigInt* KLBigInt_sub_long_abs(struct BigInt* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	intmax_t lna=(a->l<0?-a->l:a->l);
 	if (lna==1){
 		if (*a->v==b){
-			return(KlNum_from_long(0));
+			return(KLBigInt_from_long(0));
 		}
 		if (*a->v<b){
 			uint32_t t=a->v[0];
@@ -339,7 +339,7 @@ struct Number* KlNum_sub_long_abs(struct Number* a,unsigned long b){
 			b=t;
 		}
 	}
-	struct Number o;
+	struct BigInt o;
 	o.l=lna;
 	o.v=KlMem_malloc(lna*sizeof(uint32_t));
 	uint32_t br=*a->v-b;
@@ -352,17 +352,17 @@ struct Number* KlNum_sub_long_abs(struct Number* a,unsigned long b){
 		br>>=NUM_SHIFT;
 		br&=1;
 	}
-	return(KlMem_const(KlNum_trunc(&o),sizeof(struct Number)));
+	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct Number* KlNum_mult(struct Number* a,struct Number* b){
+struct BigInt* KLBigInt_mult(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
-	struct Number* o=KlNum_mult_abs(a,b);
-	if (KlNum_is_zero(o)){
+	struct BigInt* o=KLBigInt_mult_abs(a,b);
+	if (KLBigInt_is_zero(o)){
 		o->l=1;
 	}
 	else{
@@ -373,11 +373,11 @@ struct Number* KlNum_mult(struct Number* a,struct Number* b){
 
 
 
-struct Number* KlNum_mult_long(struct Number* a,long b){
+struct BigInt* KLBigInt_mult_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	struct Number* o=KlNum_mult_long_abs(a,b);
-	if (KlNum_is_zero(o)){
+	struct BigInt* o=KLBigInt_mult_long_abs(a,b);
+	if (KLBigInt_is_zero(o)){
 		o->l=1;
 	}
 	else{
@@ -388,22 +388,22 @@ struct Number* KlNum_mult_long(struct Number* a,long b){
 
 
 
-struct Number* KlNum_mult_abs(struct Number* a,struct Number* b){
+struct BigInt* KLBigInt_mult_abs(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
-	if (KlNum_is_zero(a)||KlNum_is_zero(b)){
-		return(KlNum_from_long(0));
+	if (KLBigInt_is_zero(a)||KLBigInt_is_zero(b)){
+		return(KLBigInt_from_long(0));
 	}
-	if (KlNum_is_one(a)){
-		return(KlNum_assign(NULL,b));
+	if (KLBigInt_is_one(a)){
+		return(KLBigInt_assign(NULL,b));
 	}
-	if (KlNum_is_one(b)){
-		return(KlNum_assign(NULL,a));
+	if (KLBigInt_is_one(b)){
+		return(KLBigInt_assign(NULL,a));
 	}
 	intmax_t lna=(a->l<0?-a->l:a->l);
 	intmax_t lnb=(b->l<0?-b->l:b->l);
-	struct Number o;
+	struct BigInt o;
 	o.l=lna+lnb;
 	o.v=KlMem_calloc(o.l,sizeof(uint32_t));
 	uint64_t c;
@@ -424,25 +424,25 @@ struct Number* KlNum_mult_abs(struct Number* a,struct Number* b){
 			*(o.v+j)=(uint32_t)(c&NUM_MASK);
 		}
 	}
-	return(KlMem_const(KlNum_trunc(&o),sizeof(struct Number)));
+	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct Number* KlNum_mult_long_abs(struct Number* a,unsigned long b){
+struct BigInt* KLBigInt_mult_long_abs(struct BigInt* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	if (KlNum_is_zero(a)||b==0){
-		return(KlNum_from_long(0));
+	if (KLBigInt_is_zero(a)||b==0){
+		return(KLBigInt_from_long(0));
 	}
-	if (KlNum_is_one(a)){
-		return(KlNum_from_long(b));
+	if (KLBigInt_is_one(a)){
+		return(KLBigInt_from_long(b));
 	}
 	if (b==1){
-		return(KlNum_assign(NULL,a));
+		return(KLBigInt_assign(NULL,a));
 	}
 	intmax_t lna=(a->l<0?-a->l:a->l);
-	struct Number o;
+	struct BigInt o;
 	o.l=lna+1;
 	o.v=KlMem_calloc(o.l,sizeof(uint32_t));
 	intmax_t j;
@@ -457,34 +457,34 @@ struct Number* KlNum_mult_long_abs(struct Number* a,unsigned long b){
 		}
 	}
 	KlMem_ret(o.v);
-	return(KlMem_const(KlNum_trunc(&o),sizeof(struct Number)));
+	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct Number* KlNum_div(struct Number* a,struct Number* b){
+struct BigInt* KLBigInt_div(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KlNum_is_zero(b)==false);
+	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
 	KlError_unimplemented_code();
 	return(NULL);
 }
 
 
 
-struct Number* KlNum_fdiv(struct Number* a,struct Number* b){
+struct BigInt* KLBigInt_fdiv(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KlNum_is_zero(b)==false);
-	if (KlNum_is_zero(b)==true){
+	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
+	if (KLBigInt_is_zero(b)==true){
 		KlError_unimplemented_error();
 		return(NULL);
 	}
 	if ((a->l==1||a->l==-1)&&(b->l==1||b->l==-1)){
-		return(KlNum_from_long((a->l==b->l?*a->v/(*b->v):-1-(*a->v-1)/(*b->v))));
+		return(KLBigInt_from_long((a->l==b->l?*a->v/(*b->v):-1-(*a->v-1)/(*b->v))));
 	}
-	struct Number* o=NULL;
-	if (KlNum_divmod(a,b,&o,NULL)!=0){
+	struct BigInt* o=NULL;
+	if (KLBigInt_divmod(a,b,&o,NULL)!=0){
 		return(NULL);
 	}
 	return(o);
@@ -492,7 +492,7 @@ struct Number* KlNum_fdiv(struct Number* a,struct Number* b){
 
 
 
-struct Number* KlNum_fdiv_long(struct Number* a,long b){
+struct BigInt* KLBigInt_fdiv_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=0);
@@ -501,10 +501,10 @@ struct Number* KlNum_fdiv_long(struct Number* a,long b){
 		return(NULL);
 	}
 	if (a->l==1||a->l==-1){
-		return(KlNum_from_long((a->l==(b<0?-1:1)?*a->v/b:-1-(*a->v-1)/b)));
+		return(KLBigInt_from_long((a->l==(b<0?-1:1)?*a->v/b:-1-(*a->v-1)/b)));
 	}
-	struct Number* o=NULL;
-	if (KlNum_divmod_long(a,b,&o,NULL)!=0){
+	struct BigInt* o=NULL;
+	if (KLBigInt_divmod_long(a,b,&o,NULL)!=0){
 		return(NULL);
 	}
 	return(o);
@@ -512,19 +512,19 @@ struct Number* KlNum_fdiv_long(struct Number* a,long b){
 
 
 
-struct Number* KlNum_mod(struct Number* a,struct Number* b){
+struct BigInt* KLBigInt_mod(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KlNum_is_zero(b)==false);
-	if (KlNum_is_zero(b)==true){
+	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
+	if (KLBigInt_is_zero(b)==true){
 		KlError_unimplemented_error();
 		return(NULL);
 	}
 	if ((a->l==1||a->l==-1)&&(b->l==1||b->l==-1)){
-		return(KlNum_from_long((a->l==b->l?*a->v%*b->v:*b->v-1-(*a->v-1)%*b->v)*(int32_t)b->l));
+		return(KLBigInt_from_long((a->l==b->l?*a->v%*b->v:*b->v-1-(*a->v-1)%*b->v)*(int32_t)b->l));
 	}
-	struct Number* o=NULL;
-	if (KlNum_divmod(a,b,NULL,&o)!=0){
+	struct BigInt* o=NULL;
+	if (KLBigInt_divmod(a,b,NULL,&o)!=0){
 		return(NULL);
 	}
 	return(o);
@@ -532,7 +532,7 @@ struct Number* KlNum_mod(struct Number* a,struct Number* b){
 
 
 
-struct Number* KlNum_mod_long(struct Number* a,long b){
+struct BigInt* KLBigInt_mod_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=0);
@@ -541,10 +541,10 @@ struct Number* KlNum_mod_long(struct Number* a,long b){
 		return(NULL);
 	}
 	if (a->l==1||a->l==-1){
-		return(KlNum_from_long((a->l==(b<0?-1:1)?*a->v%b:b-1-(*a->v-1)%b)*(int32_t)(b<0?-1:1)));
+		return(KLBigInt_from_long((a->l==(b<0?-1:1)?*a->v%b:b-1-(*a->v-1)%b)*(int32_t)(b<0?-1:1)));
 	}
-	struct Number* o=NULL;
-	if (KlNum_divmod_long(a,b,NULL,&o)!=0){
+	struct BigInt* o=NULL;
+	if (KLBigInt_divmod_long(a,b,NULL,&o)!=0){
 		return(NULL);
 	}
 	return(o);
@@ -552,12 +552,12 @@ struct Number* KlNum_mod_long(struct Number* a,long b){
 
 
 
-unsigned char KlNum_divrem(struct Number* a,struct Number* b,struct Number** div,struct Number** rem){
+unsigned char KLBigInt_divrem(struct BigInt* a,struct BigInt* b,struct BigInt** div,struct BigInt** rem){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KlNum_is_zero(b)==false);
+	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
 	assert(div!=NULL||rem!=NULL);
-	if (KlNum_is_zero(b)){
+	if (KLBigInt_is_zero(b)){
 		KlError_unimplemented_error();
 		return(1);
 	}
@@ -565,11 +565,11 @@ unsigned char KlNum_divrem(struct Number* a,struct Number* b,struct Number** div
 	intmax_t lnb=(b->l<0?-b->l:b->l);
 	if (lna<lnb||(lna==lnb&&*(a->v+lna-1)<*(b->v+lnb-1))){
 		if (div!=NULL){
-			*div=KlNum_assign_long(*div,0);
+			*div=KLBigInt_assign_long(*div,0);
 			assert(*div!=NULL);
 		}
 		if (rem!=NULL){
-			*rem=KlNum_assign(*rem,a);
+			*rem=KLBigInt_assign(*rem,a);
 			assert(*rem!=NULL);
 		}
 		return(0);
@@ -580,7 +580,7 @@ unsigned char KlNum_divrem(struct Number* a,struct Number* b,struct Number** div
 		uint32_t hi;
 		if (div!=NULL){
 			if (*div==NULL){
-				*div=KlMem_malloc(sizeof(struct Number));
+				*div=KlMem_malloc(sizeof(struct BigInt));
 			}
 			(*div)->l=lna;
 			(*div)->v=(uint32_t*)KlMem_malloc(lna*sizeof(uint32_t))+tln;
@@ -605,19 +605,19 @@ unsigned char KlNum_divrem(struct Number* a,struct Number* b,struct Number** div
 			}
 		}
 		if (rem!=NULL){
-			*rem=KlNum_assign_long(*rem,(uint32_t)rm);
+			*rem=KLBigInt_assign_long(*rem,(uint32_t)rm);
 			assert(*rem!=NULL);
 		}
 	}
 	else{
-		if (KlNum_divrem_abs(a,b,div,rem)!=0){
+		if (KLBigInt_divrem_abs(a,b,div,rem)!=0){
 			return(1);
 		}
 	}
 	if (div!=NULL&&(a->l<0)!=(b->l<0)){
 		(*div)->l*=-1;
 	}
-	if (rem!=NULL&&a->l<0&&KlNum_is_zero(*rem)==false){
+	if (rem!=NULL&&a->l<0&&KLBigInt_is_zero(*rem)==false){
 		(*rem)->l*=-1;
 	}
 	assert((div!=NULL&&(*div)!=NULL)||(rem!=NULL&&(*rem)!=NULL));
@@ -626,7 +626,7 @@ unsigned char KlNum_divrem(struct Number* a,struct Number* b,struct Number** div
 
 
 
-unsigned char KlNum_divrem_long(struct Number* a,long b,struct Number** div,struct Number** rem){
+unsigned char KLBigInt_divrem_long(struct BigInt* a,long b,struct BigInt** div,struct BigInt** rem){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=0);
@@ -639,15 +639,15 @@ unsigned char KlNum_divrem_long(struct Number* a,long b,struct Number** div,stru
 	unsigned long ub=(b<0?-b:b);
 	if (lna==1&&*(a->v+lna-1)<ub){
 		if (div!=NULL){
-			*div=KlNum_assign_long(*div,0);
+			*div=KLBigInt_assign_long(*div,0);
 		}
 		if (rem!=NULL){
-			*rem=KlNum_assign(*rem,a);
+			*rem=KLBigInt_assign(*rem,a);
 		}
 		return(0);
 	}
 	if (*div==NULL){
-		*div=KlMem_malloc(sizeof(struct Number));
+		*div=KlMem_malloc(sizeof(struct BigInt));
 	}
 	(*div)->l=lna;
 	(*div)->v=(uint32_t*)KlMem_malloc(lna*sizeof(uint32_t))+lna;
@@ -663,11 +663,11 @@ unsigned char KlNum_divrem_long(struct Number* a,long b,struct Number** div,stru
 		r-=(uint64_t)hi*ub;
 		tln--;
 	}
-	*rem=KlNum_assign_long(*rem,(uint32_t)r);
+	*rem=KLBigInt_assign_long(*rem,(uint32_t)r);
 	if ((a->l<0)!=(b<0)){
 		(*div)->l*=-1;
 	}
-	if (a->l<0&&KlNum_is_zero(*rem)==false){
+	if (a->l<0&&KLBigInt_is_zero(*rem)==false){
 		(*rem)->l*=-1;
 	}
 	assert((div!=NULL&&(*div)!=NULL)||(rem!=NULL&&(*rem)!=NULL));
@@ -676,21 +676,21 @@ unsigned char KlNum_divrem_long(struct Number* a,long b,struct Number** div,stru
 
 
 
-unsigned char KlNum_divrem_abs(struct Number* a,struct Number* b,struct Number** div,struct Number** rem){
+unsigned char KLBigInt_divrem_abs(struct BigInt* a,struct BigInt* b,struct BigInt** div,struct BigInt** rem){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KlNum_is_zero(b)==false);
+	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
 	assert(div!=NULL||rem!=NULL);
-	if (KlNum_is_zero(b)==true){
+	if (KLBigInt_is_zero(b)==true){
 		KlError_unimplemented_error();
 		return(1);
 	}
 	intmax_t lna=(a->l<0?-a->l:a->l);
 	intmax_t lnb=(b->l<0?-b->l:b->l);
-	struct Number v;
+	struct BigInt v;
 	v.l=lna+1;
 	v.v=KlMem_malloc(v.l*sizeof(uint32_t));
-	struct Number w;
+	struct BigInt w;
 	w.l=lnb;
 	w.v=KlMem_malloc(w.l*sizeof(uint32_t));
 	unsigned char d=NUM_SHIFT;
@@ -733,7 +733,7 @@ unsigned char KlNum_divrem_abs(struct Number* a,struct Number* b,struct Number**
 		lna++;
 	}
 	intmax_t k=lna-lnb;
-	struct Number t;
+	struct BigInt t;
 	t.l=lna-lnb;
 	t.v=KlMem_malloc(t.l*sizeof(uint32_t));
 	uint32_t* ak=t.v+k;
@@ -780,8 +780,8 @@ unsigned char KlNum_divrem_abs(struct Number* a,struct Number* b,struct Number**
 		*(v.v+i)=(uint32_t)(s>>d);
 	}
 	assert(c==0);
-	*div=KlNum_assign(*div,&t);
-	*rem=KlNum_assign(*rem,&w);
+	*div=KLBigInt_assign(*div,&t);
+	*rem=KLBigInt_assign(*rem,&w);
 	assert((div!=NULL&&(*div)!=NULL)||(rem!=NULL&&(*rem)!=NULL));
 	KlMem_free(v.v);
 	KlMem_free(w.v);
@@ -791,59 +791,59 @@ unsigned char KlNum_divrem_abs(struct Number* a,struct Number* b,struct Number**
 
 
 
-unsigned char KlNum_divmod(struct Number* a,struct Number* b,struct Number** div,struct Number** mod){
+unsigned char KLBigInt_divmod(struct BigInt* a,struct BigInt* b,struct BigInt** div,struct BigInt** mod){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KlNum_is_zero(b)==false);
+	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
 	assert(div!=NULL||mod!=NULL);
-	if (KlNum_is_zero(b)==true){
+	if (KLBigInt_is_zero(b)==true){
 		KlError_unimplemented_error();
 		return(1);
 	}
 	if ((a->l==1||a->l==-1)&&(b->l==1||b->l==-1)){
 		if (div!=NULL){
-			KlNum_assign_long(*div,(a->l==b->l?*a->v/(*b->v):-1-(*a->v-1)/(*b->v)));
+			KLBigInt_assign_long(*div,(a->l==b->l?*a->v/(*b->v):-1-(*a->v-1)/(*b->v)));
 		}
 		if (mod!=NULL){
-			KlNum_assign_long(*mod,(a->l==b->l?*a->v%*b->v:*b->v-1-(*a->v-1)%*b->v)*(int32_t)b->l);
+			KLBigInt_assign_long(*mod,(a->l==b->l?*a->v%*b->v:*b->v-1-(*a->v-1)%*b->v)*(int32_t)b->l);
 		}
 		return(0);
 	}
-	struct Number* d=NULL;
-	struct Number* m=NULL;
-	struct Number** dp=&d;
-	struct Number** mp=&m;
-	if (KlNum_divrem(a,b,dp,mp)!=0){
+	struct BigInt* d=NULL;
+	struct BigInt* m=NULL;
+	struct BigInt** dp=&d;
+	struct BigInt** mp=&m;
+	if (KLBigInt_divrem(a,b,dp,mp)!=0){
 		return(1);
 	}
 	assert(d!=NULL);
 	assert(m!=NULL);
 	if ((m->l<0&&b->l>0)||(m->l>0&&b->l<0)){
-		struct Number* tmp=KlNum_add(m,b);
-		KlNum_free(m);
+		struct BigInt* tmp=KLBigInt_add(m,b);
+		KLBigInt_free(m);
 		m=tmp;
-		KlNum_free(tmp);
-		tmp=KlNum_sub_long(d,1);
-		KlNum_free(d);
+		KLBigInt_free(tmp);
+		tmp=KLBigInt_sub_long(d,1);
+		KLBigInt_free(d);
 		d=tmp;
-		KlNum_free(tmp);
+		KLBigInt_free(tmp);
 	}
 	if (div!=NULL){
-		*div=KlNum_assign(*div,d);
+		*div=KLBigInt_assign(*div,d);
 		assert(*div!=NULL);
 	}
 	if (mod!=NULL){
-		*mod=KlNum_assign(*mod,m);
+		*mod=KLBigInt_assign(*mod,m);
 		assert(*mod!=NULL);
 	}
-	KlNum_free(d);
-	KlNum_free(m);
+	KLBigInt_free(d);
+	KLBigInt_free(m);
 	return(0);
 }
 
 
 
-unsigned char KlNum_divmod_long(struct Number* a,long b,struct Number** div,struct Number** mod){
+unsigned char KLBigInt_divmod_long(struct BigInt* a,long b,struct BigInt** div,struct BigInt** mod){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=0);
@@ -854,44 +854,44 @@ unsigned char KlNum_divmod_long(struct Number* a,long b,struct Number** div,stru
 	}
 	if (a->l==1||a->l==-1){
 		if (div!=NULL){
-			KlNum_assign_long(*div,(a->l==(b<0?-1:1)?*a->v/b:-1-(*a->v-1)/b));
+			KLBigInt_assign_long(*div,(a->l==(b<0?-1:1)?*a->v/b:-1-(*a->v-1)/b));
 		}
 		if (mod!=NULL){
-			KlNum_assign_long(*mod,(a->l==(b<0?-1:1)?*a->v%b:b-1-(*a->v-1)%b)*(int32_t)(b<0?-1:1));
+			KLBigInt_assign_long(*mod,(a->l==(b<0?-1:1)?*a->v%b:b-1-(*a->v-1)%b)*(int32_t)(b<0?-1:1));
 		}
 		return(0);
 	}
-	struct Number* d=KlMem_malloc(sizeof(struct Number));
-	struct Number* m=KlMem_malloc(sizeof(struct Number));
-	if (KlNum_divrem_long(a,b,&d,&m)!=0){
+	struct BigInt* d=KlMem_malloc(sizeof(struct BigInt));
+	struct BigInt* m=KlMem_malloc(sizeof(struct BigInt));
+	if (KLBigInt_divrem_long(a,b,&d,&m)!=0){
 		return(1);
 	}
 	assert(d!=NULL);
 	assert(m!=NULL);
 	if ((m->l<0&&b>0)||(m->l>0&&b<0)){
-		struct Number* t=KlNum_add_long(m,b);
-		KlNum_assign(m,t);
-		KlNum_free(t);
-		t=KlNum_sub_long(d,1);
-		KlNum_assign(d,t);
-		KlNum_free(t);
+		struct BigInt* t=KLBigInt_add_long(m,b);
+		KLBigInt_assign(m,t);
+		KLBigInt_free(t);
+		t=KLBigInt_sub_long(d,1);
+		KLBigInt_assign(d,t);
+		KLBigInt_free(t);
 	}
 	if (div!=NULL){
-		*div=KlNum_assign(*div,d);
+		*div=KLBigInt_assign(*div,d);
 		assert(*div!=NULL);
 	}
 	if (mod!=NULL){
-		*mod=KlNum_assign(*mod,m);
+		*mod=KLBigInt_assign(*mod,m);
 		assert(*mod!=NULL);
 	}
-	KlNum_free(d);
-	KlNum_free(m);
+	KLBigInt_free(d);
+	KLBigInt_free(m);
 	return(0);
 }
 
 
 
-struct Number* KlNum_pow(struct Number* a,struct Number* b,struct Number* c){
+struct BigInt* KLBigInt_pow(struct BigInt* a,struct BigInt* b,struct BigInt* c){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -900,9 +900,9 @@ struct Number* KlNum_pow(struct Number* a,struct Number* b,struct Number* c){
 		KlError_unimplemented_code();
 		return(NULL);
 	}
-	struct Number* tmp;
+	struct BigInt* tmp;
 	if (c!=NULL){
-		if (KlNum_is_zero(c)==true){
+		if (KLBigInt_is_zero(c)==true){
 			KlError_unimplemented_error();
 			return(NULL);
 		}
@@ -910,27 +910,27 @@ struct Number* KlNum_pow(struct Number* a,struct Number* b,struct Number* c){
 			n=1;
 			c->l*=-1;
 		}
-		if (KlNum_is_one(c)==true){
-			return(KlNum_from_long(0));
+		if (KLBigInt_is_one(c)==true){
+			return(KLBigInt_from_long(0));
 		}
 		if (b->l<0){
 			b->l*=-1;
-			tmp=KlNum_invmod(a,c);
-			KlNum_assign(a,tmp);
-			KlNum_free(tmp);
+			tmp=KLBigInt_invmod(a,c);
+			KLBigInt_assign(a,tmp);
+			KLBigInt_free(tmp);
 		}
 		if (a->l<0||a->l>c->l){
-			if (KlNum_divmod(a,c,NULL,&tmp)!=0){
+			if (KLBigInt_divmod(a,c,NULL,&tmp)!=0){
 				return(NULL);
 			}
-			KlNum_assign(a,tmp);
-			KlNum_free(tmp);
+			KLBigInt_assign(a,tmp);
+			KLBigInt_free(tmp);
 		}
 	}
 	assert((c!=NULL||a->l>0));
 	assert(b->l>0);
 	assert((c==NULL||c->l>0));
-	struct Number* o=KlNum_from_long(1);
+	struct BigInt* o=KLBigInt_from_long(1);
 	intmax_t i;
 	uint32_t j;
 	unsigned char k;
@@ -938,30 +938,30 @@ struct Number* KlNum_pow(struct Number* a,struct Number* b,struct Number* c){
 		i=b->l-1;
 		while (true){
 			for (j=(uint32_t)1<<(NUM_SHIFT-1);j!=0;j>>=1){
-				tmp=KlNum_mult(o,o);
-				KlNum_assign(o,tmp);
-				KlNum_free(tmp);
+				tmp=KLBigInt_mult(o,o);
+				KLBigInt_assign(o,tmp);
+				KLBigInt_free(tmp);
 				if (c!=NULL){
-					if (KlNum_divmod(o,c,NULL,&tmp)!=0){
-						KlNum_free(o);
-						KlNum_free(tmp);
+					if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
+						KLBigInt_free(o);
+						KLBigInt_free(tmp);
 						return(NULL);
 					}
-					KlNum_assign(o,tmp);
-					KlNum_free(tmp);
+					KLBigInt_assign(o,tmp);
+					KLBigInt_free(tmp);
 				}
 				if ((*(b->v+i)&j)!=0){
-					tmp=KlNum_mult(o,a);
-					KlNum_assign(o,tmp);
-					KlNum_free(tmp);
+					tmp=KLBigInt_mult(o,a);
+					KLBigInt_assign(o,tmp);
+					KLBigInt_free(tmp);
 					if (c!=NULL){
-						if (KlNum_divmod(o,c,NULL,&tmp)!=0){
-							KlNum_free(o);
-							KlNum_free(tmp);
+						if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
+							KLBigInt_free(o);
+							KLBigInt_free(tmp);
 							return(NULL);
 						}
-						KlNum_assign(o,tmp);
-						KlNum_free(tmp);
+						KLBigInt_assign(o,tmp);
+						KLBigInt_free(tmp);
 					}
 				}
 			}
@@ -972,21 +972,21 @@ struct Number* KlNum_pow(struct Number* a,struct Number* b,struct Number* c){
 		}
 	}
 	else{
-		struct Number** t=KlMem_malloc(32*sizeof(struct Number));
+		struct BigInt** t=KlMem_malloc(32*sizeof(struct BigInt));
 		*t=o;
 		for (i=1;i<32;i++){
-			tmp=KlNum_mult(*(t+i-1),a);
-			KlNum_assign(*(t+i),tmp);
-			KlNum_free(tmp);
+			tmp=KLBigInt_mult(*(t+i-1),a);
+			KLBigInt_assign(*(t+i),tmp);
+			KLBigInt_free(tmp);
 			if (c!=NULL){
-				if (KlNum_divmod(*(t+i),c,NULL,&tmp)!=0){
-					KlNum_free(o);
-					KlNum_free(tmp);
+				if (KLBigInt_divmod(*(t+i),c,NULL,&tmp)!=0){
+					KLBigInt_free(o);
+					KLBigInt_free(tmp);
 					KlMem_free(t);
 					return(NULL);
 				}
-				KlNum_assign(*(t+i),tmp);
-				KlNum_free(tmp);
+				KLBigInt_assign(*(t+i),tmp);
+				KLBigInt_free(tmp);
 			}
 		}
 		i=b->l-1;
@@ -994,33 +994,33 @@ struct Number* KlNum_pow(struct Number* a,struct Number* b,struct Number* c){
 			j=NUM_SHIFT-5;
 			while (true){
 				for (k=0;k<5;k++){
-					tmp=KlNum_mult(o,o);
-					KlNum_assign(o,tmp);
-					KlNum_free(tmp);
+					tmp=KLBigInt_mult(o,o);
+					KLBigInt_assign(o,tmp);
+					KLBigInt_free(tmp);
 					if (c!=NULL){
-						if (KlNum_divmod(o,c,NULL,&tmp)!=0){
-							KlNum_free(o);
-							KlNum_free(tmp);
+						if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
+							KLBigInt_free(o);
+							KLBigInt_free(tmp);
 							KlMem_free(t);
 							return(NULL);
 						}
-						KlNum_assign(o,tmp);
-						KlNum_free(tmp);
+						KLBigInt_assign(o,tmp);
+						KLBigInt_free(tmp);
 					}
 				}
 				if (((*(b->v+i)>>j)&0x1f)!=0){
-					tmp=KlNum_mult(o,*(t+((*(b->v+i)>>j)&0x1f)));
-					KlNum_assign(o,tmp);
-					KlNum_free(tmp);
+					tmp=KLBigInt_mult(o,*(t+((*(b->v+i)>>j)&0x1f)));
+					KLBigInt_assign(o,tmp);
+					KLBigInt_free(tmp);
 					if (c!=NULL){
-						if (KlNum_divmod(o,c,NULL,&tmp)!=0){
-							KlNum_free(o);
-							KlNum_free(tmp);
+						if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
+							KLBigInt_free(o);
+							KLBigInt_free(tmp);
 							KlMem_free(t);
 							return(NULL);
 						}
-						KlNum_assign(o,tmp);
-						KlNum_free(tmp);
+						KLBigInt_assign(o,tmp);
+						KLBigInt_free(tmp);
 					}
 				}
 				if (j==0){
@@ -1034,20 +1034,20 @@ struct Number* KlNum_pow(struct Number* a,struct Number* b,struct Number* c){
 			i--;
 		}
 		for (i=1;i<32;i++){
-			KlNum_free(*(t+i));
+			KLBigInt_free(*(t+i));
 		}
 	}
-	if (n==1&&KlNum_is_zero(o)==false){
-		tmp=KlNum_sub(o,c);
-		KlNum_assign(o,tmp);
-		KlNum_free(tmp);
+	if (n==1&&KLBigInt_is_zero(o)==false){
+		tmp=KLBigInt_sub(o,c);
+		KLBigInt_assign(o,tmp);
+		KLBigInt_free(tmp);
 	}
 	return(o);
 }
 
 
 
-struct Number* KlNum_pow_long(struct Number* a,long b,struct Number* c){
+struct BigInt* KLBigInt_pow_long(struct BigInt* a,long b,struct BigInt* c){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	unsigned char n=0;
@@ -1055,9 +1055,9 @@ struct Number* KlNum_pow_long(struct Number* a,long b,struct Number* c){
 		KlError_unimplemented_code();
 		return(NULL);
 	}
-	struct Number* tmp;
+	struct BigInt* tmp;
 	if (c!=NULL){
-		if (KlNum_is_zero(c)==true){
+		if (KLBigInt_is_zero(c)==true){
 			KlError_unimplemented_error();
 			return(NULL);
 		}
@@ -1065,113 +1065,113 @@ struct Number* KlNum_pow_long(struct Number* a,long b,struct Number* c){
 			n=1;
 			c->l*=-1;
 		}
-		if (KlNum_is_one(c)==true){
-			return(KlNum_from_long(0));
+		if (KLBigInt_is_one(c)==true){
+			return(KLBigInt_from_long(0));
 		}
 		if (b<0){
 			b*=-1;
-			tmp=KlNum_invmod(a,c);
-			KlNum_assign(a,tmp);
-			KlNum_free(tmp);
+			tmp=KLBigInt_invmod(a,c);
+			KLBigInt_assign(a,tmp);
+			KLBigInt_free(tmp);
 		}
 		if (a->l<0||a->l>c->l){
-			if (KlNum_divmod(a,c,NULL,&tmp)!=0){
+			if (KLBigInt_divmod(a,c,NULL,&tmp)!=0){
 				return(NULL);
 			}
-			KlNum_assign(a,tmp);
-			KlNum_free(tmp);
+			KLBigInt_assign(a,tmp);
+			KLBigInt_free(tmp);
 		}
 	}
 	assert((c!=NULL||a->l>0));
 	assert(b>=0);
 	assert((c==NULL||c->l>0));
-	struct Number* o=KlNum_from_long(1);
+	struct BigInt* o=KLBigInt_from_long(1);
 	for (uint32_t i=(uint32_t)1<<(NUM_SHIFT-1);i!=0;i>>=1){
-		tmp=KlNum_mult(o,o);
-		KlNum_assign(o,tmp);
-		KlNum_free(tmp);
+		tmp=KLBigInt_mult(o,o);
+		KLBigInt_assign(o,tmp);
+		KLBigInt_free(tmp);
 		if (c!=NULL){
-			if (KlNum_divmod(o,c,NULL,&tmp)!=0){
-				KlNum_free(o);
-				KlNum_free(tmp);
+			if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
+				KLBigInt_free(o);
+				KLBigInt_free(tmp);
 				return(NULL);
 			}
-			KlNum_assign(o,tmp);
-			KlNum_free(tmp);
+			KLBigInt_assign(o,tmp);
+			KLBigInt_free(tmp);
 		}
 		if ((b&i)!=0){
-			tmp=KlNum_mult(o,a);
-			KlNum_assign(o,tmp);
-			KlNum_free(tmp);
+			tmp=KLBigInt_mult(o,a);
+			KLBigInt_assign(o,tmp);
+			KLBigInt_free(tmp);
 			if (c!=NULL){
-				if (KlNum_divmod(o,c,NULL,&tmp)!=0){
-					KlNum_free(o);
-					KlNum_free(tmp);
+				if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
+					KLBigInt_free(o);
+					KLBigInt_free(tmp);
 					return(NULL);
 				}
-				KlNum_assign(o,tmp);
-				KlNum_free(tmp);
+				KLBigInt_assign(o,tmp);
+				KLBigInt_free(tmp);
 			}
 		}
 	}
-	if (n==1&&KlNum_is_zero(o)==false){
-		tmp=KlNum_sub(o,c);
-		KlNum_assign(o,tmp);
-		KlNum_free(tmp);
+	if (n==1&&KLBigInt_is_zero(o)==false){
+		tmp=KLBigInt_sub(o,c);
+		KLBigInt_assign(o,tmp);
+		KLBigInt_free(tmp);
 	}
 	return(o);
 }
 
 
 
-struct Number* KlNum_invmod(struct Number* a,struct Number* n){
+struct BigInt* KLBigInt_invmod(struct BigInt* a,struct BigInt* n){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(n!=NULL);
-	struct Number* a1=KlNum_assign(NULL,a);
-	struct Number* b=KlNum_from_long(1);
-	struct Number* c=KlNum_from_long(0);
-	struct Number* q=NULL;
-	struct Number* r=NULL;
-	struct Number* t=NULL;
-	struct Number* s=NULL;
-	while (KlNum_is_zero(n)==false){
-		if (KlNum_divmod(a,n,&q,&r)!=0){
-			KlNum_free(b);
-			KlNum_free(c);
-			KlNum_free(q);
-			KlNum_free(r);
-			KlNum_free(t);
-			KlNum_free(s);
+	struct BigInt* a1=KLBigInt_assign(NULL,a);
+	struct BigInt* b=KLBigInt_from_long(1);
+	struct BigInt* c=KLBigInt_from_long(0);
+	struct BigInt* q=NULL;
+	struct BigInt* r=NULL;
+	struct BigInt* t=NULL;
+	struct BigInt* s=NULL;
+	while (KLBigInt_is_zero(n)==false){
+		if (KLBigInt_divmod(a,n,&q,&r)!=0){
+			KLBigInt_free(b);
+			KLBigInt_free(c);
+			KLBigInt_free(q);
+			KLBigInt_free(r);
+			KLBigInt_free(t);
+			KLBigInt_free(s);
 			return(NULL);
 		}
 		a=n;
 		n=r;
-		KlNum_free(t);
-		KlNum_free(s);
-		t=KlNum_mult(q,c);
-		s=KlNum_sub(b,t);
+		KLBigInt_free(t);
+		KLBigInt_free(s);
+		t=KLBigInt_mult(q,c);
+		s=KLBigInt_sub(b,t);
 		b=c;
 		c=s;
 	}
-	KlNum_free(q);
-	KlNum_free(r);
-	KlNum_free(t);
-	KlNum_free(s);
-	KlNum_free(c);
-	if (KlNum_is_one(a1)==false){
-		KlNum_free(a1);
-		KlNum_free(b);
+	KLBigInt_free(q);
+	KLBigInt_free(r);
+	KLBigInt_free(t);
+	KLBigInt_free(s);
+	KLBigInt_free(c);
+	if (KLBigInt_is_one(a1)==false){
+		KLBigInt_free(a1);
+		KLBigInt_free(b);
 		KlError_unimplemented_error();
 		return(NULL);
 	}
-	KlNum_free(a1);
+	KLBigInt_free(a1);
 	return(b);
 }
 
 
 
-struct Number* KlNum_iroot(struct Number* r,struct Number* dg){
+struct BigInt* KLBigInt_iroot(struct BigInt* r,struct BigInt* dg){
 	KlMem_enter_func();
 	assert(r!=NULL);
 	assert(dg!=NULL);
@@ -1181,62 +1181,62 @@ struct Number* KlNum_iroot(struct Number* r,struct Number* dg){
 		return(NULL);
 	}
 	if (r->l==1&&*r->v<2){
-		return(KlNum_assign(NULL,r));
+		return(KLBigInt_assign(NULL,r));
 	}
-	if (KlNum_cmp(r,dg)==-1){
-		return(KlNum_from_long(0));
+	if (KLBigInt_cmp(r,dg)==-1){
+		return(KLBigInt_from_long(0));
 	}
-	if (KlNum_is_zero(dg)==true){
-		return(KlNum_from_long(1));
+	if (KLBigInt_is_zero(dg)==true){
+		return(KLBigInt_from_long(1));
 	}
-	struct Number* dg1=KlNum_sub_long(dg,1);
-	struct Number* c=KlNum_from_long(1);
-	struct Number* tmp=KlNum_add(r,dg1);
-	struct Number* d=KlNum_fdiv(tmp,dg);
-	KlNum_free(tmp);
-	tmp=KlNum_pow(d,dg1,NULL);
-	struct Number* tmp2=KlNum_fdiv(r,tmp);
-	KlNum_free(tmp);
-	tmp=KlNum_mult(d,dg1);
-	struct Number* tmp3=KlNum_add(tmp,tmp2);
-	KlNum_free(tmp);
-	KlNum_free(tmp2);
-	struct Number* e=KlNum_fdiv(tmp3,dg);
-	KlNum_free(tmp3);
-	if (KlNum_is_one(d)||KlNum_is_one(e)){
-		KlNum_free(dg1);
-		KlNum_free(c);
-		KlNum_free(d);
-		KlNum_free(e);
-		return(KlNum_from_long(1));
+	struct BigInt* dg1=KLBigInt_sub_long(dg,1);
+	struct BigInt* c=KLBigInt_from_long(1);
+	struct BigInt* tmp=KLBigInt_add(r,dg1);
+	struct BigInt* d=KLBigInt_fdiv(tmp,dg);
+	KLBigInt_free(tmp);
+	tmp=KLBigInt_pow(d,dg1,NULL);
+	struct BigInt* tmp2=KLBigInt_fdiv(r,tmp);
+	KLBigInt_free(tmp);
+	tmp=KLBigInt_mult(d,dg1);
+	struct BigInt* tmp3=KLBigInt_add(tmp,tmp2);
+	KLBigInt_free(tmp);
+	KLBigInt_free(tmp2);
+	struct BigInt* e=KLBigInt_fdiv(tmp3,dg);
+	KLBigInt_free(tmp3);
+	if (KLBigInt_is_one(d)||KLBigInt_is_one(e)){
+		KLBigInt_free(dg1);
+		KLBigInt_free(c);
+		KLBigInt_free(d);
+		KLBigInt_free(e);
+		return(KLBigInt_from_long(1));
 	}
-	while (KlNum_neq(c,d)&&KlNum_neq(c,e)){
-		KlNum_free(c);
+	while (KLBigInt_neq(c,d)&&KLBigInt_neq(c,e)){
+		KLBigInt_free(c);
 		c=d;
 		d=e;
-		tmp=KlNum_pow(e,dg1,NULL);
-		tmp2=KlNum_fdiv(r,tmp);
-		KlNum_free(tmp);
-		tmp=KlNum_mult(e,dg1);
-		tmp3=KlNum_add(tmp,tmp2);
-		KlNum_free(tmp);
-		KlNum_free(tmp2);
-		e=KlNum_fdiv(tmp3,dg);
-		KlNum_free(tmp3);
+		tmp=KLBigInt_pow(e,dg1,NULL);
+		tmp2=KLBigInt_fdiv(r,tmp);
+		KLBigInt_free(tmp);
+		tmp=KLBigInt_mult(e,dg1);
+		tmp3=KLBigInt_add(tmp,tmp2);
+		KLBigInt_free(tmp);
+		KLBigInt_free(tmp2);
+		e=KLBigInt_fdiv(tmp3,dg);
+		KLBigInt_free(tmp3);
 	}
-	KlNum_free(dg1);
-	KlNum_free(c);
-	if (KlNum_cmp(d,e)==-1){
-		KlNum_free(e);
+	KLBigInt_free(dg1);
+	KLBigInt_free(c);
+	if (KLBigInt_cmp(d,e)==-1){
+		KLBigInt_free(e);
 		return(d);
 	}
-	KlNum_free(d);
+	KLBigInt_free(d);
 	return(e);
 }
 
 
 
-struct Number* KlNum_iroot_long(struct Number* r,unsigned long dg){
+struct BigInt* KLBigInt_iroot_long(struct BigInt* r,unsigned long dg){
 	KlMem_enter_func();
 	assert(r!=NULL);
 	assert(r->l>0);
@@ -1245,67 +1245,67 @@ struct Number* KlNum_iroot_long(struct Number* r,unsigned long dg){
 		return(NULL);
 	}
 	if (r->l==1&&*r->v<2){
-		return(KlNum_assign(NULL,r));
+		return(KLBigInt_assign(NULL,r));
 	}
-	if (KlNum_cmp_long(r,dg)==-1){
-		return(KlNum_from_long(0));
+	if (KLBigInt_cmp_long(r,dg)==-1){
+		return(KLBigInt_from_long(0));
 	}
 	if (dg==0){
-		return(KlNum_from_long(1));
+		return(KLBigInt_from_long(1));
 	}
 	if (dg==1){
 		return(r);
 	}
-	struct Number* c=KlNum_from_long(1);
-	struct Number* tmp=KlNum_add_long(r,dg-1);
-	struct Number* d=KlNum_fdiv_long(tmp,dg);
-	tmp=KlNum_pow_long(d,dg-1,NULL);
-	struct Number* tmp2=KlNum_fdiv(r,tmp);
-	KlNum_free(tmp);
-	tmp=KlNum_mult_long(d,dg-1);
-	struct Number* tmp3=KlNum_add(tmp,tmp2);
-	KlNum_free(tmp);
-	KlNum_free(tmp2);
-	struct Number* e=KlNum_fdiv_long(tmp3,dg);
-	KlNum_free(tmp3);
-	if (KlNum_is_one(d)||KlNum_is_one(e)){
-		KlNum_free(c);
-		KlNum_free(d);
-		KlNum_free(e);
-		return(KlNum_from_long(1));
+	struct BigInt* c=KLBigInt_from_long(1);
+	struct BigInt* tmp=KLBigInt_add_long(r,dg-1);
+	struct BigInt* d=KLBigInt_fdiv_long(tmp,dg);
+	tmp=KLBigInt_pow_long(d,dg-1,NULL);
+	struct BigInt* tmp2=KLBigInt_fdiv(r,tmp);
+	KLBigInt_free(tmp);
+	tmp=KLBigInt_mult_long(d,dg-1);
+	struct BigInt* tmp3=KLBigInt_add(tmp,tmp2);
+	KLBigInt_free(tmp);
+	KLBigInt_free(tmp2);
+	struct BigInt* e=KLBigInt_fdiv_long(tmp3,dg);
+	KLBigInt_free(tmp3);
+	if (KLBigInt_is_one(d)||KLBigInt_is_one(e)){
+		KLBigInt_free(c);
+		KLBigInt_free(d);
+		KLBigInt_free(e);
+		return(KLBigInt_from_long(1));
 	}
-	while (KlNum_neq(c,d)&&KlNum_neq(c,e)){
-		KlNum_free(c);
+	while (KLBigInt_neq(c,d)&&KLBigInt_neq(c,e)){
+		KLBigInt_free(c);
 		c=d;
 		d=e;
-		tmp=KlNum_pow_long(e,dg-1,NULL);
-		tmp2=KlNum_fdiv(r,tmp);
-		KlNum_free(tmp);
-		tmp=KlNum_mult_long(e,dg-1);
-		tmp3=KlNum_add(tmp,tmp2);
-		KlNum_free(tmp);
-		KlNum_free(tmp2);
-		e=KlNum_fdiv_long(tmp3,dg);
-		KlNum_free(tmp3);
+		tmp=KLBigInt_pow_long(e,dg-1,NULL);
+		tmp2=KLBigInt_fdiv(r,tmp);
+		KLBigInt_free(tmp);
+		tmp=KLBigInt_mult_long(e,dg-1);
+		tmp3=KLBigInt_add(tmp,tmp2);
+		KLBigInt_free(tmp);
+		KLBigInt_free(tmp2);
+		e=KLBigInt_fdiv_long(tmp3,dg);
+		KLBigInt_free(tmp3);
 	}
-	KlNum_free(c);
-	if (KlNum_cmp(d,e)==-1){
-		KlNum_free(e);
+	KLBigInt_free(c);
+	if (KLBigInt_cmp(d,e)==-1){
+		KLBigInt_free(e);
 		return(d);
 	}
-	KlNum_free(d);
+	KLBigInt_free(d);
 	return(e);
 }
 
 
 
-/*struct Number* KlNum_root(struct Number* n,struct Number* b){
-	return(KlNum_pow(n,KlNum_div(1,b)));
+/*struct BigInt* KLBigInt_root(struct BigInt* n,struct BigInt* b){
+	return(KLBigInt_pow(n,KLBigInt_div(1,b)));
 }*/
 
 
 
-bool KlNum_eq(struct Number* a,struct Number* b){
+bool KLBigInt_eq(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -1325,7 +1325,7 @@ bool KlNum_eq(struct Number* a,struct Number* b){
 
 
 
-bool KlNum_neq(struct Number* a,struct Number* b){
+bool KLBigInt_neq(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -1345,7 +1345,7 @@ bool KlNum_neq(struct Number* a,struct Number* b){
 
 
 
-signed char KlNum_cmp(struct Number* a,struct Number* b){
+signed char KLBigInt_cmp(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -1365,7 +1365,7 @@ signed char KlNum_cmp(struct Number* a,struct Number* b){
 
 
 
-signed char KlNum_cmp_long(struct Number* a,long b){
+signed char KLBigInt_cmp_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	if (a->l>0||*a->v>0||b!=0){
@@ -1381,7 +1381,7 @@ signed char KlNum_cmp_long(struct Number* a,long b){
 
 
 
-signed char KlNum_cmp_abs(struct Number* a,struct Number* b){
+signed char KLBigInt_cmp_abs(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -1409,7 +1409,7 @@ signed char KlNum_cmp_abs(struct Number* a,struct Number* b){
 
 
 
-signed char KlNum_cmp_long_abs(struct Number* a,unsigned long b){
+signed char KLBigInt_cmp_long_abs(struct BigInt* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	intmax_t lna=(a->l<0?-a->l:a->l);
@@ -1430,7 +1430,7 @@ signed char KlNum_cmp_long_abs(struct Number* a,unsigned long b){
 
 
 
-char* KlNum_print(struct Number* n){
+char* KLBigInt_print(struct BigInt* n){
 	KlMem_enter_func();
 	assert(n!=NULL);
 	intmax_t ln=(n->l<0?-n->l:n->l);

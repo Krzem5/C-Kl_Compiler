@@ -12,7 +12,11 @@ struct ASTScope* KlImport_load_module(struct CodeFileObject* fo,const char* fp,s
 
 
 
-void KlImport_define_native_module(char* nm,struct ASTScope* m);
+void KlImport_define_module(char* nm,struct ASTScope* m);
+
+
+
+void KlImport_free_modules(void);
 
 
 

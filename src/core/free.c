@@ -1,7 +1,8 @@
 #include <free.h>
 #include <error.h>
 #include <memory.h>
-#include <number.h>
+#include <object.h>
+#include <bigint.h>
 #include <io.h>
 #include <shared.h>
 
@@ -21,7 +22,7 @@ size_t KlFree_free_token(struct ASTToken t){
 			KlMem_free(t.v);
 			break;
 		case AST_TOKEN_TYPE_INT:
-			KlNum_free(t.v);
+			KLBigInt_free(t.v);
 			break;
 	}
 	return(t.i);
@@ -36,7 +37,7 @@ size_t KlFree_free_token_p(struct ASTToken* t){
 			KlMem_free(t->v);
 			break;
 		case AST_TOKEN_TYPE_INT:
-			KlNum_free(t->v);
+			KLBigInt_free(t->v);
 			break;
 	}
 	return(t->i);
@@ -55,6 +56,12 @@ void KlFree_free_expression(struct ASTExpression ex){
 			if (ex.a.v.ex!=NULL){
 				KlFree_free_expression(*ex.a.v.ex);
 				KlMem_free(ex.a.v.ex);
+			}
+			break;
+		case AST_EXPRESSION_ARG_TYPE_SCOPE:
+			if (ex.a.v.sc!=NULL){
+				KlFree_free_scope(*ex.a.v.sc);
+				KlMem_free(ex.a.v.sc);
 			}
 			break;
 		case AST_EXPRESSION_ARG_TYPE_CHAR:
@@ -107,6 +114,12 @@ void KlFree_free_expression(struct ASTExpression ex){
 				case AST_EXPRESSION_ARG_TYPE_EXPRESSION:
 					KlFree_free_expression(*(ex.b+i)->v.ex);
 					KlMem_free((ex.b+i)->v.ex);
+					break;
+				case AST_EXPRESSION_ARG_TYPE_SCOPE:
+					if ((ex.b+i)->v.sc!=NULL){
+						KlFree_free_scope(*(ex.b+i)->v.sc);
+						KlMem_free((ex.b+i)->v.sc);
+					}
 					break;
 				case AST_EXPRESSION_ARG_TYPE_CHAR:
 					break;
@@ -175,7 +188,7 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 				KlMem_free((e.e+i)->v.s);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_INT:
-				KlNum_free((e.e+i)->v.n);
+				KLBigInt_free((e.e+i)->v.n);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_FLOAT:
 				///////
@@ -199,6 +212,9 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 
 
 void KlFree_free_scope(struct ASTScope sc){
+	if (sc.nm!=NULL){
+		KlMem_free(sc.nm);
+	}
 	if (sc.cl>0){
 		for (size_t i=0;i<sc.cl;i++){
 			KlFree_free_expression(**(sc.c+i));
@@ -234,4 +250,17 @@ void KlFree_free_scope(struct ASTScope sc){
 void KlFree_free_sha256(struct SHA256 sha){
 	KlMem_free(sha.dt);
 	KlMem_free(sha.st);
+}
+
+
+
+void KlFree_free_object(struct Object o){
+	UnaryVoidFunc d_f=(UnaryVoidFunc)KlObject_get_op(deinit_f,OBJECT_TYPE(o),NULL);
+	if (d_f!=NULL){
+		d_f(&o);
+	}
+	d_f=(UnaryVoidFunc)KlObject_get_op(dealloc_f,OBJECT_TYPE(o),NULL);
+	if (d_f!=NULL){
+		d_f(&o);
+	}
 }
