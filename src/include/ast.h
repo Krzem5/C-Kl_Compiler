@@ -36,6 +36,10 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex);
 
 
 
+struct ASTScope* KlAst_clone_scope(struct ASTScope* sc);
+
+
+
 bool KlAst_optimize_check_ast_expr(struct CodeFileObject* fo,struct ASTExpression* ex,struct CallStack* cs,struct ASTScope* sc);
 
 

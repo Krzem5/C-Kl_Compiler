@@ -20,7 +20,7 @@ extern struct File KlSys_stdin;
 
 
 
-extern const struct ASTScope KlSys_Module;
+extern const struct ASTModule KlSys_Module;
 
 
 

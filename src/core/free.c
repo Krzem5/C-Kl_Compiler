@@ -102,9 +102,9 @@ void KlFree_free_expression(struct ASTExpression ex){
 			break;
 		case AST_EXPRESSION_ARG_TYPE_MODIFIERS:
 			break;
-		case AST_EXPRESSION_ARG_TYPE_OBJECT:///////
+		case AST_EXPRESSION_ARG_TYPE_OBJECT:
 			if (ex.a.v.o!=NULL){
-				KlMem_free(ex.a.v.o);
+				KlFree_free_object(ex.a.v.o);
 			}
 			break;
 	}
@@ -159,9 +159,9 @@ void KlFree_free_expression(struct ASTExpression ex){
 					break;
 				case AST_EXPRESSION_ARG_TYPE_MODIFIERS:
 					break;
-				case AST_EXPRESSION_ARG_TYPE_OBJECT:///////
+				case AST_EXPRESSION_ARG_TYPE_OBJECT:
 					if ((ex.b+i)->v.o!=NULL){
-						KlMem_free((ex.b+i)->v.o);
+						KlFree_free_object((ex.b+i)->v.o);
 					}
 					break;
 			}
@@ -179,8 +179,8 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 		switch ((e.e+i)->t){
 			default:
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_UNKNOWN:
-				KlError_unimplemented_warning();
-				break;
+				KlError_unimplemented_error();
+				return();
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_EXPRESSION:
 				KlFree_free_unparsed_expression(*(e.e+i)->v.ex);
 				KlMem_free((e.e+i)->v.ex);
@@ -195,8 +195,8 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 				KlBigInt_free((e.e+i)->v.n);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_FLOAT:
-				///////
-				break;
+				KlError_unimplemented_code();
+				return();
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_NATIVE_FUNCTION:
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_IDENTIFIER:
@@ -205,7 +205,7 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_MODIFIERS:
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_OBJECT:
-				///////
+				KlFree_free_object((e.e+i)->v.o);
 				break;
 		}
 	}
@@ -249,6 +249,22 @@ void KlFree_free_scope(struct ASTScope sc){
 		KlMem_free(sc.anm);
 	}
 	return();
+}
+
+
+
+void KlFree_free_module(struct ASTModule m){
+	KlMem_free(m.nm);
+	if (m.v_nm!=NULL){
+		KlMem_free(m.v_nm);
+	}
+	if (m.f!=NULL){
+		KlMem_free(m.f);
+	}
+	if (m.v!=NULL){
+		KlMem_free(m.v);
+	}
+	KlFree_free_scope(*(m.src));
 }
 
 

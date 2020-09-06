@@ -667,10 +667,13 @@ struct ASTModule{
 	char* v_nm;
 	char* fp;
 	char** f;
+	char** fnm;
 	size_t fl;
 	char** v;
+	char** vnm;
 	size_t vl;
 	struct ASTScope* src;
+	bool n;
 };
 
 

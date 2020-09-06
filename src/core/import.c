@@ -15,9 +15,8 @@
 
 
 
-char** _ckl=NULL;
-struct ASTModule** _cvl=NULL;
-size_t _cll=0;
+struct ASTModule** _cm=NULL;
+size_t _cml=0;
 
 
 
@@ -27,9 +26,9 @@ char* KlImport_find_module(struct CodeFileObject* fo,const char* nm,struct CallS
 	size_t j=0;
 	size_t sz=0;
 	size_t ln=str_len(nm);
-	for (i=0;i<_cll;i++){
-		if (str_cmp_sub(nm,*(_ckl+i),0,ln)==true){
-			return str_clone(nm);
+	for (i=0;i<_cml;i++){
+		if (str_cmp_sub(nm,(*(_cm+i))->nm,0,ln)==true){
+			return str_clone((*(_cm+i))->fp);
 		}
 	}
 	size_t pln=str_len(KlSys_import_path);
@@ -81,14 +80,38 @@ char* KlImport_find_module(struct CodeFileObject* fo,const char* nm,struct CallS
 struct ASTModule* KlImport_load_module(struct CodeFileObject* fo,const char* fp,struct CallStack* cs){
 	KlMem_enter_func();
 	size_t ln=str_len(fp);
-	for (size_t i=0;i<_cll;i++){
-		if (str_cmp_sub(fp,*(_ckl+i),0,ln)==true){
-			return(*(_cvl+i));
+	for (size_t i=0;i<_cml;i++){
+		if (str_cmp_sub(fp,(*(_cm+i))->fp,0,ln)==true){
+			struct ASTModule* o=KlMem_malloc(sizeof(struct ASTModule));
+			o->nm=str_clone((*(_cm+i))->nm);
+			o->v_nm=str_clone((*(_cm+i))->v_nm);
+			o->fp=str_clone((*(_cm+i))->fp);
+			o->f=((*(_cm+i))->fl==0?NULL:KlMem_malloc((*(_cm+i))->fl*sizeof(char*)));
+			o->fnm=((*(_cm+i))->fl==0?NULL:KlMem_malloc((*(_cm+i))->fl*sizeof(char*)));
+			for (size_t j=0;j<(*(_cm+i))->fl;j++){
+				KlMem_ret(o->f);
+				KlMem_ret(o->fnm);
+				*(o->f+j)=str_clone(*((*(_cm+i))->f+j));
+				*(o->fnm+j)=str_clone(*((*(_cm+i))->fnm+j));
+			}
+			o->fl=(*(_cm+i))->fl;
+			o->v=((*(_cm+i))->vl==0?NULL:KlMem_malloc((*(_cm+i))->vl*sizeof(char*)));
+			o->vnm=((*(_cm+i))->vl==0?NULL:KlMem_malloc((*(_cm+i))->vl*sizeof(char*)));
+			for (size_t j=0;j<(*(_cm+i))->vl;j++){
+				KlMem_ret(o->v);
+				KlMem_ret(o->vnm);
+				*(o->v+j)=str_clone(*((*(_cm+i))->v+j));
+				*(o->vnm+j)=str_clone(*((*(_cm+i))->vnm+j));
+			}
+			o->vl=(*(_cm+i))->vl;
+			o->src=KlAst_clone_scope((*(_cm+i))->src);
+			o->n=(*(_cm+i))->n;
+			KlMem_ret(o);
+			return(o);
 		}
 	}
 	struct CodeFileObject* nfo=KlCore_read_file(fp,cs);
 	struct ASTScope* oa=KlAst_parse_ast_all(nfo,cs);
-	struct Module* o=KlAst_to_module(oa);
 	KlFree_free_code_file_object(*nfo);
 	KlMem_free(nfo);
 	size_t nm_l=0;
@@ -111,39 +134,67 @@ struct ASTModule* KlImport_load_module(struct CodeFileObject* fo,const char* fp,
 	}
 	*(nm+nm_l)=0;
 	KlMem_ret(nm);
-	KlImport_define_module(nm,o);
+	struct ASTModule* o=KlMem_malloc(sizeof(struct ASTModule));
+	o->nm=str_clone(nm);
+	o->v_nm=str_clone(nm);
+	o->fp=str_clone(fp);
+	o->f=NULL;
+	o->fnm=NULL;
+	o->fl=0;
+	for (size_t i=0;i<oa->fl;i++){
+		if (((*(oa->vm+i))&OBJECT_MODIFIER_EXPORT)!=0){
+			o->fl++;
+			o->f=KlMem_realloc(o->f,o->fl*sizeof(char*));
+			o->fnm=KlMem_realloc(o->fnm,o->fl*sizeof(char*));
+			*(o->f+o->fl-1)=str_clone((*(oa->f+i))->nm);
+			*(o->fnm+o->fl-1)=NULL;
+			KlMem_ret(o->f);
+		}
+	}
+	o->v=NULL;
+	o->vnm=NULL;
+	o->vl=0;
+	for (size_t i=0;i<oa->vl;i++){
+		if (((*(oa->vm+i))&OBJECT_MODIFIER_EXPORT)!=0){
+			o->vl++;
+			o->v=KlMem_realloc(o->v,o->vl*sizeof(char*));
+			o->vnm=KlMem_realloc(o->vnm,o->vl*sizeof(char*));
+			KlMem_ret(o->v);
+			KlMem_ret(o->vnm);
+			*(o->v+o->vl-1)=str_clone(*(oa->vnm+i));
+			*(o->vnm+o->vl-1)=NULL;
+		}
+	}
+	o->src=oa;
+	o->n=false;
+	KlMem_ret(o);
+	KlImport_define_module(o);
 	return(o);
 }
 
 
 
-void KlImport_define_module(char* nm,struct ASTScope* m){
+void KlImport_define_module(struct ASTModule* m){
 	KlMem_enter_func();
-	_cll++;
-	_ckl=KlMem_realloc(_ckl,_cll*sizeof(char*));
-	_cvl=KlMem_realloc(_cvl,_cll*sizeof(struct ASTScope*));
-	KlMem_ret(_ckl);
-	KlMem_ret(_cvl);
-	*(_ckl+_cll-1)=nm;
-	*(_cvl+_cll-1)=m;
+	_cml++;
+	_cm=KlMem_realloc(_cm,_cml*sizeof(struct ASTModule*));
+	KlMem_ret(_cm);
+	*(_cm+_cml-1)=m;
 	return();
 }
 
 
 
 void KlImport_free_modules(void){
-	if (_cll>0){
-		for (size_t i=0;i<_cll;i++){
-			if (((*(_cvl+i))->md&OBJECT_MODIFIER_NATIVE)==0){
-				KlMem_free(*(_ckl+i));
-				KlFree_free_scope(**(_cvl+i));
-				KlMem_free(*(_cvl+i));
+	if (_cml>0){
+		for (size_t i=0;i<_cml;i++){
+			if ((*(_cm+i))->n==false){
+				KlFree_free_module(**(_cm+i));
+				KlMem_free(*(_cm+i));
 			}
 		}
-		KlMem_free(_ckl);
-		KlMem_free(_cvl);
-		_ckl=NULL;
-		_cvl=NULL;
-		_cll=0;
+		KlMem_free(_cm);
+		_cm=NULL;
+		_cml=0;
 	}
 }

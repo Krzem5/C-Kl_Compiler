@@ -28,6 +28,10 @@ void KlFree_free_scope(struct ASTScope sc);
 
 
 
+void KlFree_free_module(struct ASTModule m);
+
+
+
 void KlFree_free_sha256(struct SHA256 sha);
 
 
