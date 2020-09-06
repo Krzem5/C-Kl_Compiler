@@ -5,7 +5,7 @@
 
 
 
-struct StrObject{
+/*struct StrObject{
 	OBJECT_HEAD
 	char* v;
 	size_t ln;
@@ -17,7 +17,7 @@ static const struct Type StrType={
 	.nm="str",
 	.base=&BaseType,
 	.sz=sizeof(struct StrObject)
-};
+};*/
 
 
 

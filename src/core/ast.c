@@ -29,7 +29,8 @@
 #include <stdio.h>
 #include <shared.h>
 #include <debug_utils.h>
-#define print_token(x) KlDebug_print_ast_token(x)
+#define print_token(x)
+// #define print_token(x) KlDebug_print_ast_token(x)
 #define print_ast_expr(x) KlDebug_print_ast_expr(x,0,NULL)
 #define print_ast_scope(x) KlDebug_print_ast_scope(x,0,NULL)
 #define print_unparsed_ast_expr(x) KlDebug_print_unparsed_ast_expr(x,0,NULL)
@@ -751,7 +752,7 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 				{
 					struct UnparsedASTExpressionElem el;
 					el.t=UNPARSED_AST_EXPRESSION_ELEM_TYPE_INT;
-					el.v.n=KLBigInt_assign(NULL,t->v);
+					el.v.n=KlBigInt_assign(NULL,t->v);
 					if (o.l==0){
 						KlAst_add_expression_unparsed(&o,el);
 						break;
@@ -1499,7 +1500,7 @@ struct ASTExpression* KlAst_parse_unparsed_expression(struct CodeFileObject* fo,
 				{
 					struct BigInt* nc=NULL;
 					if (i->v.n!=NULL){
-						nc=KLBigInt_assign(NULL,i->v.n);
+						nc=KlBigInt_assign(NULL,i->v.n);
 					}
 					if (*(c_a+c_ai)==0){
 						if (c->t==AST_EXPRESSION_TYPE_EMPTY){
@@ -1729,7 +1730,7 @@ struct ASTExpression* KlAst_gen_expression(const char* f,...){
 				struct BigInt* n=va_arg(a,struct BigInt*);
 				struct BigInt* nc=NULL;
 				if (n!=NULL){
-					nc=KLBigInt_assign(NULL,n);
+					nc=KlBigInt_assign(NULL,n);
 				}
 				if (ol==0){
 					o->t=AST_EXPRESSION_TYPE_CONST;
@@ -1974,7 +1975,7 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex){
 				o.a.v.n=NULL;
 			}
 			else{
-				o.a.v.n=KLBigInt_assign(NULL,ex.a.v.n);
+				o.a.v.n=KlBigInt_assign(NULL,ex.a.v.n);
 				KlMem_ret(o.a.v.n);
 			}
 			break;
@@ -2060,7 +2061,7 @@ struct ASTExpression KlAst_clone_expression(struct ASTExpression ex){
 						(o.b+i)->v.n=NULL;
 					}
 					else{
-						(o.b+i)->v.n=KLBigInt_assign(NULL,(ex.b+i)->v.n);
+						(o.b+i)->v.n=KlBigInt_assign(NULL,(ex.b+i)->v.n);
 						KlMem_ret((o.b+i)->v.n);
 					}
 					break;
@@ -2156,7 +2157,6 @@ bool KlAst_optimize_check_ast_expr(struct CodeFileObject* fo,struct ASTExpressio
 					return(false);
 				}
 				print_ast_expr(ex);
-				assert(0);
 			}
 		}
 	}
@@ -2352,9 +2352,9 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 			case 'b':
 				i+=2;
 				o.t=AST_TOKEN_TYPE_INT;
-				o.v=KLBigInt_from_long(0);
+				o.v=KlBigInt_from_long(0);
 				while (*(fo->dt+i)=='0'||*(fo->dt+i)=='1'){
-					KLBigInt_add_bin_digit(o.v,*(fo->dt+i)-48);
+					KlBigInt_add_bin_digit(o.v,*(fo->dt+i)-48);
 					i++;
 				}
 				print_token(o);
@@ -2362,9 +2362,9 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 			case 'o':
 				i+=2;
 				o.t=AST_TOKEN_TYPE_INT;
-				o.v=KLBigInt_from_long(0);
+				o.v=KlBigInt_from_long(0);
 				while (*(fo->dt+i)>=48&&*(fo->dt+i)<=55){
-					KLBigInt_add_oct_digit(o.v,*(fo->dt+i)-48);
+					KlBigInt_add_oct_digit(o.v,*(fo->dt+i)-48);
 					i++;
 				}
 				print_token(o);
@@ -2372,16 +2372,16 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 			case 'x':
 				i+=2;
 				o.t=AST_TOKEN_TYPE_INT;
-				o.v=KLBigInt_from_long(0);
+				o.v=KlBigInt_from_long(0);
 				while ((*(fo->dt+i)>=48&&*(fo->dt+i)<=57)||(*(fo->dt+i)>=65&&*(fo->dt+i)<=70)||(*(fo->dt+i)>=97&&*(fo->dt+i)<=102)){
 					if (*(fo->dt+i)<=57){
-						KLBigInt_add_hex_digit(o.v,*(fo->dt+i)-48);
+						KlBigInt_add_hex_digit(o.v,*(fo->dt+i)-48);
 					}
 					else if (*(fo->dt+i)<=70){
-						KLBigInt_add_hex_digit(o.v,*(fo->dt+i)-55);
+						KlBigInt_add_hex_digit(o.v,*(fo->dt+i)-55);
 					}
 					else{
-						KLBigInt_add_hex_digit(o.v,*(fo->dt+i)-87);
+						KlBigInt_add_hex_digit(o.v,*(fo->dt+i)-87);
 					}
 					i++;
 				}
@@ -2391,7 +2391,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 	}
 	if (*(fo->dt+i)>=48&&*(fo->dt+i)<=57){
 		o.t=AST_TOKEN_TYPE_INT;
-		o.v=KLBigInt_from_long(0);
+		o.v=KlBigInt_from_long(0);
 		while (true){
 			if (*(fo->dt+i)=='_'){
 				i++;
@@ -2411,7 +2411,7 @@ struct ASTToken KlAst_next_token(struct CodeFileObject* fo,size_t i,struct CallS
 			}
 			if (*(fo->dt+i)>=48&&*(fo->dt+i)<=57){
 				if (o.t==AST_TOKEN_TYPE_INT){
-					KLBigInt_add_digit(o.v,*(fo->dt+i)-48);
+					KlBigInt_add_digit(o.v,*(fo->dt+i)-48);
 				}
 				else{
 					KlDec_add_frac_digit(o.v,*(fo->dt+i)-48);

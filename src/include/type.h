@@ -5,18 +5,30 @@
 
 
 
-//struct Object* KlType_type_call_func(struct Object* a,struct Object** b,size_t c);
-
-
-
-struct TypeObject{
+struct CharObject{
 	OBJECT_HEAD
-	char* t;
+	char c;
 };
 
 
 
-static const struct Type BaseType={
+struct StrObject{
+	OBJECT_HEAD
+	char* s;
+	size_t ln;
+};
+
+
+
+struct BigIntObject{
+	OBJECT_HEAD
+	struct BigInt* i;
+};
+
+
+
+static struct Type BaseType={
+	TYPE_HEAD_INIT
 	.nm="<base_type>",
 	.base=NULL,
 	.sz=sizeof(struct Object),
@@ -29,11 +41,32 @@ static const struct Type BaseType={
 
 
 
-static const struct Type TypeObjectType={
-	.nm="type",
+static struct Type CharType={
+	TYPE_HEAD_INIT
+	.nm="char",
 	.base=&BaseType,
-	.sz=sizeof(struct TypeObject),
-	//.call_f=KlType_type_call_func,
+	.sz=sizeof(struct CharObject)
+};
+
+
+
+static struct Type StrType={
+	TYPE_HEAD_INIT
+	.nm="str",
+	.base=&BaseType,
+	.sz=sizeof(struct StrObject)
+};
+
+
+
+static struct Type BigIntType={
+	TYPE_HEAD_INIT
+	.nm="int",
+	.base=&BaseType,
+	.sz=sizeof(struct BigIntObject),
+	.dealloc_f=KlApi_bigint_dealloc_f,
+	.add_f=KlApi_bigint_add_f,
+	.iroot_f=KlApi_bigint_iroot_f
 };
 
 

@@ -7,7 +7,7 @@
 
 
 
-struct BigInt* KLBigInt_from_long(long long ll){
+struct BigInt* KlBigInt_from_long(long long ll){
 	KlMem_enter_func();
 	struct BigInt o;
 	signed char s=(ll<0?-1:1);
@@ -37,7 +37,7 @@ struct BigInt* KLBigInt_from_long(long long ll){
 
 
 
-struct BigInt* KLBigInt_assign(struct BigInt* o,struct BigInt* v){
+struct BigInt* KlBigInt_assign(struct BigInt* o,struct BigInt* v){
 	KlMem_enter_func();
 	assert(v!=NULL);
 	if (o==NULL){
@@ -53,20 +53,22 @@ struct BigInt* KLBigInt_assign(struct BigInt* o,struct BigInt* v){
 
 
 
-struct BigInt* KLBigInt_assign_long(struct BigInt* o,long v){
+struct BigInt* KlBigInt_assign_long(struct BigInt* o,long v){
 	KlMem_enter_func();
 	if (o==NULL){
 		o=KlMem_malloc(sizeof(struct BigInt));
+		KlMem_ret(o);
 	}
 	o->l=(v<0?-1:1);
 	intmax_t uv=v*o->l;
 	o->v=KlMem_const(&(uint32_t)uv,sizeof(uint32_t));
+	KlMem_ret(o->v);
 	return(o);
 }
 
 
 
-void KLBigInt_free(struct BigInt* n){
+void KlBigInt_free(struct BigInt* n){
 	KlMem_enter_func();
 	if (n!=NULL){
 		if (n->v!=NULL){
@@ -79,7 +81,7 @@ void KLBigInt_free(struct BigInt* n){
 
 
 
-struct BigInt* KLBigInt_trunc(struct BigInt* o){
+struct BigInt* KlBigInt_trunc(struct BigInt* o){
 	KlMem_enter_func();
 	assert(o!=NULL);
 	signed char s=(o->l<0?-1:1);
@@ -96,25 +98,25 @@ struct BigInt* KLBigInt_trunc(struct BigInt* o){
 
 
 
-bool KLBigInt_is_zero(struct BigInt* n){
+bool KlBigInt_is_zero(struct BigInt* n){
 	KlMem_enter_func();
 	assert(n!=NULL);
-	KLBigInt_trunc(n);
+	KlBigInt_trunc(n);
 	return(((n->l==1||n->l==-1)&&*n->v==0));
 }
 
 
 
-bool KLBigInt_is_one(struct BigInt* n){
+bool KlBigInt_is_one(struct BigInt* n){
 	KlMem_enter_func();
 	assert(n!=NULL);
-	KLBigInt_trunc(n);
+	KlBigInt_trunc(n);
 	return((n->l==1&&*n->v==1));
 }
 
 
 
-struct BigInt* KLBigInt_abs(struct BigInt* a){
+struct BigInt* KlBigInt_abs(struct BigInt* a){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	struct BigInt o;
@@ -126,12 +128,12 @@ struct BigInt* KLBigInt_abs(struct BigInt* a){
 
 
 
-struct BigInt* KLBigInt_neg(struct BigInt* a){
+struct BigInt* KlBigInt_neg(struct BigInt* a){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	struct BigInt o;
-	if (KLBigInt_is_zero(a)==true){
-		return(KLBigInt_assign(NULL,a));
+	if (KlBigInt_is_zero(a)==true){
+		return(KlBigInt_assign(NULL,a));
 	}
 	o.l=(a->l<0?a->l:-a->l);
 	o.v=KlMem_memcpy(KlMem_malloc(o.l*sizeof(uint32_t)),a->v,o.l*sizeof(uint32_t));
@@ -140,22 +142,22 @@ struct BigInt* KLBigInt_neg(struct BigInt* a){
 
 
 
-struct BigInt* KLBigInt_add(struct BigInt* a,struct BigInt* b){
+struct BigInt* KlBigInt_add(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
 	if ((a->l<0)==(b->l<0)){
-		struct BigInt* o=KLBigInt_add_abs(a,b);
+		struct BigInt* o=KlBigInt_add_abs(a,b);
 		o->l*=(a->l<0?-1:1);
 		return(o);
 	}
 	else{
-		struct BigInt* o=KLBigInt_sub_abs(a,b);
-		if (KLBigInt_is_zero(o)){
+		struct BigInt* o=KlBigInt_sub_abs(a,b);
+		if (KlBigInt_is_zero(o)){
 			o->l=1;
 		}
 		else{
-			o->l*=((KLBigInt_cmp_abs(a,b)>0?a->l<0:b->l<0)==true?-1:1);
+			o->l*=((KlBigInt_cmp_abs(a,b)>=0?a->l<0:b->l<0)==true?-1:1);
 		}
 		return(o);
 	}
@@ -163,21 +165,21 @@ struct BigInt* KLBigInt_add(struct BigInt* a,struct BigInt* b){
 
 
 
-struct BigInt* KLBigInt_add_long(struct BigInt* a,long b){
+struct BigInt* KlBigInt_add_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	if ((a->l<0)==(b<0)){
-		struct BigInt* o=KLBigInt_add_long_abs(a,b);
+		struct BigInt* o=KlBigInt_add_long_abs(a,b);
 		o->l*=(a->l<0?-1:1);
 		return(o);
 	}
 	else{
-		struct BigInt* o=KLBigInt_sub_long_abs(a,b);
-		if (KLBigInt_is_zero(o)){
+		struct BigInt* o=KlBigInt_sub_long_abs(a,b);
+		if (KlBigInt_is_zero(o)){
 			o->l=1;
 		}
 		else{
-			o->l*=((KLBigInt_cmp_long_abs(a,b)>0?a->l<0:b<0)==true?-1:1);
+			o->l*=((KlBigInt_cmp_long_abs(a,b)>=0?a->l<0:b<0)==true?-1:1);
 		}
 		return(o);
 	}
@@ -185,7 +187,7 @@ struct BigInt* KLBigInt_add_long(struct BigInt* a,long b){
 
 
 
-struct BigInt* KLBigInt_add_abs(struct BigInt* a,struct BigInt* b){
+struct BigInt* KlBigInt_add_abs(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -215,12 +217,13 @@ struct BigInt* KLBigInt_add_abs(struct BigInt* a,struct BigInt* b){
 		c>>=NUM_SHIFT;
 	}
 	o.v[i]=c;
-	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
+	KlMem_ret(o.v);
+	return(KlMem_const(KlBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct BigInt* KLBigInt_add_long_abs(struct BigInt* a,unsigned long b){
+struct BigInt* KlBigInt_add_long_abs(struct BigInt* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	intmax_t lna=(a->l<0?-a->l:a->l);
@@ -238,43 +241,43 @@ struct BigInt* KLBigInt_add_long_abs(struct BigInt* a,unsigned long b){
 	}
 	o.v[i]=c;
 	KlMem_ret(o.v);
-	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
+	return(KlMem_const(KlBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct BigInt* KLBigInt_sub(struct BigInt* a,struct BigInt* b){
+struct BigInt* KlBigInt_sub(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
-	struct BigInt* o=((a->l<0)==(b->l<0)?KLBigInt_sub_abs(a,b):KLBigInt_add_abs(a,b));
-	if (KLBigInt_is_zero(o)){
+	struct BigInt* o=((a->l<0)==(b->l<0)?KlBigInt_sub_abs(a,b):KlBigInt_add_abs(a,b));
+	if (KlBigInt_is_zero(o)){
 		o->l=1;
 	}
 	else{
-		o->l*=(KLBigInt_cmp(a,b)>0?1:-1);
+		o->l*=(KlBigInt_cmp(a,b)>=0?1:-1);
 	}
 	return(o);
 }
 
 
 
-struct BigInt* KLBigInt_sub_long(struct BigInt* a,long b){
+struct BigInt* KlBigInt_sub_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	struct BigInt* o=((a->l<0)==(b<0)?KLBigInt_sub_long_abs(a,b):KLBigInt_add_long_abs(a,b));
-	if (KLBigInt_is_zero(o)){
+	struct BigInt* o=((a->l<0)==(b<0)?KlBigInt_sub_long_abs(a,b):KlBigInt_add_long_abs(a,b));
+	if (KlBigInt_is_zero(o)){
 		o->l=1;
 	}
 	else{
-		o->l*=(KLBigInt_cmp_long(a,b)>0?1:-1);
+		o->l*=(KlBigInt_cmp_long(a,b)>=0?1:-1);
 	}
 	return(o);
 }
 
 
 
-struct BigInt* KLBigInt_sub_abs(struct BigInt* a,struct BigInt* b){
+struct BigInt* KlBigInt_sub_abs(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -292,7 +295,7 @@ struct BigInt* KLBigInt_sub_abs(struct BigInt* a,struct BigInt* b){
 		intmax_t i=lna;
 		while (a->v[i]==b->v[i]){
 			if (i==0){
-				return(KLBigInt_from_long(0));
+				return(KlBigInt_from_long(0));
 			}
 			i--;
 		}
@@ -320,18 +323,19 @@ struct BigInt* KLBigInt_sub_abs(struct BigInt* a,struct BigInt* b){
 		br>>=NUM_SHIFT;
 		br&=1;
 	}
-	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
+	KlMem_ret(o.v);
+	return(KlMem_const(KlBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct BigInt* KLBigInt_sub_long_abs(struct BigInt* a,unsigned long b){
+struct BigInt* KlBigInt_sub_long_abs(struct BigInt* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	intmax_t lna=(a->l<0?-a->l:a->l);
 	if (lna==1){
 		if (*a->v==b){
-			return(KLBigInt_from_long(0));
+			return(KlBigInt_from_long(0));
 		}
 		if (*a->v<b){
 			uint32_t t=a->v[0];
@@ -352,17 +356,18 @@ struct BigInt* KLBigInt_sub_long_abs(struct BigInt* a,unsigned long b){
 		br>>=NUM_SHIFT;
 		br&=1;
 	}
-	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
+	KlMem_ret(o.v);
+	return(KlMem_const(KlBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct BigInt* KLBigInt_mult(struct BigInt* a,struct BigInt* b){
+struct BigInt* KlBigInt_mult(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
-	struct BigInt* o=KLBigInt_mult_abs(a,b);
-	if (KLBigInt_is_zero(o)){
+	struct BigInt* o=KlBigInt_mult_abs(a,b);
+	if (KlBigInt_is_zero(o)){
 		o->l=1;
 	}
 	else{
@@ -373,11 +378,11 @@ struct BigInt* KLBigInt_mult(struct BigInt* a,struct BigInt* b){
 
 
 
-struct BigInt* KLBigInt_mult_long(struct BigInt* a,long b){
+struct BigInt* KlBigInt_mult_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	struct BigInt* o=KLBigInt_mult_long_abs(a,b);
-	if (KLBigInt_is_zero(o)){
+	struct BigInt* o=KlBigInt_mult_long_abs(a,b);
+	if (KlBigInt_is_zero(o)){
 		o->l=1;
 	}
 	else{
@@ -388,18 +393,18 @@ struct BigInt* KLBigInt_mult_long(struct BigInt* a,long b){
 
 
 
-struct BigInt* KLBigInt_mult_abs(struct BigInt* a,struct BigInt* b){
+struct BigInt* KlBigInt_mult_abs(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
-	if (KLBigInt_is_zero(a)||KLBigInt_is_zero(b)){
-		return(KLBigInt_from_long(0));
+	if (KlBigInt_is_zero(a)||KlBigInt_is_zero(b)){
+		return(KlBigInt_from_long(0));
 	}
-	if (KLBigInt_is_one(a)){
-		return(KLBigInt_assign(NULL,b));
+	if (KlBigInt_is_one(a)){
+		return(KlBigInt_assign(NULL,b));
 	}
-	if (KLBigInt_is_one(b)){
-		return(KLBigInt_assign(NULL,a));
+	if (KlBigInt_is_one(b)){
+		return(KlBigInt_assign(NULL,a));
 	}
 	intmax_t lna=(a->l<0?-a->l:a->l);
 	intmax_t lnb=(b->l<0?-b->l:b->l);
@@ -424,22 +429,23 @@ struct BigInt* KLBigInt_mult_abs(struct BigInt* a,struct BigInt* b){
 			*(o.v+j)=(uint32_t)(c&NUM_MASK);
 		}
 	}
-	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
+	KlMem_ret(o.v);
+	return(KlMem_const(KlBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct BigInt* KLBigInt_mult_long_abs(struct BigInt* a,unsigned long b){
+struct BigInt* KlBigInt_mult_long_abs(struct BigInt* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	if (KLBigInt_is_zero(a)||b==0){
-		return(KLBigInt_from_long(0));
+	if (KlBigInt_is_zero(a)||b==0){
+		return(KlBigInt_from_long(0));
 	}
-	if (KLBigInt_is_one(a)){
-		return(KLBigInt_from_long(b));
+	if (KlBigInt_is_one(a)){
+		return(KlBigInt_from_long(b));
 	}
 	if (b==1){
-		return(KLBigInt_assign(NULL,a));
+		return(KlBigInt_assign(NULL,a));
 	}
 	intmax_t lna=(a->l<0?-a->l:a->l);
 	struct BigInt o;
@@ -457,34 +463,34 @@ struct BigInt* KLBigInt_mult_long_abs(struct BigInt* a,unsigned long b){
 		}
 	}
 	KlMem_ret(o.v);
-	return(KlMem_const(KLBigInt_trunc(&o),sizeof(struct BigInt)));
+	return(KlMem_const(KlBigInt_trunc(&o),sizeof(struct BigInt)));
 }
 
 
 
-struct BigInt* KLBigInt_div(struct BigInt* a,struct BigInt* b){
+struct BigInt* KlBigInt_div(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
+	assert(b!=NULL&&KlBigInt_is_zero(b)==false);
 	KlError_unimplemented_code();
 	return(NULL);
 }
 
 
 
-struct BigInt* KLBigInt_fdiv(struct BigInt* a,struct BigInt* b){
+struct BigInt* KlBigInt_fdiv(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
-	if (KLBigInt_is_zero(b)==true){
+	assert(b!=NULL&&KlBigInt_is_zero(b)==false);
+	if (KlBigInt_is_zero(b)==true){
 		KlError_unimplemented_error();
 		return(NULL);
 	}
 	if ((a->l==1||a->l==-1)&&(b->l==1||b->l==-1)){
-		return(KLBigInt_from_long((a->l==b->l?*a->v/(*b->v):-1-(*a->v-1)/(*b->v))));
+		return(KlBigInt_from_long((a->l==b->l?*a->v/(*b->v):-1-(*a->v-1)/(*b->v))));
 	}
 	struct BigInt* o=NULL;
-	if (KLBigInt_divmod(a,b,&o,NULL)!=0){
+	if (KlBigInt_divmod(a,b,&o,NULL)!=0){
 		return(NULL);
 	}
 	return(o);
@@ -492,7 +498,7 @@ struct BigInt* KLBigInt_fdiv(struct BigInt* a,struct BigInt* b){
 
 
 
-struct BigInt* KLBigInt_fdiv_long(struct BigInt* a,long b){
+struct BigInt* KlBigInt_fdiv_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=0);
@@ -501,10 +507,10 @@ struct BigInt* KLBigInt_fdiv_long(struct BigInt* a,long b){
 		return(NULL);
 	}
 	if (a->l==1||a->l==-1){
-		return(KLBigInt_from_long((a->l==(b<0?-1:1)?*a->v/b:-1-(*a->v-1)/b)));
+		return(KlBigInt_from_long((a->l==(b<0?-1:1)?*a->v/b:-1-(*a->v-1)/b)));
 	}
 	struct BigInt* o=NULL;
-	if (KLBigInt_divmod_long(a,b,&o,NULL)!=0){
+	if (KlBigInt_divmod_long(a,b,&o,NULL)!=0){
 		return(NULL);
 	}
 	return(o);
@@ -512,19 +518,19 @@ struct BigInt* KLBigInt_fdiv_long(struct BigInt* a,long b){
 
 
 
-struct BigInt* KLBigInt_mod(struct BigInt* a,struct BigInt* b){
+struct BigInt* KlBigInt_mod(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
-	if (KLBigInt_is_zero(b)==true){
+	assert(b!=NULL&&KlBigInt_is_zero(b)==false);
+	if (KlBigInt_is_zero(b)==true){
 		KlError_unimplemented_error();
 		return(NULL);
 	}
 	if ((a->l==1||a->l==-1)&&(b->l==1||b->l==-1)){
-		return(KLBigInt_from_long((a->l==b->l?*a->v%*b->v:*b->v-1-(*a->v-1)%*b->v)*(int32_t)b->l));
+		return(KlBigInt_from_long((a->l==b->l?*a->v%*b->v:*b->v-1-(*a->v-1)%*b->v)*(int32_t)b->l));
 	}
 	struct BigInt* o=NULL;
-	if (KLBigInt_divmod(a,b,NULL,&o)!=0){
+	if (KlBigInt_divmod(a,b,NULL,&o)!=0){
 		return(NULL);
 	}
 	return(o);
@@ -532,7 +538,7 @@ struct BigInt* KLBigInt_mod(struct BigInt* a,struct BigInt* b){
 
 
 
-struct BigInt* KLBigInt_mod_long(struct BigInt* a,long b){
+struct BigInt* KlBigInt_mod_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=0);
@@ -541,10 +547,10 @@ struct BigInt* KLBigInt_mod_long(struct BigInt* a,long b){
 		return(NULL);
 	}
 	if (a->l==1||a->l==-1){
-		return(KLBigInt_from_long((a->l==(b<0?-1:1)?*a->v%b:b-1-(*a->v-1)%b)*(int32_t)(b<0?-1:1)));
+		return(KlBigInt_from_long((a->l==(b<0?-1:1)?*a->v%b:b-1-(*a->v-1)%b)*(int32_t)(b<0?-1:1)));
 	}
 	struct BigInt* o=NULL;
-	if (KLBigInt_divmod_long(a,b,NULL,&o)!=0){
+	if (KlBigInt_divmod_long(a,b,NULL,&o)!=0){
 		return(NULL);
 	}
 	return(o);
@@ -552,12 +558,12 @@ struct BigInt* KLBigInt_mod_long(struct BigInt* a,long b){
 
 
 
-unsigned char KLBigInt_divrem(struct BigInt* a,struct BigInt* b,struct BigInt** div,struct BigInt** rem){
+unsigned char KlBigInt_divrem(struct BigInt* a,struct BigInt* b,struct BigInt** div,struct BigInt** rem){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
+	assert(b!=NULL&&KlBigInt_is_zero(b)==false);
 	assert(div!=NULL||rem!=NULL);
-	if (KLBigInt_is_zero(b)){
+	if (KlBigInt_is_zero(b)){
 		KlError_unimplemented_error();
 		return(1);
 	}
@@ -565,11 +571,11 @@ unsigned char KLBigInt_divrem(struct BigInt* a,struct BigInt* b,struct BigInt** 
 	intmax_t lnb=(b->l<0?-b->l:b->l);
 	if (lna<lnb||(lna==lnb&&*(a->v+lna-1)<*(b->v+lnb-1))){
 		if (div!=NULL){
-			*div=KLBigInt_assign_long(*div,0);
+			*div=KlBigInt_assign_long(*div,0);
 			assert(*div!=NULL);
 		}
 		if (rem!=NULL){
-			*rem=KLBigInt_assign(*rem,a);
+			*rem=KlBigInt_assign(*rem,a);
 			assert(*rem!=NULL);
 		}
 		return(0);
@@ -605,19 +611,19 @@ unsigned char KLBigInt_divrem(struct BigInt* a,struct BigInt* b,struct BigInt** 
 			}
 		}
 		if (rem!=NULL){
-			*rem=KLBigInt_assign_long(*rem,(uint32_t)rm);
+			*rem=KlBigInt_assign_long(*rem,(uint32_t)rm);
 			assert(*rem!=NULL);
 		}
 	}
 	else{
-		if (KLBigInt_divrem_abs(a,b,div,rem)!=0){
+		if (KlBigInt_divrem_abs(a,b,div,rem)!=0){
 			return(1);
 		}
 	}
 	if (div!=NULL&&(a->l<0)!=(b->l<0)){
 		(*div)->l*=-1;
 	}
-	if (rem!=NULL&&a->l<0&&KLBigInt_is_zero(*rem)==false){
+	if (rem!=NULL&&a->l<0&&KlBigInt_is_zero(*rem)==false){
 		(*rem)->l*=-1;
 	}
 	assert((div!=NULL&&(*div)!=NULL)||(rem!=NULL&&(*rem)!=NULL));
@@ -626,7 +632,7 @@ unsigned char KLBigInt_divrem(struct BigInt* a,struct BigInt* b,struct BigInt** 
 
 
 
-unsigned char KLBigInt_divrem_long(struct BigInt* a,long b,struct BigInt** div,struct BigInt** rem){
+unsigned char KlBigInt_divrem_long(struct BigInt* a,long b,struct BigInt** div,struct BigInt** rem){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=0);
@@ -639,10 +645,10 @@ unsigned char KLBigInt_divrem_long(struct BigInt* a,long b,struct BigInt** div,s
 	unsigned long ub=(b<0?-b:b);
 	if (lna==1&&*(a->v+lna-1)<ub){
 		if (div!=NULL){
-			*div=KLBigInt_assign_long(*div,0);
+			*div=KlBigInt_assign_long(*div,0);
 		}
 		if (rem!=NULL){
-			*rem=KLBigInt_assign(*rem,a);
+			*rem=KlBigInt_assign(*rem,a);
 		}
 		return(0);
 	}
@@ -663,11 +669,11 @@ unsigned char KLBigInt_divrem_long(struct BigInt* a,long b,struct BigInt** div,s
 		r-=(uint64_t)hi*ub;
 		tln--;
 	}
-	*rem=KLBigInt_assign_long(*rem,(uint32_t)r);
+	*rem=KlBigInt_assign_long(*rem,(uint32_t)r);
 	if ((a->l<0)!=(b<0)){
 		(*div)->l*=-1;
 	}
-	if (a->l<0&&KLBigInt_is_zero(*rem)==false){
+	if (a->l<0&&KlBigInt_is_zero(*rem)==false){
 		(*rem)->l*=-1;
 	}
 	assert((div!=NULL&&(*div)!=NULL)||(rem!=NULL&&(*rem)!=NULL));
@@ -676,12 +682,12 @@ unsigned char KLBigInt_divrem_long(struct BigInt* a,long b,struct BigInt** div,s
 
 
 
-unsigned char KLBigInt_divrem_abs(struct BigInt* a,struct BigInt* b,struct BigInt** div,struct BigInt** rem){
+unsigned char KlBigInt_divrem_abs(struct BigInt* a,struct BigInt* b,struct BigInt** div,struct BigInt** rem){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
+	assert(b!=NULL&&KlBigInt_is_zero(b)==false);
 	assert(div!=NULL||rem!=NULL);
-	if (KLBigInt_is_zero(b)==true){
+	if (KlBigInt_is_zero(b)==true){
 		KlError_unimplemented_error();
 		return(1);
 	}
@@ -780,8 +786,8 @@ unsigned char KLBigInt_divrem_abs(struct BigInt* a,struct BigInt* b,struct BigIn
 		*(v.v+i)=(uint32_t)(s>>d);
 	}
 	assert(c==0);
-	*div=KLBigInt_assign(*div,&t);
-	*rem=KLBigInt_assign(*rem,&w);
+	*div=KlBigInt_assign(*div,&t);
+	*rem=KlBigInt_assign(*rem,&w);
 	assert((div!=NULL&&(*div)!=NULL)||(rem!=NULL&&(*rem)!=NULL));
 	KlMem_free(v.v);
 	KlMem_free(w.v);
@@ -791,21 +797,21 @@ unsigned char KLBigInt_divrem_abs(struct BigInt* a,struct BigInt* b,struct BigIn
 
 
 
-unsigned char KLBigInt_divmod(struct BigInt* a,struct BigInt* b,struct BigInt** div,struct BigInt** mod){
+unsigned char KlBigInt_divmod(struct BigInt* a,struct BigInt* b,struct BigInt** div,struct BigInt** mod){
 	KlMem_enter_func();
 	assert(a!=NULL);
-	assert(b!=NULL&&KLBigInt_is_zero(b)==false);
+	assert(b!=NULL&&KlBigInt_is_zero(b)==false);
 	assert(div!=NULL||mod!=NULL);
-	if (KLBigInt_is_zero(b)==true){
+	if (KlBigInt_is_zero(b)==true){
 		KlError_unimplemented_error();
 		return(1);
 	}
 	if ((a->l==1||a->l==-1)&&(b->l==1||b->l==-1)){
 		if (div!=NULL){
-			KLBigInt_assign_long(*div,(a->l==b->l?*a->v/(*b->v):-1-(*a->v-1)/(*b->v)));
+			KlBigInt_assign_long(*div,(a->l==b->l?*a->v/(*b->v):-1-(*a->v-1)/(*b->v)));
 		}
 		if (mod!=NULL){
-			KLBigInt_assign_long(*mod,(a->l==b->l?*a->v%*b->v:*b->v-1-(*a->v-1)%*b->v)*(int32_t)b->l);
+			KlBigInt_assign_long(*mod,(a->l==b->l?*a->v%*b->v:*b->v-1-(*a->v-1)%*b->v)*(int32_t)b->l);
 		}
 		return(0);
 	}
@@ -813,37 +819,37 @@ unsigned char KLBigInt_divmod(struct BigInt* a,struct BigInt* b,struct BigInt** 
 	struct BigInt* m=NULL;
 	struct BigInt** dp=&d;
 	struct BigInt** mp=&m;
-	if (KLBigInt_divrem(a,b,dp,mp)!=0){
+	if (KlBigInt_divrem(a,b,dp,mp)!=0){
 		return(1);
 	}
 	assert(d!=NULL);
 	assert(m!=NULL);
 	if ((m->l<0&&b->l>0)||(m->l>0&&b->l<0)){
-		struct BigInt* tmp=KLBigInt_add(m,b);
-		KLBigInt_free(m);
+		struct BigInt* tmp=KlBigInt_add(m,b);
+		KlBigInt_free(m);
 		m=tmp;
-		KLBigInt_free(tmp);
-		tmp=KLBigInt_sub_long(d,1);
-		KLBigInt_free(d);
+		KlBigInt_free(tmp);
+		tmp=KlBigInt_sub_long(d,1);
+		KlBigInt_free(d);
 		d=tmp;
-		KLBigInt_free(tmp);
+		KlBigInt_free(tmp);
 	}
 	if (div!=NULL){
-		*div=KLBigInt_assign(*div,d);
+		*div=KlBigInt_assign(*div,d);
 		assert(*div!=NULL);
 	}
 	if (mod!=NULL){
-		*mod=KLBigInt_assign(*mod,m);
+		*mod=KlBigInt_assign(*mod,m);
 		assert(*mod!=NULL);
 	}
-	KLBigInt_free(d);
-	KLBigInt_free(m);
+	KlBigInt_free(d);
+	KlBigInt_free(m);
 	return(0);
 }
 
 
 
-unsigned char KLBigInt_divmod_long(struct BigInt* a,long b,struct BigInt** div,struct BigInt** mod){
+unsigned char KlBigInt_divmod_long(struct BigInt* a,long b,struct BigInt** div,struct BigInt** mod){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=0);
@@ -854,44 +860,44 @@ unsigned char KLBigInt_divmod_long(struct BigInt* a,long b,struct BigInt** div,s
 	}
 	if (a->l==1||a->l==-1){
 		if (div!=NULL){
-			KLBigInt_assign_long(*div,(a->l==(b<0?-1:1)?*a->v/b:-1-(*a->v-1)/b));
+			KlBigInt_assign_long(*div,(a->l==(b<0?-1:1)?*a->v/b:-1-(*a->v-1)/b));
 		}
 		if (mod!=NULL){
-			KLBigInt_assign_long(*mod,(a->l==(b<0?-1:1)?*a->v%b:b-1-(*a->v-1)%b)*(int32_t)(b<0?-1:1));
+			KlBigInt_assign_long(*mod,(a->l==(b<0?-1:1)?*a->v%b:b-1-(*a->v-1)%b)*(int32_t)(b<0?-1:1));
 		}
 		return(0);
 	}
 	struct BigInt* d=KlMem_malloc(sizeof(struct BigInt));
 	struct BigInt* m=KlMem_malloc(sizeof(struct BigInt));
-	if (KLBigInt_divrem_long(a,b,&d,&m)!=0){
+	if (KlBigInt_divrem_long(a,b,&d,&m)!=0){
 		return(1);
 	}
 	assert(d!=NULL);
 	assert(m!=NULL);
 	if ((m->l<0&&b>0)||(m->l>0&&b<0)){
-		struct BigInt* t=KLBigInt_add_long(m,b);
-		KLBigInt_assign(m,t);
-		KLBigInt_free(t);
-		t=KLBigInt_sub_long(d,1);
-		KLBigInt_assign(d,t);
-		KLBigInt_free(t);
+		struct BigInt* t=KlBigInt_add_long(m,b);
+		KlBigInt_assign(m,t);
+		KlBigInt_free(t);
+		t=KlBigInt_sub_long(d,1);
+		KlBigInt_assign(d,t);
+		KlBigInt_free(t);
 	}
 	if (div!=NULL){
-		*div=KLBigInt_assign(*div,d);
+		*div=KlBigInt_assign(*div,d);
 		assert(*div!=NULL);
 	}
 	if (mod!=NULL){
-		*mod=KLBigInt_assign(*mod,m);
+		*mod=KlBigInt_assign(*mod,m);
 		assert(*mod!=NULL);
 	}
-	KLBigInt_free(d);
-	KLBigInt_free(m);
+	KlBigInt_free(d);
+	KlBigInt_free(m);
 	return(0);
 }
 
 
 
-struct BigInt* KLBigInt_pow(struct BigInt* a,struct BigInt* b,struct BigInt* c){
+struct BigInt* KlBigInt_pow(struct BigInt* a,struct BigInt* b,struct BigInt* c){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -902,7 +908,7 @@ struct BigInt* KLBigInt_pow(struct BigInt* a,struct BigInt* b,struct BigInt* c){
 	}
 	struct BigInt* tmp;
 	if (c!=NULL){
-		if (KLBigInt_is_zero(c)==true){
+		if (KlBigInt_is_zero(c)==true){
 			KlError_unimplemented_error();
 			return(NULL);
 		}
@@ -910,27 +916,27 @@ struct BigInt* KLBigInt_pow(struct BigInt* a,struct BigInt* b,struct BigInt* c){
 			n=1;
 			c->l*=-1;
 		}
-		if (KLBigInt_is_one(c)==true){
-			return(KLBigInt_from_long(0));
+		if (KlBigInt_is_one(c)==true){
+			return(KlBigInt_from_long(0));
 		}
 		if (b->l<0){
 			b->l*=-1;
-			tmp=KLBigInt_invmod(a,c);
-			KLBigInt_assign(a,tmp);
-			KLBigInt_free(tmp);
+			tmp=KlBigInt_invmod(a,c);
+			KlBigInt_assign(a,tmp);
+			KlBigInt_free(tmp);
 		}
 		if (a->l<0||a->l>c->l){
-			if (KLBigInt_divmod(a,c,NULL,&tmp)!=0){
+			if (KlBigInt_divmod(a,c,NULL,&tmp)!=0){
 				return(NULL);
 			}
-			KLBigInt_assign(a,tmp);
-			KLBigInt_free(tmp);
+			KlBigInt_assign(a,tmp);
+			KlBigInt_free(tmp);
 		}
 	}
 	assert((c!=NULL||a->l>0));
 	assert(b->l>0);
 	assert((c==NULL||c->l>0));
-	struct BigInt* o=KLBigInt_from_long(1);
+	struct BigInt* o=KlBigInt_from_long(1);
 	intmax_t i;
 	uint32_t j;
 	unsigned char k;
@@ -938,30 +944,30 @@ struct BigInt* KLBigInt_pow(struct BigInt* a,struct BigInt* b,struct BigInt* c){
 		i=b->l-1;
 		while (true){
 			for (j=(uint32_t)1<<(NUM_SHIFT-1);j!=0;j>>=1){
-				tmp=KLBigInt_mult(o,o);
-				KLBigInt_assign(o,tmp);
-				KLBigInt_free(tmp);
+				tmp=KlBigInt_mult(o,o);
+				KlBigInt_assign(o,tmp);
+				KlBigInt_free(tmp);
 				if (c!=NULL){
-					if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
-						KLBigInt_free(o);
-						KLBigInt_free(tmp);
+					if (KlBigInt_divmod(o,c,NULL,&tmp)!=0){
+						KlBigInt_free(o);
+						KlBigInt_free(tmp);
 						return(NULL);
 					}
-					KLBigInt_assign(o,tmp);
-					KLBigInt_free(tmp);
+					KlBigInt_assign(o,tmp);
+					KlBigInt_free(tmp);
 				}
 				if ((*(b->v+i)&j)!=0){
-					tmp=KLBigInt_mult(o,a);
-					KLBigInt_assign(o,tmp);
-					KLBigInt_free(tmp);
+					tmp=KlBigInt_mult(o,a);
+					KlBigInt_assign(o,tmp);
+					KlBigInt_free(tmp);
 					if (c!=NULL){
-						if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
-							KLBigInt_free(o);
-							KLBigInt_free(tmp);
+						if (KlBigInt_divmod(o,c,NULL,&tmp)!=0){
+							KlBigInt_free(o);
+							KlBigInt_free(tmp);
 							return(NULL);
 						}
-						KLBigInt_assign(o,tmp);
-						KLBigInt_free(tmp);
+						KlBigInt_assign(o,tmp);
+						KlBigInt_free(tmp);
 					}
 				}
 			}
@@ -975,18 +981,18 @@ struct BigInt* KLBigInt_pow(struct BigInt* a,struct BigInt* b,struct BigInt* c){
 		struct BigInt** t=KlMem_malloc(32*sizeof(struct BigInt));
 		*t=o;
 		for (i=1;i<32;i++){
-			tmp=KLBigInt_mult(*(t+i-1),a);
-			KLBigInt_assign(*(t+i),tmp);
-			KLBigInt_free(tmp);
+			tmp=KlBigInt_mult(*(t+i-1),a);
+			KlBigInt_assign(*(t+i),tmp);
+			KlBigInt_free(tmp);
 			if (c!=NULL){
-				if (KLBigInt_divmod(*(t+i),c,NULL,&tmp)!=0){
-					KLBigInt_free(o);
-					KLBigInt_free(tmp);
+				if (KlBigInt_divmod(*(t+i),c,NULL,&tmp)!=0){
+					KlBigInt_free(o);
+					KlBigInt_free(tmp);
 					KlMem_free(t);
 					return(NULL);
 				}
-				KLBigInt_assign(*(t+i),tmp);
-				KLBigInt_free(tmp);
+				KlBigInt_assign(*(t+i),tmp);
+				KlBigInt_free(tmp);
 			}
 		}
 		i=b->l-1;
@@ -994,33 +1000,33 @@ struct BigInt* KLBigInt_pow(struct BigInt* a,struct BigInt* b,struct BigInt* c){
 			j=NUM_SHIFT-5;
 			while (true){
 				for (k=0;k<5;k++){
-					tmp=KLBigInt_mult(o,o);
-					KLBigInt_assign(o,tmp);
-					KLBigInt_free(tmp);
+					tmp=KlBigInt_mult(o,o);
+					KlBigInt_assign(o,tmp);
+					KlBigInt_free(tmp);
 					if (c!=NULL){
-						if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
-							KLBigInt_free(o);
-							KLBigInt_free(tmp);
+						if (KlBigInt_divmod(o,c,NULL,&tmp)!=0){
+							KlBigInt_free(o);
+							KlBigInt_free(tmp);
 							KlMem_free(t);
 							return(NULL);
 						}
-						KLBigInt_assign(o,tmp);
-						KLBigInt_free(tmp);
+						KlBigInt_assign(o,tmp);
+						KlBigInt_free(tmp);
 					}
 				}
 				if (((*(b->v+i)>>j)&0x1f)!=0){
-					tmp=KLBigInt_mult(o,*(t+((*(b->v+i)>>j)&0x1f)));
-					KLBigInt_assign(o,tmp);
-					KLBigInt_free(tmp);
+					tmp=KlBigInt_mult(o,*(t+((*(b->v+i)>>j)&0x1f)));
+					KlBigInt_assign(o,tmp);
+					KlBigInt_free(tmp);
 					if (c!=NULL){
-						if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
-							KLBigInt_free(o);
-							KLBigInt_free(tmp);
+						if (KlBigInt_divmod(o,c,NULL,&tmp)!=0){
+							KlBigInt_free(o);
+							KlBigInt_free(tmp);
 							KlMem_free(t);
 							return(NULL);
 						}
-						KLBigInt_assign(o,tmp);
-						KLBigInt_free(tmp);
+						KlBigInt_assign(o,tmp);
+						KlBigInt_free(tmp);
 					}
 				}
 				if (j==0){
@@ -1034,20 +1040,20 @@ struct BigInt* KLBigInt_pow(struct BigInt* a,struct BigInt* b,struct BigInt* c){
 			i--;
 		}
 		for (i=1;i<32;i++){
-			KLBigInt_free(*(t+i));
+			KlBigInt_free(*(t+i));
 		}
 	}
-	if (n==1&&KLBigInt_is_zero(o)==false){
-		tmp=KLBigInt_sub(o,c);
-		KLBigInt_assign(o,tmp);
-		KLBigInt_free(tmp);
+	if (n==1&&KlBigInt_is_zero(o)==false){
+		tmp=KlBigInt_sub(o,c);
+		KlBigInt_assign(o,tmp);
+		KlBigInt_free(tmp);
 	}
 	return(o);
 }
 
 
 
-struct BigInt* KLBigInt_pow_long(struct BigInt* a,long b,struct BigInt* c){
+struct BigInt* KlBigInt_pow_long(struct BigInt* a,long b,struct BigInt* c){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	unsigned char n=0;
@@ -1057,7 +1063,7 @@ struct BigInt* KLBigInt_pow_long(struct BigInt* a,long b,struct BigInt* c){
 	}
 	struct BigInt* tmp;
 	if (c!=NULL){
-		if (KLBigInt_is_zero(c)==true){
+		if (KlBigInt_is_zero(c)==true){
 			KlError_unimplemented_error();
 			return(NULL);
 		}
@@ -1065,113 +1071,113 @@ struct BigInt* KLBigInt_pow_long(struct BigInt* a,long b,struct BigInt* c){
 			n=1;
 			c->l*=-1;
 		}
-		if (KLBigInt_is_one(c)==true){
-			return(KLBigInt_from_long(0));
+		if (KlBigInt_is_one(c)==true){
+			return(KlBigInt_from_long(0));
 		}
 		if (b<0){
 			b*=-1;
-			tmp=KLBigInt_invmod(a,c);
-			KLBigInt_assign(a,tmp);
-			KLBigInt_free(tmp);
+			tmp=KlBigInt_invmod(a,c);
+			KlBigInt_assign(a,tmp);
+			KlBigInt_free(tmp);
 		}
 		if (a->l<0||a->l>c->l){
-			if (KLBigInt_divmod(a,c,NULL,&tmp)!=0){
+			if (KlBigInt_divmod(a,c,NULL,&tmp)!=0){
 				return(NULL);
 			}
-			KLBigInt_assign(a,tmp);
-			KLBigInt_free(tmp);
+			KlBigInt_assign(a,tmp);
+			KlBigInt_free(tmp);
 		}
 	}
 	assert((c!=NULL||a->l>0));
 	assert(b>=0);
 	assert((c==NULL||c->l>0));
-	struct BigInt* o=KLBigInt_from_long(1);
+	struct BigInt* o=KlBigInt_from_long(1);
 	for (uint32_t i=(uint32_t)1<<(NUM_SHIFT-1);i!=0;i>>=1){
-		tmp=KLBigInt_mult(o,o);
-		KLBigInt_assign(o,tmp);
-		KLBigInt_free(tmp);
+		tmp=KlBigInt_mult(o,o);
+		KlBigInt_assign(o,tmp);
+		KlBigInt_free(tmp);
 		if (c!=NULL){
-			if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
-				KLBigInt_free(o);
-				KLBigInt_free(tmp);
+			if (KlBigInt_divmod(o,c,NULL,&tmp)!=0){
+				KlBigInt_free(o);
+				KlBigInt_free(tmp);
 				return(NULL);
 			}
-			KLBigInt_assign(o,tmp);
-			KLBigInt_free(tmp);
+			KlBigInt_assign(o,tmp);
+			KlBigInt_free(tmp);
 		}
 		if ((b&i)!=0){
-			tmp=KLBigInt_mult(o,a);
-			KLBigInt_assign(o,tmp);
-			KLBigInt_free(tmp);
+			tmp=KlBigInt_mult(o,a);
+			KlBigInt_assign(o,tmp);
+			KlBigInt_free(tmp);
 			if (c!=NULL){
-				if (KLBigInt_divmod(o,c,NULL,&tmp)!=0){
-					KLBigInt_free(o);
-					KLBigInt_free(tmp);
+				if (KlBigInt_divmod(o,c,NULL,&tmp)!=0){
+					KlBigInt_free(o);
+					KlBigInt_free(tmp);
 					return(NULL);
 				}
-				KLBigInt_assign(o,tmp);
-				KLBigInt_free(tmp);
+				KlBigInt_assign(o,tmp);
+				KlBigInt_free(tmp);
 			}
 		}
 	}
-	if (n==1&&KLBigInt_is_zero(o)==false){
-		tmp=KLBigInt_sub(o,c);
-		KLBigInt_assign(o,tmp);
-		KLBigInt_free(tmp);
+	if (n==1&&KlBigInt_is_zero(o)==false){
+		tmp=KlBigInt_sub(o,c);
+		KlBigInt_assign(o,tmp);
+		KlBigInt_free(tmp);
 	}
 	return(o);
 }
 
 
 
-struct BigInt* KLBigInt_invmod(struct BigInt* a,struct BigInt* n){
+struct BigInt* KlBigInt_invmod(struct BigInt* a,struct BigInt* n){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(n!=NULL);
-	struct BigInt* a1=KLBigInt_assign(NULL,a);
-	struct BigInt* b=KLBigInt_from_long(1);
-	struct BigInt* c=KLBigInt_from_long(0);
+	struct BigInt* a1=KlBigInt_assign(NULL,a);
+	struct BigInt* b=KlBigInt_from_long(1);
+	struct BigInt* c=KlBigInt_from_long(0);
 	struct BigInt* q=NULL;
 	struct BigInt* r=NULL;
 	struct BigInt* t=NULL;
 	struct BigInt* s=NULL;
-	while (KLBigInt_is_zero(n)==false){
-		if (KLBigInt_divmod(a,n,&q,&r)!=0){
-			KLBigInt_free(b);
-			KLBigInt_free(c);
-			KLBigInt_free(q);
-			KLBigInt_free(r);
-			KLBigInt_free(t);
-			KLBigInt_free(s);
+	while (KlBigInt_is_zero(n)==false){
+		if (KlBigInt_divmod(a,n,&q,&r)!=0){
+			KlBigInt_free(b);
+			KlBigInt_free(c);
+			KlBigInt_free(q);
+			KlBigInt_free(r);
+			KlBigInt_free(t);
+			KlBigInt_free(s);
 			return(NULL);
 		}
 		a=n;
 		n=r;
-		KLBigInt_free(t);
-		KLBigInt_free(s);
-		t=KLBigInt_mult(q,c);
-		s=KLBigInt_sub(b,t);
+		KlBigInt_free(t);
+		KlBigInt_free(s);
+		t=KlBigInt_mult(q,c);
+		s=KlBigInt_sub(b,t);
 		b=c;
 		c=s;
 	}
-	KLBigInt_free(q);
-	KLBigInt_free(r);
-	KLBigInt_free(t);
-	KLBigInt_free(s);
-	KLBigInt_free(c);
-	if (KLBigInt_is_one(a1)==false){
-		KLBigInt_free(a1);
-		KLBigInt_free(b);
+	KlBigInt_free(q);
+	KlBigInt_free(r);
+	KlBigInt_free(t);
+	KlBigInt_free(s);
+	KlBigInt_free(c);
+	if (KlBigInt_is_one(a1)==false){
+		KlBigInt_free(a1);
+		KlBigInt_free(b);
 		KlError_unimplemented_error();
 		return(NULL);
 	}
-	KLBigInt_free(a1);
+	KlBigInt_free(a1);
 	return(b);
 }
 
 
 
-struct BigInt* KLBigInt_iroot(struct BigInt* r,struct BigInt* dg){
+struct BigInt* KlBigInt_iroot(struct BigInt* r,struct BigInt* dg){
 	KlMem_enter_func();
 	assert(r!=NULL);
 	assert(dg!=NULL);
@@ -1181,62 +1187,62 @@ struct BigInt* KLBigInt_iroot(struct BigInt* r,struct BigInt* dg){
 		return(NULL);
 	}
 	if (r->l==1&&*r->v<2){
-		return(KLBigInt_assign(NULL,r));
+		return(KlBigInt_assign(NULL,r));
 	}
-	if (KLBigInt_cmp(r,dg)==-1){
-		return(KLBigInt_from_long(0));
+	if (KlBigInt_cmp(r,dg)==-1){
+		return(KlBigInt_from_long(0));
 	}
-	if (KLBigInt_is_zero(dg)==true){
-		return(KLBigInt_from_long(1));
+	if (KlBigInt_is_zero(dg)==true){
+		return(KlBigInt_from_long(1));
 	}
-	struct BigInt* dg1=KLBigInt_sub_long(dg,1);
-	struct BigInt* c=KLBigInt_from_long(1);
-	struct BigInt* tmp=KLBigInt_add(r,dg1);
-	struct BigInt* d=KLBigInt_fdiv(tmp,dg);
-	KLBigInt_free(tmp);
-	tmp=KLBigInt_pow(d,dg1,NULL);
-	struct BigInt* tmp2=KLBigInt_fdiv(r,tmp);
-	KLBigInt_free(tmp);
-	tmp=KLBigInt_mult(d,dg1);
-	struct BigInt* tmp3=KLBigInt_add(tmp,tmp2);
-	KLBigInt_free(tmp);
-	KLBigInt_free(tmp2);
-	struct BigInt* e=KLBigInt_fdiv(tmp3,dg);
-	KLBigInt_free(tmp3);
-	if (KLBigInt_is_one(d)||KLBigInt_is_one(e)){
-		KLBigInt_free(dg1);
-		KLBigInt_free(c);
-		KLBigInt_free(d);
-		KLBigInt_free(e);
-		return(KLBigInt_from_long(1));
+	struct BigInt* dg1=KlBigInt_sub_long(dg,1);
+	struct BigInt* c=KlBigInt_from_long(1);
+	struct BigInt* tmp=KlBigInt_add(r,dg1);
+	struct BigInt* d=KlBigInt_fdiv(tmp,dg);
+	KlBigInt_free(tmp);
+	tmp=KlBigInt_pow(d,dg1,NULL);
+	struct BigInt* tmp2=KlBigInt_fdiv(r,tmp);
+	KlBigInt_free(tmp);
+	tmp=KlBigInt_mult(d,dg1);
+	struct BigInt* tmp3=KlBigInt_add(tmp,tmp2);
+	KlBigInt_free(tmp);
+	KlBigInt_free(tmp2);
+	struct BigInt* e=KlBigInt_fdiv(tmp3,dg);
+	KlBigInt_free(tmp3);
+	if (KlBigInt_is_one(d)||KlBigInt_is_one(e)){
+		KlBigInt_free(dg1);
+		KlBigInt_free(c);
+		KlBigInt_free(d);
+		KlBigInt_free(e);
+		return(KlBigInt_from_long(1));
 	}
-	while (KLBigInt_neq(c,d)&&KLBigInt_neq(c,e)){
-		KLBigInt_free(c);
+	while (KlBigInt_neq(c,d)&&KlBigInt_neq(c,e)){
+		KlBigInt_free(c);
 		c=d;
 		d=e;
-		tmp=KLBigInt_pow(e,dg1,NULL);
-		tmp2=KLBigInt_fdiv(r,tmp);
-		KLBigInt_free(tmp);
-		tmp=KLBigInt_mult(e,dg1);
-		tmp3=KLBigInt_add(tmp,tmp2);
-		KLBigInt_free(tmp);
-		KLBigInt_free(tmp2);
-		e=KLBigInt_fdiv(tmp3,dg);
-		KLBigInt_free(tmp3);
+		tmp=KlBigInt_pow(e,dg1,NULL);
+		tmp2=KlBigInt_fdiv(r,tmp);
+		KlBigInt_free(tmp);
+		tmp=KlBigInt_mult(e,dg1);
+		tmp3=KlBigInt_add(tmp,tmp2);
+		KlBigInt_free(tmp);
+		KlBigInt_free(tmp2);
+		e=KlBigInt_fdiv(tmp3,dg);
+		KlBigInt_free(tmp3);
 	}
-	KLBigInt_free(dg1);
-	KLBigInt_free(c);
-	if (KLBigInt_cmp(d,e)==-1){
-		KLBigInt_free(e);
+	KlBigInt_free(dg1);
+	KlBigInt_free(c);
+	if (KlBigInt_cmp(d,e)==-1){
+		KlBigInt_free(e);
 		return(d);
 	}
-	KLBigInt_free(d);
+	KlBigInt_free(d);
 	return(e);
 }
 
 
 
-struct BigInt* KLBigInt_iroot_long(struct BigInt* r,unsigned long dg){
+struct BigInt* KlBigInt_iroot_long(struct BigInt* r,unsigned long dg){
 	KlMem_enter_func();
 	assert(r!=NULL);
 	assert(r->l>0);
@@ -1245,67 +1251,67 @@ struct BigInt* KLBigInt_iroot_long(struct BigInt* r,unsigned long dg){
 		return(NULL);
 	}
 	if (r->l==1&&*r->v<2){
-		return(KLBigInt_assign(NULL,r));
+		return(KlBigInt_assign(NULL,r));
 	}
-	if (KLBigInt_cmp_long(r,dg)==-1){
-		return(KLBigInt_from_long(0));
+	if (KlBigInt_cmp_long(r,dg)==-1){
+		return(KlBigInt_from_long(0));
 	}
 	if (dg==0){
-		return(KLBigInt_from_long(1));
+		return(KlBigInt_from_long(1));
 	}
 	if (dg==1){
 		return(r);
 	}
-	struct BigInt* c=KLBigInt_from_long(1);
-	struct BigInt* tmp=KLBigInt_add_long(r,dg-1);
-	struct BigInt* d=KLBigInt_fdiv_long(tmp,dg);
-	tmp=KLBigInt_pow_long(d,dg-1,NULL);
-	struct BigInt* tmp2=KLBigInt_fdiv(r,tmp);
-	KLBigInt_free(tmp);
-	tmp=KLBigInt_mult_long(d,dg-1);
-	struct BigInt* tmp3=KLBigInt_add(tmp,tmp2);
-	KLBigInt_free(tmp);
-	KLBigInt_free(tmp2);
-	struct BigInt* e=KLBigInt_fdiv_long(tmp3,dg);
-	KLBigInt_free(tmp3);
-	if (KLBigInt_is_one(d)||KLBigInt_is_one(e)){
-		KLBigInt_free(c);
-		KLBigInt_free(d);
-		KLBigInt_free(e);
-		return(KLBigInt_from_long(1));
+	struct BigInt* c=KlBigInt_from_long(1);
+	struct BigInt* tmp=KlBigInt_add_long(r,dg-1);
+	struct BigInt* d=KlBigInt_fdiv_long(tmp,dg);
+	tmp=KlBigInt_pow_long(d,dg-1,NULL);
+	struct BigInt* tmp2=KlBigInt_fdiv(r,tmp);
+	KlBigInt_free(tmp);
+	tmp=KlBigInt_mult_long(d,dg-1);
+	struct BigInt* tmp3=KlBigInt_add(tmp,tmp2);
+	KlBigInt_free(tmp);
+	KlBigInt_free(tmp2);
+	struct BigInt* e=KlBigInt_fdiv_long(tmp3,dg);
+	KlBigInt_free(tmp3);
+	if (KlBigInt_is_one(d)||KlBigInt_is_one(e)){
+		KlBigInt_free(c);
+		KlBigInt_free(d);
+		KlBigInt_free(e);
+		return(KlBigInt_from_long(1));
 	}
-	while (KLBigInt_neq(c,d)&&KLBigInt_neq(c,e)){
-		KLBigInt_free(c);
+	while (KlBigInt_neq(c,d)&&KlBigInt_neq(c,e)){
+		KlBigInt_free(c);
 		c=d;
 		d=e;
-		tmp=KLBigInt_pow_long(e,dg-1,NULL);
-		tmp2=KLBigInt_fdiv(r,tmp);
-		KLBigInt_free(tmp);
-		tmp=KLBigInt_mult_long(e,dg-1);
-		tmp3=KLBigInt_add(tmp,tmp2);
-		KLBigInt_free(tmp);
-		KLBigInt_free(tmp2);
-		e=KLBigInt_fdiv_long(tmp3,dg);
-		KLBigInt_free(tmp3);
+		tmp=KlBigInt_pow_long(e,dg-1,NULL);
+		tmp2=KlBigInt_fdiv(r,tmp);
+		KlBigInt_free(tmp);
+		tmp=KlBigInt_mult_long(e,dg-1);
+		tmp3=KlBigInt_add(tmp,tmp2);
+		KlBigInt_free(tmp);
+		KlBigInt_free(tmp2);
+		e=KlBigInt_fdiv_long(tmp3,dg);
+		KlBigInt_free(tmp3);
 	}
-	KLBigInt_free(c);
-	if (KLBigInt_cmp(d,e)==-1){
-		KLBigInt_free(e);
+	KlBigInt_free(c);
+	if (KlBigInt_cmp(d,e)==-1){
+		KlBigInt_free(e);
 		return(d);
 	}
-	KLBigInt_free(d);
+	KlBigInt_free(d);
 	return(e);
 }
 
 
 
-/*struct BigInt* KLBigInt_root(struct BigInt* n,struct BigInt* b){
-	return(KLBigInt_pow(n,KLBigInt_div(1,b)));
+/*struct BigInt* KlBigInt_root(struct BigInt* n,struct BigInt* b){
+	return(KlBigInt_pow(n,KlBigInt_div(1,b)));
 }*/
 
 
 
-bool KLBigInt_eq(struct BigInt* a,struct BigInt* b){
+bool KlBigInt_eq(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -1325,7 +1331,7 @@ bool KLBigInt_eq(struct BigInt* a,struct BigInt* b){
 
 
 
-bool KLBigInt_neq(struct BigInt* a,struct BigInt* b){
+bool KlBigInt_neq(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -1345,7 +1351,7 @@ bool KLBigInt_neq(struct BigInt* a,struct BigInt* b){
 
 
 
-signed char KLBigInt_cmp(struct BigInt* a,struct BigInt* b){
+signed char KlBigInt_cmp(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -1365,7 +1371,7 @@ signed char KLBigInt_cmp(struct BigInt* a,struct BigInt* b){
 
 
 
-signed char KLBigInt_cmp_long(struct BigInt* a,long b){
+signed char KlBigInt_cmp_long(struct BigInt* a,long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	if (a->l>0||*a->v>0||b!=0){
@@ -1381,7 +1387,7 @@ signed char KLBigInt_cmp_long(struct BigInt* a,long b){
 
 
 
-signed char KLBigInt_cmp_abs(struct BigInt* a,struct BigInt* b){
+signed char KlBigInt_cmp_abs(struct BigInt* a,struct BigInt* b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	assert(b!=NULL);
@@ -1409,7 +1415,7 @@ signed char KLBigInt_cmp_abs(struct BigInt* a,struct BigInt* b){
 
 
 
-signed char KLBigInt_cmp_long_abs(struct BigInt* a,unsigned long b){
+signed char KlBigInt_cmp_long_abs(struct BigInt* a,unsigned long b){
 	KlMem_enter_func();
 	assert(a!=NULL);
 	intmax_t lna=(a->l<0?-a->l:a->l);
@@ -1430,7 +1436,7 @@ signed char KLBigInt_cmp_long_abs(struct BigInt* a,unsigned long b){
 
 
 
-char* KLBigInt_print(struct BigInt* n){
+char* KlBigInt_print(struct BigInt* n){
 	KlMem_enter_func();
 	assert(n!=NULL);
 	intmax_t ln=(n->l<0?-n->l:n->l);

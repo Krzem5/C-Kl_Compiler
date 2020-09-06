@@ -29,7 +29,7 @@ void KlDebug_print_ast_token(struct ASTToken t){
 			KlMem_free(cs);
 			break;
 		case AST_TOKEN_TYPE_INT:
-			char* ns=KLBigInt_print((struct BigInt*)t.v);
+			char* ns=KlBigInt_print((struct BigInt*)t.v);
 			KlIo_printf("Number%f,\n  %fValue%f: %f%s%f,\n  %fNext File Offset%f: %f%S%f,\n};%f\n",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,ns,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_INT,t.i,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_RESET);
 			KlMem_free(ns);
 			break;
@@ -1123,7 +1123,7 @@ void KlDebug_print_ast_expr_arg(struct ASTExpressionArg* ea,unsigned char i,void
 				KlIo_printf("%fNULL %f(Number)%f,\n",CONST_COLOR_DEBUG_UTILS_NULL,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 			}
 			else{
-				char* ns=KLBigInt_print(ea->v.n);
+				char* ns=KlBigInt_print(ea->v.n);
 				KlIo_printf("%f%s %f(Number)%f,\n",CONST_COLOR_DEBUG_UTILS_INT,ns,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				KlMem_free(ns);
 			}
@@ -1453,7 +1453,7 @@ void KlDebug_print_unparsed_ast_expr(struct UnparsedASTExpression* e,unsigned ch
 				KlMem_free(ss);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_INT:
-				char* ns=KLBigInt_print(j->v.n);
+				char* ns=KlBigInt_print(j->v.n);
 				KlIo_printf("%s  %f%s %f(Number)%f,\n",is,CONST_COLOR_DEBUG_UTILS_INT,ns,CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				KlMem_free(ns);
 				break;

@@ -11,7 +11,7 @@ struct NullObject{
 
 
 
-static const struct Type NullType={
+static struct Type NullType={
 	.nm="null",
 	.base=&BaseType,
 	.sz=sizeof(struct NullObject)

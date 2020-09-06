@@ -4,6 +4,8 @@
 #include <crypt.h>
 #include <io.h>
 #include <shared.h>
+#include <type.h>
+#include <bigint.h>
 #include <memory.h>
 #include <string_utils.h>
 
@@ -68,12 +70,54 @@ uint64_t KlApi_default_hash(struct Object* a){
 
 
 
-struct Object* KlApi_char_to_object(char c);
+void KlApi_bigint_dealloc_f(struct Object* a){
+	KlMem_enter_func();
+	struct BigIntObject* ia=KlObject_to_bigint(a);
+	if (ia==NULL){
+		return();
+	}
+	KlBigInt_free(ia->i);
+	return();
+}
 
 
 
-struct Object* KlApi_str_to_object(char* s);
+struct Object* KlApi_bigint_add_f(struct Object* a,struct Object* b){
+	KlMem_enter_func();
+	struct BigIntObject* ia=KlObject_to_bigint(a);
+	if (ia==NULL){
+		return(NULL);
+	}
+	struct BigIntObject* ib=KlObject_to_bigint(b);
+	if (ib==NULL){
+		return(NULL);
+	}
+	struct BigInt* oi=KlBigInt_add(ia->i,ib->i);
+	if (oi==NULL){
+		return(NULL);
+	}
+	struct BigIntObject* o=(struct BigIntObject*)KlObject_new(BigIntType);
+	o->i=oi;
+	return((struct Object*)o);
+}
 
 
 
-struct Object* KlApi_int_to_object(struct BigInt* i);
+struct Object* KlApi_bigint_iroot_f(struct Object* a,struct Object* b){
+	KlMem_enter_func();
+	struct BigIntObject* ia=KlObject_to_bigint(a);
+	if (a==NULL){
+		return(NULL);
+	}
+	struct BigIntObject* ib=KlObject_to_bigint(b);
+	if (b==NULL){
+		return(NULL);
+	}
+	struct BigInt* oi=KlBigInt_iroot(ia->i,ib->i);
+	if (oi==NULL){
+		return(NULL);
+	}
+	struct BigIntObject* o=(struct BigIntObject*)KlObject_new(BigIntType);
+	o->i=oi;
+	return((struct Object*)o);
+}

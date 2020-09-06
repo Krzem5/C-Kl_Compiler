@@ -22,7 +22,7 @@ size_t KlFree_free_token(struct ASTToken t){
 			KlMem_free(t.v);
 			break;
 		case AST_TOKEN_TYPE_INT:
-			KLBigInt_free(t.v);
+			KlBigInt_free(t.v);
 			break;
 	}
 	return(t.i);
@@ -37,7 +37,7 @@ size_t KlFree_free_token_p(struct ASTToken* t){
 			KlMem_free(t->v);
 			break;
 		case AST_TOKEN_TYPE_INT:
-			KLBigInt_free(t->v);
+			KlBigInt_free(t->v);
 			break;
 	}
 	return(t->i);
@@ -188,7 +188,7 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 				KlMem_free((e.e+i)->v.s);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_INT:
-				KLBigInt_free((e.e+i)->v.n);
+				KlBigInt_free((e.e+i)->v.n);
 				break;
 			case UNPARSED_AST_EXPRESSION_ELEM_TYPE_FLOAT:
 				///////

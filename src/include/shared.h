@@ -11,12 +11,16 @@
 #define NONE (SIZE_MAX)
 #define UNKNOWN_SIZE (SIZE_MAX)
 #define OBJ(o) ((struct Object*)(o))
-#define OBJECT_HEAD const struct Type* __t;size_t __sz;
+#define OBJECT_HEAD struct Type* __t;size_t __sz;
 #define OBJECT_HEAD_INIT(t,sz) .__t=&(t),.__sz=(size_t)(sz),
 #define OBJECT_TYPE(a) a.__t
 #define OBJECT_TYPE_P(a) a->__t
 #define OBJECT_SIZE(a) a.__sz
 #define OBJECT_SIZE_P(a) a->__sz
+#define TYPE_HEAD uint32_t __id;
+#define TYPE_HEAD_INIT .__id=__COUNTER__,
+#define TYPE_ID(t) t.__id
+#define OBJECT_SAME_TYPE_P(a,t) OBJECT_TYPE_P(a)->__id==t.__id
 #define OFFSETOF(t,o) ((size_t)((unsigned char*)&((t*)0)->o-(unsigned char*)0))
 #define bool _Bool
 #define false 0
@@ -498,8 +502,9 @@ struct TypeSlot{
 
 
 struct Type{
+	TYPE_HEAD
 	const char* nm;
-	const struct Type* base;
+	struct Type* base;
 	size_t sz;
 	NullaryFunc alloc_f;
 	TernaryListVoidFunc init_f;

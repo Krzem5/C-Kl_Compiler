@@ -24,15 +24,15 @@ uint64_t KlApi_default_hash(struct Object* a);
 
 
 
-struct Object* KlApi_char_to_object(char c);
+void KlApi_bigint_dealloc_f(struct Object* a);
 
 
 
-struct Object* KlApi_str_to_object(char* s);
+struct Object* KlApi_bigint_add_f(struct Object* a,struct Object* b);
 
 
 
-struct Object* KlApi_int_to_object(struct BigInt* i);
+struct Object* KlApi_bigint_iroot_f(struct Object* a,struct Object* b);
 
 
 
