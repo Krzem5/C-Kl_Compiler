@@ -56,6 +56,8 @@ struct ASTScope* KlAst_parse_ast_all(struct CodeFileObject* fo,struct CallStack*
 		NULL,
 		0,
 		NULL,
+		0,
+		NULL,
 		NULL,
 		NULL,
 		0,
@@ -146,12 +148,15 @@ bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,
 									if (m_fp==NULL){
 										return(true);
 									}
-									struct ASTScope* m=KlImport_load_module(fo,m_fp,KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),KlError_offset_to_line(fo->dt,m_e_nm.i),t.i,m_e_nm.i,"<import>"));
+									struct ASTModule* m=KlImport_load_module(fo,m_fp,KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),KlError_offset_to_line(fo->dt,m_e_nm.i),t.i,m_e_nm.i,"<import>"));
 									KlMem_free(m_fp);
 									if (m==NULL){
 										return(true);
 									}
-									KlIo_printf("LOAD MODULE AS OBJECT (STAR)...\n");
+									m->v_nm=NULL;
+									o->ml++;
+									o->m=KlMem_realloc(o->m,o->ml*sizeof(struct ASTModule*));
+									*(o->m+o->ml-1)=m;
 									KlFree_free_token(nt);
 									nt=KlAst_next_token(fo,KlFree_free_token(m_e_nm),cs);
 									break;
@@ -188,18 +193,11 @@ bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,
 									if (m==NULL){
 										return(true);
 									}
-									KlIo_printf("LOAD MODULE AS OBJECT (Var: %s)...\n",v_nm);
+									// EXPORT m_e_nm.v as v_nm (str_clone)
+									o->ml++;
+									o->m=KlMem_realloc(o->m,o->ml*sizeof(struct ASTScope*));
+									*(o->m+o->ml-1)=m;
 									KlMem_free(v_nm);
-									/****TMP****/
-									/*o->cl++;
-									o->c=KlMem_realloc(o->c,o->cl*sizeof(struct ASTExpression*));
-									KlMem_ret(o->e);
-									*(o->e+o->el-1)=KlAst_gen_expression("(i((s)i))",AST_EXPRESSION_TYPE_EQU,v_nm,AST_EXPRESSION_TYPE_ACS,AST_EXPRESSION_TYPE_INC,m_nm.v,m_e_nm.v);
-									KlMem_free(v_nm);*/
-									/*if (KlAst_process_expression(fo,*(o->e+o->el-1),cs,o,(struct ModifierData){OBJECT_MODIFIER_EXPORT|OBJECT_MODIFIER_FROZEN,0,0})==true){
-										return(true);
-									}*/
-									/****TMP****/
 								}
 								else{
 									char* m_fp=KlImport_find_module(fo,m_nm.v,cs);
@@ -211,13 +209,10 @@ bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,
 									if (m==NULL){
 										return(true);
 									}
-									KlIo_printf("LOAD MODULE AS OBJECT...\n");
-									/****TMP****/
-									/*o->el++;
-									o->e=KlMem_realloc(o->e,o->el*sizeof(struct ASTExpression*));
-									KlMem_ret(o->e);
-									*(o->e+o->el-1)=KlAst_gen_expression("(i((s)i))",AST_EXPRESSION_TYPE_EQU,m_e_nm.v,AST_EXPRESSION_TYPE_ACS,AST_EXPRESSION_TYPE_INC,m_nm.v,m_e_nm.v);*/
-									/****TMP****/
+									// EXPORT m_e_nm.v as m_e_nm.v (str_clone)
+									o->ml++;
+									o->m=KlMem_realloc(o->m,o->ml*sizeof(struct ASTScope*));
+									*(o->m+o->ml-1)=m;
 								}
 								KlFree_free_token(m_e_nm);
 								if (nt.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)nt.v==AST_TOKEN_OPERATOR_COMMA){
@@ -283,16 +278,10 @@ bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,
 						if (m==NULL){
 							return(true);
 						}
-						KlIo_printf("LOAD MODULE AS OBJECT...\n");
-						/****TMP****/
-						/*o->el++;
-						o->e=KlMem_realloc(o->e,o->el*sizeof(struct ASTExpression*));
-						KlMem_ret(o->e);
-						*(o->e+o->el-1)=KlAst_gen_expression("(i(s))",AST_EXPRESSION_TYPE_EQU,m_v_nm,AST_EXPRESSION_TYPE_INC,m_nm.v);
-						if (KlAst_process_expression(fo,*(o->e+o->el-1),cs,o,(struct ModifierData){OBJECT_MODIFIER_EXPORT|OBJECT_MODIFIER_FROZEN,0,0})==true){
-							return(true);
-						}*/
-						/****TMP****/
+						// EXPORT as m_v_nm
+						o->ml++;
+						o->m=KlMem_realloc(o->m,o->ml*sizeof(struct ASTScope*));
+						*(o->m+o->ml-1)=m;
 						t.i=nt.i;
 						KlFree_free_token(m_nm);
 						KlFree_free_token(nt);
@@ -340,6 +329,8 @@ bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,
 						AST_SCOPE_TYPE_CLASS,
 						o,
 						nm,
+						NULL,
+						0,
 						NULL,
 						0,
 						NULL,
@@ -460,6 +451,8 @@ bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,
 									AST_SCOPE_TYPE_FUNCTION,
 									c_scp,
 									i_nm,
+									NULL,
+									0,
 									NULL,
 									0,
 									NULL,
@@ -2137,8 +2130,6 @@ bool KlAst_optimize_check_ast_expr(struct CodeFileObject* fo,struct ASTExpressio
 						return(false);
 					}
 				}
-				print_ast_expr(ex);
-				KlIo_printf("PRECALC CONSTEXPR: %S\n",(size_t)ex->t);
 				assert(ex->t!=AST_EXPRESSION_TYPE_TCOND);// UNIMPLEMENTED
 				if (op==1){
 					struct ASTExpressionArg ea=KlObject_eval_unary(ex->t,ex->a);
@@ -2156,7 +2147,6 @@ bool KlAst_optimize_check_ast_expr(struct CodeFileObject* fo,struct ASTExpressio
 					KlError_unimplemented_error();
 					return(false);
 				}
-				print_ast_expr(ex);
 			}
 		}
 	}
@@ -2195,14 +2185,14 @@ bool KlAst_optimize_check_ast_expr_arg(struct CodeFileObject* fo,struct ASTExpre
 		case AST_EXPRESSION_ARG_TYPE_IDENTIFIER:
 			if (ic==true){
 				size_t rc=KlAst_get_decl_refc(a->v.i,sc);
-				/*if (rc==SIZE_MAX){
+				if (rc==SIZE_MAX){
 					KlError_unimplemented_error();
 					return(true);
 				}
 				if (rc==0){
 					KlError_unimplemented_error();
 					return(true);
-				}*/
+				}
 			}
 			break;
 		case AST_EXPRESSION_ARG_TYPE_MODIFIERS:
@@ -3077,12 +3067,33 @@ unsigned char KlAst_get_op_count(unsigned char op){
 uint16_t KlAst_get_decl(char* nm,struct ASTScope* sc){
 	KlMem_enter_func();
 	size_t ln=str_len(nm);
+	bool nm_ths=(str_cmp_sub(nm,"this",0,ln)==true?true:false);
 	while (true){
-		if (sc->t==AST_SCOPE_TYPE_DEFAULT&&sc->vnm!=NULL){
+		if (sc->t==AST_SCOPE_TYPE_DEFAULT){
 			for (size_t i=0;i<sc->vl;i++){
 				if (str_cmp_sub(nm,*(sc->vnm+i),0,ln)==true){
 					return(*(sc->vm+i));
 				}
+			}
+		}
+		if (sc->t==AST_SCOPE_TYPE_FUNCTION){
+			for (size_t i=0;i<sc->al;i++){
+				if (str_cmp_sub(nm,*(sc->anm+i),0,ln)==true){
+					return(0);
+				}
+			}
+		}
+		if (sc->t==AST_SCOPE_TYPE_CLASS&&nm_ths==true){
+			return(1);
+		}
+		for (size_t i=0;i<sc->ml;i++){
+			if ((*(sc->m+i))->v_mn!=NULL){
+				if (str_cmp_sub(nm,(*(sc->m+i))->v_nm,0,ln)==true){
+					return(1);
+				}
+			}
+			else{
+				KlError_unimplemented_code();
 			}
 		}
 		if (sc->p==NULL){
@@ -3096,13 +3107,35 @@ uint16_t KlAst_get_decl(char* nm,struct ASTScope* sc){
 
 size_t KlAst_get_decl_refc(char* nm,struct ASTScope* sc){
 	KlMem_enter_func();
+	print_ast_scope(sc);
 	size_t ln=str_len(nm);
+	bool nm_ths=(str_cmp_sub(nm,"this",0,ln)==true?true:false);
 	while (true){
-		if (sc->t==AST_SCOPE_TYPE_DEFAULT&&sc->vnm!=NULL){
+		if (sc->t==AST_SCOPE_TYPE_DEFAULT){
 			for (size_t i=0;i<sc->vl;i++){
 				if (str_cmp_sub(nm,*(sc->vnm+i),0,ln)==true){
 					return(*(sc->vrc+i));
 				}
+			}
+		}
+		if (sc->t==AST_SCOPE_TYPE_FUNCTION){
+			for (size_t i=0;i<sc->al;i++){
+				if (str_cmp_sub(nm,*(sc->anm+i),0,ln)==true){
+					return(1);
+				}
+			}
+		}
+		if (sc->t==AST_SCOPE_TYPE_CLASS&&nm_ths==true){
+			return(1);
+		}
+		for (size_t i=0;i<sc->ml;i++){
+			if ((*(sc->m+i))->v_mn!=NULL){
+				if (str_cmp_sub(nm,(*(sc->m+i))->v_nm,0,ln)==true){
+					return(1);
+				}
+			}
+			else{
+				KlError_unimplemented_code();
 			}
 		}
 		if (sc->p==NULL){

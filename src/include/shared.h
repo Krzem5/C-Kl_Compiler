@@ -326,7 +326,8 @@ enum AST_SCOPE_TYPE{
 	AST_SCOPE_TYPE_UNKNOWN=0x00,
 	AST_SCOPE_TYPE_DEFAULT=0x01,
 	AST_SCOPE_TYPE_FUNCTION=0x02,
-	AST_SCOPE_TYPE_CLASS=0x03
+	AST_SCOPE_TYPE_CLASS=0x03,
+	AST_SCOPE_TYPE_MODULE=0x04
 };
 
 
@@ -661,6 +662,19 @@ struct UnparsedASTExpression{
 
 
 
+struct ASTModule{
+	char* nm;
+	char* v_nm;
+	char* fp;
+	char** f;
+	size_t fl;
+	char** v;
+	size_t vl;
+	struct ASTScope* src;
+};
+
+
+
 struct ASTScope{
 	enum AST_SCOPE_TYPE t;
 	struct ASTScope* p;
@@ -669,11 +683,13 @@ struct ASTScope{
 	size_t cl;
 	struct ASTScope** f;
 	size_t fl;
+	struct ASTModule** m;
+	size_t ml;
 	char** vnm;
 	uint16_t* vm;
 	size_t* vrc;
 	size_t vl;
-	uint16_t m;
+	uint16_t md;
 	char** anm;
 	size_t al;
 };

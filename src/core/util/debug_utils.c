@@ -283,16 +283,16 @@ void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i,void** rp){
 			KlIo_printf(" %f(None)%f,\n%s  %fParent Scope%f: ",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 		}
 		else{
-			if ((o->m&OBJECT_MODIFIER_PUBLIC)!=0){
+			if ((o->md&OBJECT_MODIFIER_PUBLIC)!=0){
 				KlIo_printf(" public");
 			}
-			if ((o->m&OBJECT_MODIFIER_PRIVATE)!=0){
+			if ((o->md&OBJECT_MODIFIER_PRIVATE)!=0){
 				KlIo_printf(" private");
 			}
-			if ((o->m&OBJECT_MODIFIER_STATIC)!=0){
+			if ((o->md&OBJECT_MODIFIER_STATIC)!=0){
 				KlIo_printf(" static");
 			}
-			if ((o->m&OBJECT_MODIFIER_EXPORT)!=0){
+			if ((o->md&OBJECT_MODIFIER_EXPORT)!=0){
 				KlIo_printf(" export");
 			}
 			KlIo_printf("%f,\n%s  %fParent Scope%f: ",CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
@@ -413,7 +413,7 @@ void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i,void** rp){
 		else{
 			KlIo_printf("{\n");
 			for (size_t i=0;i<o->al;i++){
-				if (i==o->al-1&&(o->m&OBJECT_MODIFIER_VARARG)!=0){
+				if (i==o->al-1&&(o->md&OBJECT_MODIFIER_VARARG)!=0){
 					KlIo_printf("%s    %f...%f%s %f(Vararg)%f,\n",is,CONST_COLOR_DEBUG_UTILS_OPERATOR,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,*(o->anm+i),CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 				}
 				else{
@@ -565,7 +565,7 @@ void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i,void** rp){
 		else{
 			bool f=false;
 			for (size_t j=0;j<o->fl;j++){
-				if (((*(o->f+j))->m&OBJECT_MODIFIER_STATIC)==0){
+				if (((*(o->f+j))->md&OBJECT_MODIFIER_STATIC)==0){
 					continue;
 				}
 				if (f==false){
@@ -656,7 +656,7 @@ void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i,void** rp){
 		else{
 			bool f=false;
 			for (size_t j=0;j<o->fl;j++){
-				if (((*(o->f+j))->m&OBJECT_MODIFIER_STATIC)!=0){
+				if (((*(o->f+j))->md&OBJECT_MODIFIER_STATIC)!=0){
 					continue;
 				}
 				if (f==false){

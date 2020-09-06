@@ -163,12 +163,10 @@ struct ASTExpressionArg KlObject_eval_unary(unsigned char t,struct ASTExpression
 	}
 	struct Object* o=op_f(ia);
 	if (a.t!=AST_EXPRESSION_ARG_TYPE_OBJECT){
-		KlFree_free_object(*ia);
-		KlMem_free(ia);
+		KlFree_free_object(ia);
 	}
 	struct ASTExpressionArg oa=KlObject_to_ast_expr_arg(o);
-	KlFree_free_object(*o);
-	KlMem_free(o);
+	KlFree_free_object(o);
 	return(oa);
 }
 
@@ -188,16 +186,13 @@ struct ASTExpressionArg KlObject_eval_binary(unsigned char t,struct ASTExpressio
 	}
 	struct Object* o=op_f(ia,ib);
 	if (a.t!=AST_EXPRESSION_ARG_TYPE_OBJECT){
-		KlFree_free_object(*ia);
-		KlMem_free(ia);
+		KlFree_free_object(ia);
 	}
 	if (b.t!=AST_EXPRESSION_ARG_TYPE_OBJECT){
-		KlFree_free_object(*ib);
-		KlMem_free(ib);
+		KlFree_free_object(ib);
 	}
 	struct ASTExpressionArg oa=KlObject_to_ast_expr_arg(o);
-	KlFree_free_object(*o);
-	KlMem_free(o);
+	KlFree_free_object(o);
 	return(oa);
 }
 
@@ -327,7 +322,8 @@ struct Type* KlObject_get_type_ptr(struct Type t){
 	_tk=KlMem_realloc(_tk,_tl*sizeof(uint32_t));
 	_tv=KlMem_realloc(_tv,_tl*sizeof(struct Type*));
 	*(_tk+_tl-1)=TYPE_ID(t);
-	*(_tv+_tl-1)=KlMem_const(&t,sizeof(struct Type));
+	*(_tv+_tl-1)=KlMem_malloc(sizeof(struct Type));
+	KlMem_memcpy(*(_tv+_tl-1),&t,sizeof(struct Type));
 	KlMem_ret(_tk);
 	KlMem_ret(_tv);
 	KlMem_ret(*(_tv+_tl-1));

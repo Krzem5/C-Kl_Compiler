@@ -9,13 +9,16 @@
 
 
 void KlFree_free_code_file_object(struct CodeFileObject fo){
+	KlMem_enter_func();
 	KlMem_free(fo.fp);
 	KlMem_free(fo.dt);
+	return();
 }
 
 
 
 size_t KlFree_free_token(struct ASTToken t){
+	KlMem_enter_func();
 	switch (t.t){
 		case AST_TOKEN_TYPE_STRING:
 		case AST_TOKEN_TYPE_IDENTIFIER:
@@ -31,6 +34,7 @@ size_t KlFree_free_token(struct ASTToken t){
 
 
 size_t KlFree_free_token_p(struct ASTToken* t){
+	KlMem_enter_func();
 	switch (t->t){
 		case AST_TOKEN_TYPE_STRING:
 		case AST_TOKEN_TYPE_IDENTIFIER:
@@ -212,6 +216,7 @@ void KlFree_free_unparsed_expression(struct UnparsedASTExpression e){
 
 
 void KlFree_free_scope(struct ASTScope sc){
+	KlMem_enter_func();
 	if (sc.nm!=NULL){
 		KlMem_free(sc.nm);
 	}
@@ -243,24 +248,30 @@ void KlFree_free_scope(struct ASTScope sc){
 		}
 		KlMem_free(sc.anm);
 	}
+	return();
 }
 
 
 
 void KlFree_free_sha256(struct SHA256 sha){
+	KlMem_enter_func();
 	KlMem_free(sha.dt);
 	KlMem_free(sha.st);
+	return();
 }
 
 
 
-void KlFree_free_object(struct Object o){
-	UnaryVoidFunc d_f=(UnaryVoidFunc)KlObject_get_op(deinit_f,OBJECT_TYPE(o),NULL);
+void KlFree_free_object(struct Object* o){
+	KlMem_enter_func();
+	UnaryVoidFunc d_f=(UnaryVoidFunc)KlObject_get_op(deinit_f,OBJECT_TYPE_P(o),NULL);
 	if (d_f!=NULL){
-		d_f(&o);
+		d_f(o);
 	}
-	d_f=(UnaryVoidFunc)KlObject_get_op(dealloc_f,OBJECT_TYPE(o),NULL);
+	d_f=(UnaryVoidFunc)KlObject_get_op(dealloc_f,OBJECT_TYPE_P(o),NULL);
 	if (d_f!=NULL){
-		d_f(&o);
+		d_f(o);
 	}
+	KlMem_free(o);
+	return();
 }

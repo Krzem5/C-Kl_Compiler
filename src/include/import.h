@@ -8,7 +8,7 @@ char* KlImport_find_module(struct CodeFileObject* fo,const char* nm,struct CallS
 
 
 
-struct ASTScope* KlImport_load_module(struct CodeFileObject* fo,const char* fp,struct CallStack* cs);
+struct ASTModule* KlImport_load_module(struct CodeFileObject* fo,const char* fp,struct CallStack* cs);
 
 
 

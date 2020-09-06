@@ -32,7 +32,7 @@ void KlFree_free_sha256(struct SHA256 sha);
 
 
 
-void KlFree_free_object(struct Object o);
+void KlFree_free_object(struct Object* o);
 
 
 

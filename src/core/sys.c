@@ -32,6 +32,8 @@ static const struct ASTScope KlSys_Module={
 	NULL,
 	0,
 	NULL,
+	0,
+	NULL,
 	NULL,
 	NULL,
 	0,
