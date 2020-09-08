@@ -34,7 +34,7 @@ static const struct ASTModule KlSys_Module={
 	NULL,
 	0,
 	NULL,//CRASH
-	true
+	OBJECT_MODIFIER_NATIVE_BASE
 };
 
 

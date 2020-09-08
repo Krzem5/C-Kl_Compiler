@@ -234,6 +234,15 @@ void KlFree_free_scope(struct ASTScope sc){
 		}
 		KlMem_free(sc.f);
 	}
+	if (sc.ml>0){
+		for (size_t i=0;i<sc.ml;i++){
+			KlFree_free_module(**(sc.m+i));
+			if (((*(sc.m+i))->mf&OBJECT_MODIFIER_NATIVE_BASE)==0){
+				KlMem_free(*(sc.m+i));
+			}
+		}
+		KlMem_free(sc.m);
+	}
 	if (sc.vl>0){
 		for (size_t i=0;i<sc.vl;i++){
 			KlMem_free(*(sc.vnm+i));
@@ -254,17 +263,39 @@ void KlFree_free_scope(struct ASTScope sc){
 
 
 void KlFree_free_module(struct ASTModule m){
-	KlMem_free(m.nm);
-	if (m.v_nm!=NULL){
-		KlMem_free(m.v_nm);
+	KlMem_enter_func();
+	if ((m.mf&OBJECT_MODIFIER_NATIVE_BASE)==0){
+		KlMem_free(m.nm);
+		if (m.v_nm!=NULL){
+			KlMem_free(m.v_nm);
+		}
+		KlMem_free(m.fp);
+		for (size_t i=0;i<m.fl;i++){
+			KlMem_free(*(m.f+i));
+			if (*(m.fnm+i)!=NULL){
+				KlMem_free(*(m.fnm+i));
+			}
+		}
+		if (m.fl>0){
+			KlMem_free(m.f);
+			KlMem_free(m.fnm);
+		}
+		for (size_t i=0;i<m.vl;i++){
+			KlMem_free(*(m.v+i));
+			if (*(m.vnm+i)!=NULL){
+				KlMem_free(*(m.vnm+i));
+			}
+		}
+		if (m.vl>0){
+			KlMem_free(m.v);
+			KlMem_free(m.vnm);
+		}
+		if (m.src!=NULL){
+			KlFree_free_scope(*(m.src));
+			KlMem_free(m.src);
+		}
 	}
-	if (m.f!=NULL){
-		KlMem_free(m.f);
-	}
-	if (m.v!=NULL){
-		KlMem_free(m.v);
-	}
-	KlFree_free_scope(*(m.src));
+	return();
 }
 
 

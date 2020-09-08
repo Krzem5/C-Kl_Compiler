@@ -31,7 +31,8 @@
 #include <debug_utils.h>
 #define print_token(x) KlDebug_print_ast_token(x)
 #define print_ast_expr(x) KlDebug_print_ast_expr(x,0,NULL)
-#define print_ast_scope(x) KlDebug_print_ast_scope(x,0,NULL)
+#define print_ast_scope(x)
+// #define print_ast_scope(x) KlDebug_print_ast_scope(x,0,NULL)
 #define print_unparsed_ast_expr(x) KlDebug_print_unparsed_ast_expr(x,0,NULL)
 #else
 #include <debug_utils.h>
@@ -124,6 +125,8 @@ bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,
 							return(true);
 						}
 						struct ASTModule* m=KlImport_load_module(fo,m_fp,KlError_extend_call_stack(cs,fo,KlError_offset_to_line(fo->dt,t.i),SIZE_MAX,t.i,SIZE_MAX,"<import>"));
+						KlMem_free(m->v_nm);
+						m->v_nm=NULL;
 						KlMem_free(m_fp);
 						if (m==NULL){
 							return(true);
@@ -152,8 +155,7 @@ bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,
 									return(true);
 								}
 								else if (m_e_nm.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)m_e_nm.v==AST_TOKEN_OPERATOR_SEMICOLON){
-									KlMem_free(m->v_nm);
-									m->v_nm=NULL;
+									m->mf|=OBJECT_MODIFIER_EXPORT_ALL;
 									KlFree_free_token(nt);
 									nt=KlAst_next_token(fo,KlFree_free_token(m_e_nm),cs);
 									break;
@@ -2171,7 +2173,7 @@ struct ASTScope* KlAst_clone_scope(struct ASTScope* sc){
 		}
 		m->vl=(*(sc->m+i))->vl;
 		m->src=KlAst_clone_scope((*(sc->m+i))->src);
-		m->n=(*(sc->m+i))->n;
+		m->mf=(*(sc->m+i))->mf;
 		KlMem_ret(m);
 		*(o->m+i)=m;
 	}
@@ -3176,23 +3178,35 @@ uint16_t KlAst_get_decl(char* nm,struct ASTScope* sc){
 			}
 		}
 		if (sc->t==AST_SCOPE_TYPE_CLASS&&nm_ths==true){
-			return(1);
+			return(0);
 		}
 		for (size_t i=0;i<sc->ml;i++){
 			if ((*(sc->m+i))->v_nm!=NULL){
 				if (str_cmp_sub(nm,(*(sc->m+i))->v_nm,0,ln)==true){
-					return(1);
+					return(0);
 				}
 			}
 			else{
 				for (size_t j=0;j<(*(sc->m+i))->fl;j++){
-					if (*((*(sc->m+i))->fnm+j)!=NULL&&str_cmp_sub(nm,*((*(sc->m+i))->fnm+j),0,ln)==true){
-						return(1);
+					if ((*((*(sc->m+i))->fnm+j)!=NULL||((*(sc->m+i))->mf&OBJECT_MODIFIER_EXPORT_ALL)!=0)&&str_cmp_sub(nm,(*((*(sc->m+i))->fnm+j)==NULL?*((*(sc->m+i))->f+j):*((*(sc->m+i))->fnm+j)),0,ln)==true){
+						ln=str_len(*((*(sc->m+i))->f+j));
+						for (size_t k=0;k<(*(sc->m+i))->src->fl;k++){
+							if (str_cmp_sub(*((*(sc->m+i))->f+j),(*((*(sc->m+i))->src->f+k))->nm,0,ln)==true){
+								return((*((*(sc->m+i))->src->f+k))->md);
+							}
+						}
+						assert(0);
 					}
 				}
 				for (size_t j=0;j<(*(sc->m+i))->vl;j++){
-					if (*((*(sc->m+i))->vnm+j)!=NULL&&str_cmp_sub(nm,*((*(sc->m+i))->vnm+j),0,ln)==true){
-						return(1);
+					if ((*((*(sc->m+i))->vnm+j)!=NULL||((*(sc->m+i))->mf&OBJECT_MODIFIER_EXPORT_ALL)!=0)&&str_cmp_sub(nm,(*((*(sc->m+i))->vnm+j)==NULL?*((*(sc->m+i))->v+j):*((*(sc->m+i))->vnm+j)),0,ln)==true){
+						ln=str_len(*((*(sc->m+i))->v+j));
+						for (size_t k=0;k<(*(sc->m+i))->src->vl;k++){
+							if (str_cmp_sub(*((*(sc->m+i))->v+j),*((*(sc->m+i))->src->vnm+k),0,ln)==true){
+								return(*((*(sc->m+i))->src->vm+k));
+							}
+						}
+						assert(0);
 					}
 				}
 			}
@@ -3237,13 +3251,25 @@ size_t KlAst_get_decl_refc(char* nm,struct ASTScope* sc){
 			}
 			else{
 				for (size_t j=0;j<(*(sc->m+i))->fl;j++){
-					if (*((*(sc->m+i))->fnm+j)!=NULL&&str_cmp_sub(nm,*((*(sc->m+i))->fnm+j),0,ln)==true){
-						return(1);
+					if ((*((*(sc->m+i))->fnm+j)!=NULL||((*(sc->m+i))->mf&OBJECT_MODIFIER_EXPORT_ALL)!=0)&&str_cmp_sub(nm,(*((*(sc->m+i))->fnm+j)==NULL?*((*(sc->m+i))->f+j):*((*(sc->m+i))->fnm+j)),0,ln)==true){
+						ln=str_len(*((*(sc->m+i))->f+j));
+						for (size_t k=0;k<(*(sc->m+i))->src->fl;k++){
+							if (str_cmp_sub(*((*(sc->m+i))->f+j),(*((*(sc->m+i))->src->f+k))->nm,0,ln)==true){
+								return((*((*(sc->m+i))->src->f+k))->md);
+							}
+						}
+						assert(0);
 					}
 				}
 				for (size_t j=0;j<(*(sc->m+i))->vl;j++){
-					if (*((*(sc->m+i))->vnm+j)!=NULL&&str_cmp_sub(nm,*((*(sc->m+i))->vnm+j),0,ln)==true){
-						return(1);
+					if ((*((*(sc->m+i))->vnm+j)!=NULL||((*(sc->m+i))->mf&OBJECT_MODIFIER_EXPORT_ALL)!=0)&&str_cmp_sub(nm,(*((*(sc->m+i))->vnm+j)==NULL?*((*(sc->m+i))->v+j):*((*(sc->m+i))->vnm+j)),0,ln)==true){
+						ln=str_len(*((*(sc->m+i))->v+j));
+						for (size_t k=0;k<(*(sc->m+i))->src->vl;k++){
+							if (str_cmp_sub(*((*(sc->m+i))->v+j),*((*(sc->m+i))->src->vnm+k),0,ln)==true){
+								return(*((*(sc->m+i))->src->vrc+k));
+							}
+						}
+						assert(0);
 					}
 				}
 			}

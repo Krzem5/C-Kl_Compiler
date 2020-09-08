@@ -17,6 +17,7 @@
 
 struct ASTModule** _cm=NULL;
 size_t _cml=0;
+bool _cmar=false;
 
 
 
@@ -54,8 +55,10 @@ char* KlImport_find_module(struct CodeFileObject* fo,const char* nm,struct CallS
 			*(bf+j+2)='l';
 			*(bf+j+3)=0;
 			if (KlPlatform_file_exists(bf)==true){
-				KlMem_ret(bf);
-				return(bf);
+				char* o=KlPlatform_get_full_path(bf);
+				KlMem_free(bf);
+				KlMem_ret(o);
+				return(o);
 			}
 			i++;
 			j=0;
@@ -105,7 +108,10 @@ struct ASTModule* KlImport_load_module(struct CodeFileObject* fo,const char* fp,
 			}
 			o->vl=(*(_cm+i))->vl;
 			o->src=KlAst_clone_scope((*(_cm+i))->src);
-			o->n=(*(_cm+i))->n;
+			o->mf=(*(_cm+i))->mf;
+			if ((o->mf&OBJECT_MODIFIER_NATIVE_BASE)!=0){
+				o->mf=o->mf&(~OBJECT_MODIFIER_NATIVE_BASE)|OBJECT_MODIFIER_NATIVE;
+			}
 			KlMem_ret(o);
 			return(o);
 		}
@@ -135,7 +141,7 @@ struct ASTModule* KlImport_load_module(struct CodeFileObject* fo,const char* fp,
 	*(nm+nm_l)=0;
 	KlMem_ret(nm);
 	struct ASTModule* o=KlMem_malloc(sizeof(struct ASTModule));
-	o->nm=str_clone(nm);
+	o->nm=nm;
 	o->v_nm=str_clone(nm);
 	o->fp=str_clone(fp);
 	o->f=NULL;
@@ -166,7 +172,7 @@ struct ASTModule* KlImport_load_module(struct CodeFileObject* fo,const char* fp,
 		}
 	}
 	o->src=oa;
-	o->n=false;
+	o->mf=0;
 	KlMem_ret(o);
 	KlImport_define_module(o);
 	return(o);
@@ -176,6 +182,10 @@ struct ASTModule* KlImport_load_module(struct CodeFileObject* fo,const char* fp,
 
 void KlImport_define_module(struct ASTModule* m){
 	KlMem_enter_func();
+	if (_cmar==false){
+		atexit(KlImport_free_modules);
+		_cmar=true;
+	}
 	_cml++;
 	_cm=KlMem_realloc(_cm,_cml*sizeof(struct ASTModule*));
 	KlMem_ret(_cm);
@@ -185,14 +195,9 @@ void KlImport_define_module(struct ASTModule* m){
 
 
 
+
 void KlImport_free_modules(void){
 	if (_cml>0){
-		for (size_t i=0;i<_cml;i++){
-			if ((*(_cm+i))->n==false){
-				KlFree_free_module(**(_cm+i));
-				KlMem_free(*(_cm+i));
-			}
-		}
 		KlMem_free(_cm);
 		_cm=NULL;
 		_cml=0;

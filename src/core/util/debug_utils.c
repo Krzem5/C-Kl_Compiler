@@ -228,6 +228,101 @@ void KlDebug_print_ast_token(struct ASTToken t){
 
 
 
+void KlDebug_print_ast_module(struct ASTModule* o,unsigned char i,void** rp){
+	KlMem_enter_func();
+	size_t ln=2;
+	if (rp!=NULL){
+		for (size_t j=0;true;j++){
+			if (*(rp+j)==NULL){
+				break;
+			}
+			ln++;
+		}
+	}
+	void** rpo=KlMem_malloc(ln*sizeof(void*));
+	for (size_t j=0;j<ln-2;j++){
+		*(rpo+j)=*(rp+j);
+	}
+	*(rpo+ln-2)=o;
+	*(rpo+ln-1)=NULL;
+	char* is=KlMem_malloc(i+1);
+	for (unsigned char j=0;j<i;j++){
+		*(is+j)=' ';
+	}
+	*(is+i)=0;
+	char* fps=KlDebug_print_string(o->fp);
+	if (i==0){
+		KlIo_printf("%fASTModule %f= {\n%s  %fName%f: %f%s%f,\n%s  %fFile Path%f: %f%s%f,\n%s  %fImport Name%f: ",CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,o->nm,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,fps,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	else{
+		KlIo_printf("{\n%s  %fName%f: %f%s%f,\n%s  %fFile Path%f: %f%s%f,\n%s  %fImport Name%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,o->nm,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,fps,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	KlMem_free(fps);
+	if (o->v_nm==NULL){
+		KlIo_printf("%f(None)%f,\n%s  %fExported Variables%f: ",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	else{
+		KlIo_printf("%f%s%f,\n%s  %fExported Variables%f: ",CONST_COLOR_DEBUG_UTILS_IDENTIFIER,o->v_nm,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	if (o->vl==0){
+		KlIo_printf("%f(None)%f,\n%s  %fExported Functions%f: ",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	else{
+		bool f=false;
+		for (size_t j=0;j<o->vl;j++){
+			if ((o->mf&OBJECT_MODIFIER_EXPORT_ALL)!=0||*(o->vnm+j)!=NULL){
+				continue;
+			}
+			if (f==false){
+				KlIo_printf("{\n");
+			}
+			f=true;
+			KlIo_printf("%s    {\n%s      %fExport Name%f: %f%s%f,\n%s      %fImport Name%f: %f%s%f,\n%s    },\n",is,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,*(o->v+j),CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,(*(o->vnm+j)==NULL?*(o->v+j):*(o->vnm+j)),CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is);
+		}
+		if (f==true){
+			KlIo_printf("%s  },\n%s  %fExported Functions%f: ",is,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+		}
+		else{
+			KlIo_printf("%f(None)%f,\n%s  %fExported Functions%f: ",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+		}
+	}
+	if (o->fl==0){
+		KlIo_printf("%f(None)%f,\n%s  %fCode%f: ",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	else{
+		bool f=false;
+		for (size_t j=0;j<o->fl;j++){
+			if ((o->mf&OBJECT_MODIFIER_EXPORT_ALL)!=0||*(o->fnm+j)!=NULL){
+				continue;
+			}
+			if (f==false){
+				KlIo_printf("{\n");
+			}
+			f=true;
+			KlIo_printf("%s    {\n%s      %fExport Name%f: %f%s%f,\n%s      %fImport Name%f: %f%s%f,\n%s    },\n",is,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,*(o->f+j),CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,(*(o->fnm+j)==NULL?*(o->f+j):*(o->fnm+j)),CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is);
+		}
+		if (f==true){
+			KlIo_printf("%s  },\n%s  %fCode%f: ",is,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+		}
+		else{
+			KlIo_printf("%f(None)%f,\n%s  %fCode%f: ",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+		}
+	}
+	char ec=(i==0?';':',');
+	if (o->src==NULL){
+		KlIo_printf("%f(None)%f,\n%s}%c\n",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,ec);
+	}
+	else{
+		KlDebug_print_ast_scope(o->src,i+2,rpo);
+		KlIo_printf("%s}%c\n",is,ec);
+	}
+	KlMem_free(is);
+	KlMem_free(rpo);
+	return();
+}
+
+
+
 void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i,void** rp){
 	KlMem_enter_func();
 	size_t ln=2;
@@ -307,7 +402,7 @@ void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i,void** rp){
 		}
 	}
 	if (o->p==NULL){
-		KlIo_printf("%f(None)%f,\n",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+		KlIo_printf("%f(None)%f,\n%s  %fModules%f: ",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 	}
 	else{
 		bool f=false;
@@ -319,10 +414,35 @@ void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i,void** rp){
 		}
 		if (f==false){
 			KlDebug_print_ast_scope(o->p,i+2,rpo);
+			KlIo_printf("\n%s  %fModules%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 		}
 		else{
-			KlIo_printf("%f(Recurive)%f,\n",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+			KlIo_printf("%f(Recurive)%f,\n%s  %fModules%f: ",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
 		}
+	}
+	if (o->ml==0){
+		KlIo_printf("%f(None)%f,\n",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+	}
+	else{
+		KlIo_printf("{\n");
+		for (size_t j=0;j<o->ml;j++){
+			KlIo_printf("%s    {\n%s      %fName%f: %f%s%f,\n%s      %fModule%f: ",is,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,CONST_COLOR_DEBUG_UTILS_IDENTIFIER,(*(o->m+j))->nm,CONST_COLOR_DEBUG_UTILS_PUNCTUATION,is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+			bool f=false;
+			for (size_t k=0;k<ln-1;k++){
+				if (*(rpo+k)==*(o->m+j)){
+					f=true;
+					break;
+				}
+			}
+			if (f==false){
+				KlDebug_print_ast_module(*(o->m+j),i+6,rpo);
+			}
+			else{
+				KlIo_printf("%f(Recurive)%f,\n",CONST_COLOR_DEBUG_UTILS_TYPE,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);
+			}
+			KlIo_printf("%s    },\n",is);
+		}
+		KlIo_printf("%s  },\n",is);
 	}
 	if (o->t==AST_SCOPE_TYPE_DEFAULT){
 		KlIo_printf("%s  %fVariables%f: ",is,CONST_COLOR_DEBUG_UTILS_KEY,CONST_COLOR_DEBUG_UTILS_PUNCTUATION);

@@ -8,6 +8,10 @@ void KlDebug_print_ast_token(struct ASTToken t);
 
 
 
+void KlDebug_print_ast_module(struct ASTModule* o,unsigned char i,void** rp);
+
+
+
 void KlDebug_print_ast_scope(struct ASTScope* o,unsigned char i,void** rp);
 
 

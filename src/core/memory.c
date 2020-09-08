@@ -89,7 +89,7 @@ void _dump(void* s,size_t sz){
 		mx_n/=10;
 	}
 	char* f=malloc(mx+20);
-	sprintf_s(f,mx+19,"0x%%016llx + %% %ullu: ",mx);
+	sprintf_s(f,mx+20,"0x%%016llx + %% %ullu: ",mx);
 	for (size_t i=0;i<sz;i+=8){
 		printf(f,(uintptr_t)s,(uintptr_t)i);
 		unsigned char j;
@@ -613,6 +613,7 @@ void KlMem_check_all_allocated_(){
 			else{
 				printf("0x%016llx: Pointer not Freed at The End of Program! (%s:%u (%s))\n",(unsigned long long int)n->ptr,n->mf,n->mln,n->mfn);
 			}
+			_dump((unsigned char*)n->ptr+8,n->sz);
 		}
 		n=n->n;
 	}

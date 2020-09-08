@@ -8,7 +8,7 @@
 #include <shared.h>
 #include <memory.h>
 #include <string_utils.h>
-#ifndef DEBUG
+#ifndef NDEBUG
 #include <io.h>
 #endif
 
@@ -28,7 +28,6 @@ int KlCore_run_all(int argc,const char** argv){
 	struct ASTScope* ast=KlAst_parse_ast_all(fo,NULL);
 	if (ast==NULL){
 		KlError_raise();
-		KlImport_free_modules();
 		KlFree_free_code_file_object(*fo);
 		KlMem_free(fo);
 		KlFree_free_scope(*ast);
@@ -36,7 +35,6 @@ int KlCore_run_all(int argc,const char** argv){
 		KlPlatform_restore_console();
 		return(1);
 	}
-	KlImport_free_modules();
 	KlFree_free_code_file_object(*fo);
 	KlMem_free(fo);
 	KlFree_free_scope(*ast);
