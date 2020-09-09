@@ -32,6 +32,10 @@ struct Object* KlApi_bigint_add_f(struct Object* a,struct Object* b);
 
 
 
+struct Object* KlApi_bigint_mlt_f(struct Object* a,struct Object* b);
+
+
+
 struct Object* KlApi_bigint_iroot_f(struct Object* a,struct Object* b);
 
 

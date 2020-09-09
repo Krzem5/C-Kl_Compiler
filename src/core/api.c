@@ -103,6 +103,27 @@ struct Object* KlApi_bigint_add_f(struct Object* a,struct Object* b){
 
 
 
+struct Object* KlApi_bigint_mlt_f(struct Object* a,struct Object* b){
+	KlMem_enter_func();
+	struct BigIntObject* ia=KlObject_to_bigint(a);
+	if (a==NULL){
+		return(NULL);
+	}
+	struct BigIntObject* ib=KlObject_to_bigint(b);
+	if (b==NULL){
+		return(NULL);
+	}
+	struct BigInt* oi=KlBigInt_mult(ia->i,ib->i);
+	if (oi==NULL){
+		return(NULL);
+	}
+	struct BigIntObject* o=(struct BigIntObject*)KlObject_new(BigIntType);
+	o->i=oi;
+	return((struct Object*)o);
+}
+
+
+
 struct Object* KlApi_bigint_iroot_f(struct Object* a,struct Object* b){
 	KlMem_enter_func();
 	struct BigIntObject* ia=KlObject_to_bigint(a);

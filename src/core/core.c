@@ -10,6 +10,7 @@
 #include <string_utils.h>
 #ifndef NDEBUG
 #include <io.h>
+#include <bytecode.h>
 #endif
 
 
@@ -17,28 +18,28 @@
 int KlCore_run_all(int argc,const char** argv){
 	(void)argc;
 	KlMem_enter_func();
-	assert(KlSys_stdout.p!=NULL);
 	KlPlatform_setup_console();
-	struct CodeFileObject* fo=KlCore_read_file(argv[1],NULL);
-	if (fo==NULL){
-		KlError_raise();
-		KlPlatform_restore_console();
-		return(1);
-	}
-	struct ASTScope* ast=KlAst_parse_ast_all(fo,NULL);
-	if (ast==NULL){
-		KlError_raise();
-		KlFree_free_code_file_object(*fo);
-		KlMem_free(fo);
-		KlFree_free_scope(*ast);
-		KlMem_free(ast);
-		KlPlatform_restore_console();
-		return(1);
-	}
-	KlFree_free_code_file_object(*fo);
-	KlMem_free(fo);
-	KlFree_free_scope(*ast);
-	KlMem_free(ast);
+	struct COFFFile* cf=KlBytecode_read_from_file("ast.obj");
+	// struct CodeFileObject* fo=KlCore_read_file(argv[1],NULL);
+	// if (fo==NULL){
+	// 	KlError_raise();
+	// 	KlPlatform_restore_console();
+	// 	return(1);
+	// }
+	// struct ASTScope* ast=KlAst_parse_ast_all(fo,NULL);
+	// if (ast==NULL){
+	// 	KlError_raise();
+	// 	KlFree_free_code_file_object(*fo);
+	// 	KlMem_free(fo);
+	// 	KlFree_free_scope(*ast);
+	// 	KlMem_free(ast);
+	// 	KlPlatform_restore_console();
+	// 	return(1);
+	// }
+	// KlFree_free_code_file_object(*fo);
+	// KlMem_free(fo);
+	// KlFree_free_scope(*ast);
+	// KlMem_free(ast);
 	KlPlatform_restore_console();
 	return(0);
 }

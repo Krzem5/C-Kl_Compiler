@@ -31,7 +31,7 @@ char* str_clone(const char* s){
 
 char* str_append(const char* s,char c){
 	KlMem_enter_func();
-	size_t sz=str_len(s);
+	size_t sz=(s!=NULL?str_len(s):0);
 	char* o=KlMem_realloc((char*)s,sz+2);
 	o[sz]=c;
 	o[sz+1]=0;
@@ -43,10 +43,12 @@ char* str_append(const char* s,char c){
 
 char* str_concat(const char* a,char* b){
 	KlMem_enter_func();
-	char* o=KlMem_malloc(str_len(a)+str_len(b)+1);
-	KlMem_memcpy(o,(char*)a,str_len(a));
-	KlMem_memcpy(o+str_len(a),b,str_len(b));
-	*(o+str_len(a)+str_len(b))=0;
+	char* o=KlMem_malloc((a!=NULL?str_len(a):0)+str_len(b)+1);
+	if (a!=NULL){
+		KlMem_memcpy(o,(char*)a,str_len(a));
+	}
+	KlMem_memcpy(o+(a!=NULL?str_len(a):0),b,str_len(b));
+	*(o+(a!=NULL?str_len(a):0)+str_len(b))=0;
 	KlMem_ret(o);
 	return(o);
 }

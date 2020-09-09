@@ -26,14 +26,15 @@
 
 
 #ifndef NDEBUG
-#include <stdio.h>
-#include <shared.h>
-#include <debug_utils.h>
-#define print_token(x) KlDebug_print_ast_token(x)
-#define print_ast_expr(x) KlDebug_print_ast_expr(x,0,NULL)
-#define print_ast_scope(x)
+// #include <debug_utils.h>
+// #define print_token(x) KlDebug_print_ast_token(x)
+// #define print_ast_expr(x) KlDebug_print_ast_expr(x,0,NULL)
 // #define print_ast_scope(x) KlDebug_print_ast_scope(x,0,NULL)
-#define print_unparsed_ast_expr(x) KlDebug_print_unparsed_ast_expr(x,0,NULL)
+// #define print_unparsed_ast_expr(x) KlDebug_print_unparsed_ast_expr(x,0,NULL)
+#define print_token(x)
+#define print_ast_expr(x)
+#define print_ast_scope(x)
+#define print_unparsed_ast_expr(x)
 #else
 #include <debug_utils.h>
 #define print_token(x)

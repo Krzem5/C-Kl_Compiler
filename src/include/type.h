@@ -66,6 +66,7 @@ static struct Type BigIntType={
 	.sz=sizeof(struct BigIntObject),
 	.dealloc_f=KlApi_bigint_dealloc_f,
 	.add_f=KlApi_bigint_add_f,
+	.mlt_f=KlApi_bigint_mlt_f,
 	.iroot_f=KlApi_bigint_iroot_f
 };
 
