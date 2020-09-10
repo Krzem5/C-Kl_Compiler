@@ -155,17 +155,26 @@ char* str_format_va(const char* t,va_list a){
 			else{
 				ln--;
 				switch (*t){
-					case 'b':
-						*(o+i)='b';
-						i++;
-						// va_arg(a,uint)%256
-						break;
 					case 'c':
-						*(o+i)=va_arg(a,unsigned int)%256;
-						i++;
-						ln++;
-						break;
-					case 'i':
+						{
+							unsigned char c=va_arg(a,unsigned int)%256;
+							if (c>0x1f&&c!=0x7f){
+								ln++;
+								o=KlMem_realloc(o,ln);
+								*(o+i)=c;
+								i++;
+							}
+							else{
+								ln+=3;
+								o=KlMem_realloc(o,ln);
+								*(o+i)='\\';
+								*(o+i+1)=c/16+48;
+								*(o+i+2)=c%16+48;
+								i+=3;
+							}
+							break;
+						}
+					/*case 'i':
 						{
 							int v=va_arg(a,int);
 							if (v<0){
@@ -188,6 +197,218 @@ char* str_format_va(const char* t,va_list a){
 								i++;
 								sz--;
 								pw/=10;
+							}
+							break;
+						}*/
+					case 'z':
+						{
+							ln+=4;
+							o=KlMem_realloc(o,ln);
+							*(o+i)='0';
+							*(o+i+1)='x';
+							i+=2;
+							uint8_t p=va_arg(a,uint8_t);
+							for (signed char j=4;j>=0;j-=4){
+								unsigned char v=(p>>j)%16;
+								if (v<=9){
+									*(o+i)=48+v;
+								}
+								else{
+									*(o+i)=87+v;
+								}
+								i++;
+							}
+							break;
+						}
+					case 'Z':
+						{
+							ln+=6;
+							o=KlMem_realloc(o,ln);
+							*(o+i)='0';
+							*(o+i+1)='x';
+							i+=2;
+							uint16_t p=va_arg(a,uint16_t);
+							for (signed char j=12;j>=0;j-=4){
+								unsigned char v=(p>>j)%16;
+								if (v<=9){
+									*(o+i)=48+v;
+								}
+								else{
+									*(o+i)=87+v;
+								}
+								i++;
+							}
+							break;
+						}
+					case 'x':
+						{
+							ln+=10;
+							o=KlMem_realloc(o,ln);
+							*(o+i)='0';
+							*(o+i+1)='x';
+							i+=2;
+							uint32_t p=va_arg(a,uint32_t);
+							for (signed char j=28;j>=0;j-=4){
+								unsigned char v=(p>>j)%16;
+								if (v<=9){
+									*(o+i)=48+v;
+								}
+								else{
+									*(o+i)=87+v;
+								}
+								i++;
+							}
+							break;
+						}
+					case 'X':
+						{
+							ln+=18;
+							o=KlMem_realloc(o,ln);
+							*(o+i)='0';
+							*(o+i+1)='x';
+							i+=2;
+							uint64_t p=va_arg(a,uint64_t);
+							for (signed char j=60;j>=0;j-=4){
+								unsigned char v=(p>>j)%16;
+								if (v<=9){
+									*(o+i)=48+v;
+								}
+								else{
+									*(o+i)=87+v;
+								}
+								i++;
+							}
+							break;
+						}
+					case 'b':
+						{
+							uint8_t v=va_arg(a,uint8_t);
+							if (v==0){
+								ln++;
+								o=KlMem_realloc(o,ln);
+								*(o+i)='0';
+								i++;
+							}
+							else{
+								unsigned char sz=1;
+								uint8_t pw=10;
+								while (pw<v+1){
+									sz++;
+									if (sz==3){
+										break;
+									}
+									pw*=10;
+								}
+								ln+=sz;
+								o=KlMem_realloc(o,ln);
+								if (sz!=3){
+									pw/=10;
+								}
+								while (sz>0){
+									*(o+i)=48+(v/pw)%10;
+									i++;
+									sz--;
+									pw/=10;
+								}
+							}
+							break;
+						}
+					case 'w':
+						{
+							uint16_t v=va_arg(a,uint16_t);
+							if (v==0){
+								ln++;
+								o=KlMem_realloc(o,ln);
+								*(o+i)='0';
+								i++;
+							}
+							else{
+								unsigned char sz=1;
+								uint16_t pw=10;
+								while (pw<v+1){
+									sz++;
+									if (sz==5){
+										break;
+									}
+									pw*=10;
+								}
+								ln+=sz;
+								o=KlMem_realloc(o,ln);
+								if (sz!=5){
+									pw/=10;
+								}
+								while (sz>0){
+									*(o+i)=48+(v/pw)%10;
+									i++;
+									sz--;
+									pw/=10;
+								}
+							}
+							break;
+						}
+					case 'd':
+						{
+							uint32_t v=va_arg(a,uint32_t);
+							if (v==0){
+								ln++;
+								o=KlMem_realloc(o,ln);
+								*(o+i)='0';
+								i++;
+							}
+							else{
+								unsigned char sz=1;
+								uint32_t pw=10;
+								while (pw<v+1){
+									sz++;
+									if (sz==10){
+										break;
+									}
+									pw*=10;
+								}
+								ln+=sz;
+								o=KlMem_realloc(o,ln);
+								if (sz!=10){
+									pw/=10;
+								}
+								while (sz>0){
+									*(o+i)=48+(v/pw)%10;
+									i++;
+									sz--;
+									pw/=10;
+								}
+							}
+							break;
+						}
+					case 'q':
+						{
+							size_t v=va_arg(a,size_t);
+							if (v==0){
+								ln++;
+								o=KlMem_realloc(o,ln);
+								*(o+i)='0';
+								i++;
+							}
+							else{
+								unsigned char sz=1;
+								size_t pw=10;
+								while (pw<v+1){
+									sz++;
+									if (sz==20){
+										break;
+									}
+									pw*=10;
+								}
+								ln+=sz;
+								o=KlMem_realloc(o,ln);
+								if (sz!=20){
+									pw/=10;
+								}
+								while (sz>0){
+									*(o+i)=48+(v/pw)%10;
+									i++;
+									sz--;
+									pw/=10;
+								}
 							}
 							break;
 						}

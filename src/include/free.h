@@ -40,4 +40,8 @@ void KlFree_free_object(struct Object* o);
 
 
 
+void KlFree_free_bytecode_data(struct BytecodeData bdt);
+
+
+
 #endif

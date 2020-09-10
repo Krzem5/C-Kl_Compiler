@@ -13,6 +13,8 @@
 #define KlError_unimplemented_error() KlError_unimplemented("Error",__LINE__)
 #define KlError_unimplemented_warning() KlError_unimplemented("Warning",__LINE__)
 #endif
+#define COLOR_ERROR_TXT 0x1d23c1e000000 // #d23c1e;#000000
+#define COLOR_ERROR_SRC_HIGHLIGHT 0x3fefefee932a2 // #fefefe;#e932a2
 
 
 

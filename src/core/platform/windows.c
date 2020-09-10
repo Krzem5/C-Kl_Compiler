@@ -73,23 +73,6 @@ char* KlPlatform_read_file_content(const char* fp,size_t* l){
 
 
 
-char* KlPlatform_demangle_name(char* nm){
-	KlMem_enter_func();
-	char* bf=KlMem_malloc(1024);
-	uint32_t ln=UnDecorateSymbolName(nm,bf,1024,UNDNAME_COMPLETE);
-	if (ln==0){
-		return(NULL);
-	}
-	if (ln==8&&str_cmp_sub(bf,"`string'",0,8)==true){
-		KlMem_free(bf);
-		return(KlBytecode_demangle_string(nm));
-	}
-	KlMem_ret(bf);
-	return(KlMem_realloc(bf,ln+1));
-}
-
-
-
 void KlPlatform_setup_console(void){
 	KlMem_enter_func();
 	HANDLE h=GetStdHandle(STD_INPUT_HANDLE);

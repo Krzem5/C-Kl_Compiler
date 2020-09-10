@@ -5,11 +5,11 @@ use sys as system;
 
 
 private frozen tes='W';
-public static export frozen s="R-^df*I";
+public static export frozen s="R-^d$0f*I";
 
 
 
-sys.stdout.write("char:",'a',0_102983+478__3794*3,tes*67);
+sys.stdout.write("cha$r:",'a',0_102983+478__3794*3,tes*67);
 system.stdout.writeln("\"HEY!\d34");
-std_out.write("?DBYIQYDHui");
+std_out.write("?DBYIQYD$$Hui");
 stdout.writeln("\n ");

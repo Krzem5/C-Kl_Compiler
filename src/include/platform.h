@@ -20,10 +20,6 @@ char* KlPlatform_read_file_content(const char* fp,size_t* l);
 
 
 
-char* KlPlatform_demangle_name(char* nm);
-
-
-
 void KlPlatform_setup_console(void);
 
 

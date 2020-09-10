@@ -4,23 +4,23 @@
 
 
 
-struct COFFFile* KlBytecode_from_ast_object(struct ASTObject* o);
+struct BytecodeData* KlBytecode_from_ast_scope(struct CodeFileObject* fo,struct ASTScope* ast);
 
 
 
-struct COFFFile* KlBytecode_read_from_file(const char* fp);
+struct BytecodeData* KlBytecode_read_from_file(const char* fp);
 
 
 
-void KlBytecode_write_to_file(const char* fp,struct COFFFile* b);
+void KlBytecode_write_to_file(const char* fp,struct BytecodeData* b);
 
 
 
-char* KlBytecode_demangle_string(char* nm);
+char* KlBytecode_decode_string(char* s,size_t* ln);
 
 
 
-size_t KlBytecode_demangle_string_length(char* nm,size_t* i);
+char* KlBytecode_encode_string(char* s,size_t ln);
 
 
 

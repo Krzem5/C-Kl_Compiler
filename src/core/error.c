@@ -1,4 +1,3 @@
-#include <constants.h>
 #include <error.h>
 #include <platform.h>
 #include <sys.h>
@@ -32,8 +31,8 @@ void KlError_raise(void){
 		bool h;
 		bool s;
 		unsigned char a;
-		char* cl=str_escape_ansi(CONST_COLOR_ERROR_SRC_HIGHLIGHT);
-		char* c_cl=str_escape_ansi(CONST_COLOR_RESET);
+		char* cl=str_escape_ansi(COLOR_ERROR_SRC_HIGHLIGHT);
+		char* c_cl=str_escape_ansi(COLOR_RESET);
 		size_t cl_ln=str_len(cl);
 		size_t c_cl_ln=str_len(c_cl);
 		for (struct CallStackElem* i=_err.cs->e;i<_err.cs->e+_err.cs->l;i++){
@@ -124,7 +123,7 @@ void KlError_raise(void){
 						k++;
 					}
 					*(ln+sz)=0;
-					KlIo_write(KlSys_stderr,str_format("%fFile '%s', Line%s%s:%f%s\n",CONST_COLOR_ERROR_TXT,i->c->fp,(i->sl==i->el?str_format(" %S",i->sl+1):str_format("s %S-%S",i->sl+1,i->el+1)),(i->f!=NULL?str_format(" in '%s'",i->f):""),CONST_COLOR_RESET,ln));
+					KlIo_write(KlSys_stderr,str_format("%fFile '%s', Line%s%s:%f%s\n",COLOR_ERROR_TXT,i->c->fp,(i->sl==i->el?str_format(" %S",i->sl+1):str_format("s %S-%S",i->sl+1,i->el+1)),(i->f!=NULL?str_format(" in '%s'",i->f):""),COLOR_RESET,ln));
 					KlMem_free(ln);
 					break;
 				}
@@ -133,10 +132,10 @@ void KlError_raise(void){
 		}
 	}
 	if (_err.nm==NULL||_err.msg==NULL){
-		KlIo_write(KlSys_stderr,str_format("%fInternalError: Error hasn't Been Set.%f\n",CONST_COLOR_ERROR_TXT,CONST_COLOR_RESET));
+		KlIo_write(KlSys_stderr,str_format("%fInternalError: Error hasn't Been Set.%f\n",COLOR_ERROR_TXT,COLOR_RESET));
 	}
 	else{
-		KlIo_write(KlSys_stderr,str_format("%f%s: %s%f\n",CONST_COLOR_ERROR_TXT,_err.nm,_err.msg,CONST_COLOR_RESET));
+		KlIo_write(KlSys_stderr,str_format("%f%s: %s%f\n",COLOR_ERROR_TXT,_err.nm,_err.msg,COLOR_RESET));
 	}
 	KlError_cleanup();
 	return();

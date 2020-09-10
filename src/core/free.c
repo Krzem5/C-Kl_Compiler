@@ -322,3 +322,12 @@ void KlFree_free_object(struct Object* o){
 	KlMem_free(o);
 	return();
 }
+
+
+
+void KlFree_free_bytecode_data(struct BytecodeData bdt){
+	KlMem_enter_func();
+	KlMem_free(bdt.st);
+	KlMem_free(bdt.it);
+	return();
+}

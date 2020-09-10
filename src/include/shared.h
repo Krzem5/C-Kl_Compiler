@@ -7,6 +7,7 @@
 #ifdef NULL
 #undef NULL
 #endif
+#define COLOR_RESET 0x0000000000000
 #define NULL ((void*)0)
 #define NONE (SIZE_MAX)
 #define UNKNOWN_SIZE (SIZE_MAX)
@@ -360,6 +361,16 @@ enum OBJECT_MODIFIER{
 
 
 
+enum BYTECODE_DATA_FLAG{
+	BYTECODE_DATA_FLAG_NONE=0x00,
+	BYTECODE_DATA_FLAG_ENTRY=0x01,
+	BYTECODE_DATA_FLAG_DEBUG=0x02,
+	BYTECODE_DATA_FLAG_EMBEDDED=0x04,
+	BYTECODE_DATA_FLAG_EMBEDDED_SRC=0x08
+};
+
+
+
 enum FILE_MODIFIER{
 	FILE_MODIFIER_NONE=0x00,
 	FILE_MODIFIER_EXISTS=0x01,
@@ -369,36 +380,6 @@ enum FILE_MODIFIER{
 	FILE_MODIFIER_WRITE=0x10,
 	FILE_MODIFIER_TEXT=0x20,
 	FILE_MODIFIER_BINARY=0x40
-};
-
-
-
-enum COFF_FILE_MACHINE_TYPE{
-	COFF_FILE_MACHINE_UNKNOWN=0x0000,
-	COFF_FILE_MACHINE_AM33=0x01d3,
-	COFF_FILE_MACHINE_AMD64=0x8664,
-	COFF_FILE_MACHINE_ARM=0x01c0,
-	COFF_FILE_MACHINE_ARM64=0xaa64,
-	COFF_FILE_MACHINE_ARMNT=0x01c4,
-	COFF_FILE_MACHINE_EBC=0x0ebc,
-	COFF_FILE_MACHINE_I386=0x014c,
-	COFF_FILE_MACHINE_IA64=0x0200,
-	COFF_FILE_MACHINE_M32R=0x9041,
-	COFF_FILE_MACHINE_MIPS16=0x0266,
-	COFF_FILE_MACHINE_MIPSFPU=0x0366,
-	COFF_FILE_MACHINE_MIPSFPU16=0x0466,
-	COFF_FILE_MACHINE_POWERPC=0x01f0,
-	COFF_FILE_MACHINE_POWERPCFP=0x01f1,
-	COFF_FILE_MACHINE_R4000=0x0166,
-	COFF_FILE_MACHINE_RISCV32=0x5032,
-	COFF_FILE_MACHINE_RISCV64=0x5064,
-	COFF_FILE_MACHINE_RISCV128=0x5128,
-	COFF_FILE_MACHINE_SH3=0x01a2,
-	COFF_FILE_MACHINE_SH3DSP=0x01a3,
-	COFF_FILE_MACHINE_SH4=0x01a6,
-	COFF_FILE_MACHINE_SH5=0x01a8,
-	COFF_FILE_MACHINE_THUMB=0x01c2,
-	COFF_FILE_MACHINE_WCEMIPSV2=0x0169
 };
 
 
@@ -646,7 +627,7 @@ struct ASTModule{
 	char** vnm;
 	size_t vl;
 	struct ASTScope* src;
-	uint16_t mf;
+	uint8_t mf;
 };
 
 
@@ -700,51 +681,40 @@ struct ASTExpression{
 
 
 
-struct COFFFileSymbolTableEntry{
-	char* nm;
-	uint32_t v;
-	int16_t sn;
-	enum COFF_FILE_SYMBOL_TYPE t;
-	enum COFF_FILE_SYMBOL_STORAGE_CLASS sc;
-	uint8_t asl;
+struct BytecodeFunctionData{
+	uint32_t nm;
+	size_t sl;
+	size_t el;
+	uint64_t* ll;
+	uint64_t off;
 };
 
 
 
-struct COFFFileSection{
-	char* nm;
-	uint8_t* dt;
-	uint32_t dt_sz;
-	uint32_t f;
-};
-
-
-
-struct COFFFile{
-	enum COFF_FILE_MACHINE_TYPE mt;
-	struct COFFFileSection* s;
-	uint16_t sl;
-	uint32_t tm;
-	struct COFFFileSymbolTableEntry* st;
-	uint32_t stl;
-	uint16_t f;
-};
-
-
-
-struct BytecodeDataElem{
-	enum OPCODE t;
-	uint8_t ec;
-	uint8_t* e;
+struct BytecodeResourceData{
+	uint32_t nm;
+	uint32_t l;
+	unsigned char* dt;
 };
 
 
 
 struct BytecodeData{
-	unsigned char fc;
-	struct BytecodeDataElem* e;
-	size_t e_l;
-	char* c;
+	uint32_t m;
+	uint16_t v;
+	uint32_t stl;
+	uint32_t ftl;
+	uint8_t rtl;
+	uint16_t itl;
+	uint16_t etl;
+	uint8_t f;
+	char* st;
+	struct BytecodeFunctionData* ft;
+	struct BytecodeResourceData* rt;
+	uint32_t* it;
+	uint32_t* et;
+	size_t cl;
+	unsigned char* c;
 };
 
 
