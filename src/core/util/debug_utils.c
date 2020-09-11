@@ -893,8 +893,8 @@ void KlDebug_print_ast_expr(struct ASTExpression* e,unsigned char i,void** rp){
 				KlIo_printf("%s  %fArguments%f: %f(Null)%f,\n",is,COLOR_DEBUG_UTILS_KEY,COLOR_DEBUG_UTILS_PUNCTUATION,COLOR_DEBUG_UTILS_TYPE,COLOR_DEBUG_UTILS_PUNCTUATION);
 			}
 			else{
-				for (unsigned long k=0;k<e->bl;k++){
-					KlIo_printf("%s  %fArgument#%i%f: ",is,COLOR_DEBUG_UTILS_KEY,k+1,COLOR_DEBUG_UTILS_PUNCTUATION);
+				for (uint32_t k=0;k<e->bl;k++){
+					KlIo_printf("%s  %fArgument#%d%f: ",is,COLOR_DEBUG_UTILS_KEY,k+1,COLOR_DEBUG_UTILS_PUNCTUATION);
 					KlDebug_print_ast_expr_arg(e->b+k,i+2,rpo);
 				}
 			}
@@ -1712,6 +1712,272 @@ void KlDebug_print_bytecode(struct BytecodeData* bdt){
 	}
 	if (bdt->cl==0){
 		KlIo_printf("    %fnop\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+	}
+	else{
+		uint64_t i=0;
+		while (i<bdt->cl){
+			bool ex=((*(bdt->c+i)&0x80)!=0?true:false);
+			switch (*(bdt->c+i)&(~0x80)){
+				default:
+				case OPCODE_NOP:
+					KlIo_printf("    %fnop\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_POP:
+					KlIo_printf("    %fpop\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_ROT:
+					KlIo_printf("    %frot\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_ROT_THREE:
+					KlIo_printf("    %frot3\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_DUP:
+					KlIo_printf("    %fdup\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_DUP_TWO:
+					KlIo_printf("    %fdup2\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_ABS:
+					KlIo_printf("    %fabs\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_NEG:
+					KlIo_printf("    %fneg\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_INV:
+					KlIo_printf("    %finv\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_NOT:
+					KlIo_printf("    %fnot\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_INC:
+					KlIo_printf("    %finc\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_DEC:
+					KlIo_printf("    %fdec\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_LEN:
+					KlIo_printf("    %flen\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_BOOL:
+					KlIo_printf("    %fbool\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_REPR:
+					KlIo_printf("    %frepr\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_UNARY_HASH:
+					KlIo_printf("    %fhash\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_ADD:
+					KlIo_printf("    %fadd\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_SUB:
+					KlIo_printf("    %fsub\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_MLT:
+					KlIo_printf("    %fmult\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_DIV:
+					KlIo_printf("    %fdiv\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_FDIV:
+					KlIo_printf("    %ffloor_div\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_MOD:
+					KlIo_printf("    %fmod\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_MMLT:
+					KlIo_printf("    %fmatrix_mult\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_ROOT:
+					KlIo_printf("    %froot\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_IROOT:
+					KlIo_printf("    %fint_root\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_LSH:
+					KlIo_printf("    %left_shift\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_RSH:
+					KlIo_printf("    %fright_shift\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_BAND:
+					KlIo_printf("    %fbitwise_and\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_BXOR:
+					KlIo_printf("    %fbitwise_xor\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_BOR:
+					KlIo_printf("    %fbitwise_or\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_AND:
+					KlIo_printf("    %fand\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_OR:
+					KlIo_printf("    %for\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_CONCAT:
+					KlIo_printf("    %fconcat\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_REPEAT:
+					KlIo_printf("    %frepeat\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_ITEM:
+					KlIo_printf("    %fitem\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_SUBS:
+					KlIo_printf("    %fsubs\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_SUBS_STR:
+					i++;
+					KlIo_printf("    %facs%f: %fstring%f[%d]\n",COLOR_DEBUG_UTILS_INSTRUCTION,COLOR_DEBUG_UTILS_PUNCTUATION,COLOR_DEBUG_UTILS_INSTRUCTION_TYPE,COLOR_DEBUG_UTILS_INSTRUCTION_VALUE,KlBytecode_read_opcode_arg(bdt->c,ex,&i));
+					break;
+				case OPCODE_BINARY_INCLUDES:
+					KlIo_printf("    %fincludes\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_ASS:
+					i++;
+					KlIo_printf("    %fassign%f: %fstring%f[%d]\n",COLOR_DEBUG_UTILS_INSTRUCTION,COLOR_DEBUG_UTILS_PUNCTUATION,COLOR_DEBUG_UTILS_INSTRUCTION_TYPE,COLOR_DEBUG_UTILS_INSTRUCTION_VALUE,KlBytecode_read_opcode_arg(bdt->c,ex,&i));
+					break;
+				case OPCODE_BINARY_CAST:
+					KlIo_printf("    %fcast\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_ADD:
+					KlIo_printf("    %finplace_add\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_SUB:
+					KlIo_printf("    %finplace_sub\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_MLT:
+					KlIo_printf("    %finplace_mult\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_DIV:
+					KlIo_printf("    %finplace_div\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_FDIV:
+					KlIo_printf("    %finplace_floor_div\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_MOD:
+					KlIo_printf("    %finplace_mod\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_MMLT:
+					KlIo_printf("    %finplace_matrix_mult\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_ROOT:
+					KlIo_printf("    %finplace_root\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_IROOT:
+					KlIo_printf("    %finplace_int_root\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_LSH:
+					KlIo_printf("    %finplace_left_shift\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_RSH:
+					KlIo_printf("    %finplace_right_shift\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_BAND:
+					KlIo_printf("    %finplace_bitwise_and\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_BXOR:
+					KlIo_printf("    %finplace_bitwise_xor\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_BOR:
+					KlIo_printf("    %finplace_bitwise_or\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_CONCAT:
+					KlIo_printf("    %finplace_concat\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_BINARY_INP_REPEAT:
+					KlIo_printf("    %finplace_repeat\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_TERNARY_POW:
+					KlIo_printf("    %fpower\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_TERNARY_INP_POW:
+					KlIo_printf("    %finplace_power\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_TERNARY_SLICE:
+					KlIo_printf("    %fslice\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_TERNARY_ITEM_ASS:
+					KlIo_printf("    %fitem_assign\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_TERNARY_SUBS_ASS:
+					KlIo_printf("    %fXXX\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_QUATERNARY_SLICE_STEP:
+					KlIo_printf("    %fXXX\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_QUATERNARY_SLICE_ASS:
+					KlIo_printf("    %fXXX\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_QUINTARY_SLICE_STEP_ASS:
+					KlIo_printf("    %fXXX\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_CALL:
+					i++;
+					KlIo_printf("    %fcall%f: %fint%f[%d]\n",COLOR_DEBUG_UTILS_INSTRUCTION,COLOR_DEBUG_UTILS_PUNCTUATION,COLOR_DEBUG_UTILS_INSTRUCTION_TYPE,COLOR_DEBUG_UTILS_INSTRUCTION_VALUE,KlBytecode_read_opcode_arg(bdt->c,ex,&i));
+					break;
+				case OPCODE_CMP:
+					KlIo_printf("    %fcmp\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_JMP:
+					KlIo_printf("    %fjmp\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_RET:
+					KlIo_printf("    %fret\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_EXIT:
+					KlIo_printf("    %fexit\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_RAISE:
+					KlIo_printf("    %fraise\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_CREATE_ARRAY:
+					KlIo_printf("    %farray\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_CREATE_LIST:
+					KlIo_printf("    %flist\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_JMP_EQ:
+					KlIo_printf("    %fjmp_eq\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_STORE_GLOBAL:
+					KlIo_printf("    %fstore_global\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_LOAD_GLOBAL:
+					KlIo_printf("    %fload_global\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_DELETE_GLOBAL:
+					KlIo_printf("    %fdelete_global\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_STORE_LOCAL:
+					KlIo_printf("    %fstore_local\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_LOAD_LOCAL:
+					KlIo_printf("    %fload_local\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_DELETE_LOCAL:
+					KlIo_printf("    %fdelete_local\n",COLOR_DEBUG_UTILS_INSTRUCTION);
+					break;
+				case OPCODE_LOAD_CONST:
+					i++;
+					KlIo_printf("    %fload_const%f: %fstring%f[%d]\n",COLOR_DEBUG_UTILS_INSTRUCTION,COLOR_DEBUG_UTILS_PUNCTUATION,COLOR_DEBUG_UTILS_INSTRUCTION_TYPE,COLOR_DEBUG_UTILS_INSTRUCTION_VALUE,KlBytecode_read_opcode_arg(bdt->c,ex,&i));
+					break;
+				case OPCODE_LOAD_CONST_CHAR:
+					i++;
+					KlIo_printf("    %fload_const%f: %fchar%f[%b]\n",COLOR_DEBUG_UTILS_INSTRUCTION,COLOR_DEBUG_UTILS_PUNCTUATION,COLOR_DEBUG_UTILS_INSTRUCTION_TYPE,COLOR_DEBUG_UTILS_INSTRUCTION_VALUE,*(bdt->c+i));
+					break;
+				case OPCODE_LOAD_CONST_INT:
+					i++;
+					KlIo_printf("    %fload_const%f: %fint%f[%d]\n",COLOR_DEBUG_UTILS_INSTRUCTION,COLOR_DEBUG_UTILS_PUNCTUATION,COLOR_DEBUG_UTILS_INSTRUCTION_TYPE,COLOR_DEBUG_UTILS_INSTRUCTION_VALUE,KlBytecode_read_opcode_arg(bdt->c,ex,&i));
+					break;
+				case OPCODE_REF_VAR:
+					i++;
+					KlIo_printf("    %fref_var%f: %fstring%f[%d]\n",COLOR_DEBUG_UTILS_INSTRUCTION,COLOR_DEBUG_UTILS_PUNCTUATION,COLOR_DEBUG_UTILS_INSTRUCTION_TYPE,COLOR_DEBUG_UTILS_INSTRUCTION_VALUE,KlBytecode_read_opcode_arg(bdt->c,ex,&i));
+					break;
+			}
+			i++;
+		}
 	}
 	KlIo_printf("  %f}\n};%f\n",COLOR_DEBUG_UTILS_PUNCTUATION,COLOR_RESET);
 	return();

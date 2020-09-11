@@ -164,7 +164,7 @@ if (subprocess.run(shlex.split(f"cl /c /permissive- /GS /W3 /Zc:wchar_t /Gm- /sd
 				for f in fl:
 					with open(ntpath.join(r,f),"rb") as rf,open(ntpath.join(r,f).replace("../src/lib/","lib/"),"wb") as wf:
 						wf.write(rf.read())
-			os.system(f"del tmp.c&&del *.objAAA&&del *.pdb&&del *.exp{('' if rel==True else '&&del *.ilk&&del *.idb')}&&cls")
+			os.system(f"del tmp.c&&del *.obj&&del *.pdb&&del *.exp{('' if rel==True else '&&del *.ilk&&del *.idb')}&&cls")
 			ec="0x"+hex(subprocess.run(["kl.exe",".\\..\\test.kl"]).returncode)[2:].rjust(8,"0")
 			if (ec!="0x00000000"):
 				o=re.search(rf"<err n=\'{ec}\' name=\'([^\']+)\' src=\'[^\']+\'>([^<]*?)</err>",str(subprocess.run(["err.exe","/:xml","/winerror.h","/ntstatus.h",str(ec)],stdout=subprocess.PIPE).stdout,"utf-8"))
