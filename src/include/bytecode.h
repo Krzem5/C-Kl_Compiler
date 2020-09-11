@@ -12,10 +12,6 @@ uint32_t KlBytecode_get_string(struct BytecodeData* bdt,char* s);
 
 
 
-uint32_t KlBytecode_get_var(struct BytecodeStackData* sdt,char* nm);
-
-
-
 void KlBytecode_add_opcode_arg(struct BytecodeData* bdt,unsigned char op,uint32_t v);
 
 

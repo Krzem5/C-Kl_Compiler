@@ -99,34 +99,13 @@ uint32_t KlBytecode_get_string(struct BytecodeData* bdt,char* s){
 			KlMem_free(e);
 			return(i);
 		}
-		i+=(uint32_t)str_len(bdt->st+i)+1;
+		i+=(uint32_t)str_len(bdt->st+i);
 	}
 	bdt->st=KlMem_realloc(bdt->st,bdt->stl+el+1);
 	KlMem_memcpy(bdt->st+bdt->stl,e,el+1);
 	uint32_t i=bdt->stl;
 	bdt->stl+=(uint32_t)el+1;
 	return(i);
-}
-
-
-
-uint32_t KlBytecode_get_var(struct BytecodeStackData* sdt,char* nm){
-	KlMem_enter_func();
-	size_t ln=str_len(nm);
-	for (uint64_t i=0;i<sdt->l;i++){
-		if (str_cmp_sub(nm,*(sdt->k+i),0,ln)==true){
-			return(*(sdt->v+i));
-		}
-	}
-	sdt->l++;
-	sdt->k=KlMem_realloc(sdt->k,sdt->l*sizeof(char*));
-	sdt->v=KlMem_realloc(sdt->v,sdt->l*sizeof(char*));
-	*(sdt->k+sdt->l-1)=str_clone(nm);
-	*(sdt->v+sdt->l-1)=sdt->n;
-	sdt->n++;
-	KlMem_ret(sdt->k);
-	KlMem_ret(sdt->v);
-	return(*(sdt->v+sdt->l-1));
 }
 
 
