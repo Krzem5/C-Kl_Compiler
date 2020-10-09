@@ -633,7 +633,7 @@ void KlMem_check_all_allocated_(){
 
 void* KlMem_memcpy_(void* o,void* s,size_t sz){
 	for (size_t i=0;i<(sz);i++){
-		*((char*)(o)+i)=*((char*)(s)+i);
+		*((unsigned char*)(o)+i)=*((unsigned char*)(s)+i);
 	}
 	return o;
 }
