@@ -198,37 +198,39 @@ void KlBytecode_compile_expr(struct ASTExpression* e,uint32_t i,struct BytecodeD
 			KlError_unimplemented_code();
 			break;
 		case AST_EXPRESSION_TYPE_CALL:
-			for (size_t j=0;j<e->bl;j++){
-				KlBytecode_compile_expr_arg(e->b+j,SIZE_MAX,bdt,sdt);
-				sdt->n++;
-			}
-			KlBytecode_compile_expr_arg(&e->a,SIZE_MAX,bdt,sdt);
-			KlBytecode_add_opcode_arg(bdt,OPCODE_CALL,(uint32_t)e->bl);
-			KlDebug_print_bytecode(bdt);
-			assert(0);
+			KlError_unimplemented_code();
+			// for (size_t j=0;j<e->bl;j++){
+			// 	KlBytecode_compile_expr_arg(e->b+j,SIZE_MAX,bdt,sdt);
+			// 	sdt->n++;
+			// }
+			// KlBytecode_compile_expr_arg(&e->a,SIZE_MAX,bdt,sdt);
+			// KlBytecode_add_opcode_arg(bdt,OPCODE_CALL,(uint32_t)e->bl);
+			// KlDebug_print_bytecode(bdt);
+			// assert(0);
 			break;
 		case AST_EXPRESSION_TYPE_SLC:
 			KlError_unimplemented_code();
 			break;
 		case AST_EXPRESSION_TYPE_ACS:
-			KlBytecode_compile_expr_arg(&e->a,SIZE_MAX,bdt,sdt);
-			if (e->b->t!=AST_EXPRESSION_ARG_TYPE_IDENTIFIER){
-				KlBytecode_compile_expr_arg(e->b,SIZE_MAX,bdt,sdt);
-				bdt->cl+=4;
-				bdt->c=KlMem_realloc(bdt->c,bdt->cl);
-				*(bdt->c+bdt->cl-4)=OPCODE_BINARY_SUBS;
-				*(bdt->c+bdt->cl-3)=OPCODE_ROT_THREE;
-				*(bdt->c+bdt->cl-2)=OPCODE_POP;
-				*(bdt->c+bdt->cl-1)=OPCODE_POP;
-			}
-			else{
-				KlBytecode_add_opcode_arg(bdt,OPCODE_BINARY_SUBS_STR,KlBytecode_get_string(bdt,e->b->v.i));
-				bdt->cl+=3;
-				bdt->c=KlMem_realloc(bdt->c,bdt->cl);
-				*(bdt->c+bdt->cl-3)=OPCODE_ROT_THREE;
-				*(bdt->c+bdt->cl-2)=OPCODE_POP;
-				*(bdt->c+bdt->cl-1)=OPCODE_POP;
-			}
+			KlError_unimplemented_code();
+			// KlBytecode_compile_expr_arg(&e->a,SIZE_MAX,bdt,sdt);
+			// if (e->b->t!=AST_EXPRESSION_ARG_TYPE_IDENTIFIER){
+			// 	KlBytecode_compile_expr_arg(e->b,SIZE_MAX,bdt,sdt);
+			// 	bdt->cl+=4;
+			// 	bdt->c=KlMem_realloc(bdt->c,bdt->cl);
+			// 	*(bdt->c+bdt->cl-4)=OPCODE_BINARY_SUBS;
+			// 	*(bdt->c+bdt->cl-3)=OPCODE_ROT_THREE;
+			// 	*(bdt->c+bdt->cl-2)=OPCODE_POP;
+			// 	*(bdt->c+bdt->cl-1)=OPCODE_POP;
+			// }
+			// else{
+			// 	KlBytecode_add_opcode_arg(bdt,OPCODE_BINARY_SUBS_STR,KlBytecode_get_string(bdt,e->b->v.i));
+			// 	bdt->cl+=3;
+			// 	bdt->c=KlMem_realloc(bdt->c,bdt->cl);
+			// 	*(bdt->c+bdt->cl-3)=OPCODE_ROT_THREE;
+			// 	*(bdt->c+bdt->cl-2)=OPCODE_POP;
+			// 	*(bdt->c+bdt->cl-1)=OPCODE_POP;
+			// }
 			break;
 		case AST_EXPRESSION_TYPE_PLUS:
 			KlError_unimplemented_code();
@@ -252,15 +254,16 @@ void KlBytecode_compile_expr(struct ASTExpression* e,uint32_t i,struct BytecodeD
 			KlError_unimplemented_code();
 			break;
 		case AST_EXPRESSION_TYPE_MLT:
-			KlBytecode_compile_expr_arg(&e->a,SIZE_MAX,bdt,sdt);
-			KlBytecode_compile_expr_arg(e->b,SIZE_MAX,bdt,sdt);
-			bdt->cl+=4;
-			bdt->c=KlMem_realloc(bdt->c,bdt->cl);
-			*(bdt->c+bdt->cl-4)=OPCODE_BINARY_MLT;
-			*(bdt->c+bdt->cl-3)=OPCODE_ROT_THREE;
-			*(bdt->c+bdt->cl-2)=OPCODE_POP;
-			*(bdt->c+bdt->cl-1)=OPCODE_POP;
-			KlDebug_print_bytecode(bdt);
+			KlError_unimplemented_code();
+			// KlBytecode_compile_expr_arg(&e->a,SIZE_MAX,bdt,sdt);
+			// KlBytecode_compile_expr_arg(e->b,SIZE_MAX,bdt,sdt);
+			// bdt->cl+=4;
+			// bdt->c=KlMem_realloc(bdt->c,bdt->cl);
+			// *(bdt->c+bdt->cl-4)=OPCODE_BINARY_MLT;
+			// *(bdt->c+bdt->cl-3)=OPCODE_ROT_THREE;
+			// *(bdt->c+bdt->cl-2)=OPCODE_POP;
+			// *(bdt->c+bdt->cl-1)=OPCODE_POP;
+			// KlDebug_print_bytecode(bdt);
 			break;
 		case AST_EXPRESSION_TYPE_DIV:
 			KlError_unimplemented_code();
@@ -323,13 +326,14 @@ void KlBytecode_compile_expr(struct ASTExpression* e,uint32_t i,struct BytecodeD
 			KlError_unimplemented_code();
 			break;
 		case AST_EXPRESSION_TYPE_EQU:
-			if (e->a.t==AST_EXPRESSION_ARG_TYPE_IDENTIFIER){
-				KlBytecode_compile_expr_arg(e->b,SIZE_MAX,bdt,sdt);
-				KlBytecode_add_opcode_arg(bdt,OPCODE_BINARY_ASS,KlBytecode_get_string(bdt,e->a.v.i));
-			}
-			else{
-				KlError_unimplemented_code();
-			}
+			KlError_unimplemented_code();
+			// if (e->a.t==AST_EXPRESSION_ARG_TYPE_IDENTIFIER){
+			// 	KlBytecode_compile_expr_arg(e->b,SIZE_MAX,bdt,sdt);
+			// 	KlBytecode_add_opcode_arg(bdt,OPCODE_BINARY_ASS,KlBytecode_get_string(bdt,e->a.v.i));
+			// }
+			// else{
+			// 	KlError_unimplemented_code();
+			// }
 			break;
 		case AST_EXPRESSION_TYPE_ADD_EQU:
 			KlError_unimplemented_code();
