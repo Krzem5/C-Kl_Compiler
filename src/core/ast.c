@@ -377,7 +377,18 @@ bool KlAst_parse_ast(struct CodeFileObject* fo,size_t* off,struct CallStack* cs,
 							if (t.t==AST_TOKEN_TYPE_WHITESPACE){
 								t=KlAst_next_token(fo,KlFree_free_token(t),cs);
 							}
-							if (t.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)t.v==AST_TOKEN_OPERATOR_SEMICOLON){
+							if (t.t==AST_TOKEN_TYPE_IDENTIFIER){
+								c_scp->vl++;
+								c_scp->vnm=KlMem_realloc(c_scp->vnm,c_scp->vl*sizeof(char*));
+								c_scp->vm=KlMem_realloc(c_scp->vm,c_scp->vl*sizeof(uint16_t));
+								c_scp->vrc=KlMem_realloc(c_scp->vrc,c_scp->vl*sizeof(size_t));
+								*(c_scp->vnm+c_scp->vl-1)=i_nm;
+								*(c_scp->vm+c_scp->vl-1)=fm.m;
+								*(c_scp->vrc+c_scp->vl-1)=0;
+								KlIo_printf("RESOLVE TYPE: %s\n",i_nm);
+								KlError_unimplemented_code();
+							}
+							else if (t.t==AST_TOKEN_TYPE_OPERATOR&&(unsigned char)(uintptr_t)t.v==AST_TOKEN_OPERATOR_SEMICOLON){
 								if ((fm.m&OBJECT_MODIFIER_OPERATOR)!=0){
 									KlError_unimplemented_error();
 									return(true);
@@ -785,10 +796,14 @@ struct UnparsedASTExpression* KlAst_read_expression(struct CodeFileObject* fo,st
 					struct UnparsedASTExpressionElem el;
 					el.t=UNPARSED_AST_EXPRESSION_ELEM_TYPE_IDENTIFIER;
 					el.v.i=KlMem_const(t->v,str_len(t->v)+1);
+					KlIo_printf("AAA\n");
 					if (o.l==0){
 						KlAst_add_expression_unparsed(&o,el);
 						KlMem_ret(el.v.i);
 						break;
+					}
+					if (o.l==1){
+						KlIo_printf("BBB\n");
 					}
 					if ((o.e+o.l-1)->t==UNPARSED_AST_EXPRESSION_ELEM_TYPE_OPERATOR){
 						KlAst_add_expression_unparsed(&o,el);

@@ -4,8 +4,8 @@ from sys use stdout as std_out;
 use sys as system;
 
 
-private frozen tes='W';
-public static export frozen s="R-^d$0f*I";
+private frozen char tes='W';
+public static export frozen string s="R-^d$0f*I";
 
 
 

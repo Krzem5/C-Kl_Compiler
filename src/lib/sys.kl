@@ -3,10 +3,10 @@ use stream;
 
 
 
-export frozen stdout=stream.Stream(_sys.out,"w");
-export frozen stderr=stream.Stream(_sys.err,"w");
-export frozen stdin=stream.Stream(_sys.in,"r");
+export frozen object stdout=stream.Stream(_sys.out,"w");
+export frozen object stderr=stream.Stream(_sys.err,"w");
+export frozen object stdin=stream.Stream(_sys.in,"r");
 
 
 
-export frozentype path=_sys.path;
+export frozentype string path=_sys.path;
