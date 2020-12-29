@@ -1,10 +1,10 @@
-import os
-import sys
-import ntpath
-import subprocess
-import shlex
 import glob
+import ntpath
+import os
 import re
+import shlex
+import subprocess
+import sys
 
 
 
