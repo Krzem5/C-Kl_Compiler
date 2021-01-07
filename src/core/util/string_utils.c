@@ -174,32 +174,6 @@ char* str_format_va(const char* t,va_list a){
 							}
 							break;
 						}
-					/*case 'i':
-						{
-							int v=va_arg(a,int);
-							if (v<0){
-								*(o+i)='-';
-								i++;
-								v=abs(v);
-								ln++;
-							}
-							unsigned char sz=1;
-							unsigned int pw=10;
-							while (pw<(unsigned int)v-1){
-								sz++;
-								pw*=10;
-							}
-							ln+=sz;
-							o=KlMem_realloc(o,ln);
-							pw/=10;
-							while (sz>0){
-								*(o+i)=48+(v/pw)%10;
-								i++;
-								sz--;
-								pw/=10;
-							}
-							break;
-						}*/
 					case 'z':
 						{
 							ln+=4;
