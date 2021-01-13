@@ -1,6 +1,3 @@
-### Github File Push Ignore
-
 build
 preprocessed.c
-_frozenbuild
 freeze_py.bat
