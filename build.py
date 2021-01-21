@@ -12,7 +12,7 @@ if (ntpath.exists("build")):
 	os.system("rmdir /s /q .\\build")
 os.mkdir("build")
 os.chdir(os.getcwd()+"\\build\\")
-ti,tp,os.environ["INCLUDE"],os.environ["PATH"],os.environ["_NO_DEBUG_HEAP"]=os.environ["INCLUDE"],os.environ["PATH"],".\\..\\src\\include;"+os.environ["INCLUDE"],"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.25.28610\\bin\\Hostx64\\x64;"+os.environ["PATH"],"1"
+ti,tp,os.environ["INCLUDE"],os.environ["PATH"],os.environ["_NO_DEBUG_HEAP"]=os.environ["INCLUDE"],os.environ["PATH"],".\\..\\src\\include;"+os.environ["INCLUDE"],"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Tools\\MSVC\\14.28.29333\\bin\\Hostx64\\x64;"+os.environ["PATH"],"1"
 rel=(True if len(sys.argv)==2 and sys.argv[1]=="-r" else False)
 s=""
 for fn in os.listdir(".\\..\\src\\include"):
